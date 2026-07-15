@@ -1,0 +1,30 @@
+# Campaign and generated workflow outputs
+HMS_*/
+SHMS_*/
+demo/
+archive/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Development backups
+*.bak*
+*.before_*
+*.retired
+
+# Generated ROOT and analysis outputs
+*.root
+*.pdf
+*.png
+*.jpg
+*.jpeg
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*~
+
+# OS files
+.DS_Store

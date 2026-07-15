@@ -1,0 +1,34 @@
+Hall C Optics Code Assistant — MVP upload manifest
+
+Always upload as text:
+assistant/CURRENT_WORKFLOW.md
+assistant/CAMPAIGN_SETUP.md
+assistant/REPOSITORY_LAYOUT.md
+
+Upload when parameter advice is needed:
+assistant/PARAMETER_GUIDE.md
+assistant/TROUBLESHOOTING.md
+assistant/KNOWN_ISSUES.md
+
+Upload when exact commands or code interpretation are needed:
+the specific current script, macro, or runner relevant to the question
+
+Do not upload by default:
+backups/
+rescue_20260702/
+script_attempts/
+__pycache__/
+demo/
+generated ROOT files
+plots
+PDFs
+historical scripts unless specifically needed
+
+Current model:
+JLab Gemma 4 31B IT
+
+LibreChat settings:
+Auto-send Prompts: OFF
+Prompt: Hall C Optics Code Assistant
+File method: Upload as Text
+File Search: not used for source-code text in the current JLab configuration
