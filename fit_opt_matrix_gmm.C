@@ -33,7 +33,7 @@ void fit_opt_matrix_gmm(
   TString oldCoeffsFile,
   TString rungroupsTsv,
   TString opticsMetadataFile) {
-  Int_t maxFoils=2;
+  Int_t maxFoils=3;
   Int_t maxDel=5;
 
   struct CampaignSetting {
