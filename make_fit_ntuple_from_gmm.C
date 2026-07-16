@@ -263,7 +263,7 @@ static TString delta_tag_gmm(Int_t ndel) {
 }
 
 static Long64_t read_gmm_masks_for_run(Int_t run,
-                                        const TString &opticsID,
+                                        const TString &rungroup,
                                         Int_t nFoils,
                                         Int_t nDeltaIntervals,
                                         const TString &yBaseDir,
@@ -282,9 +282,9 @@ static Long64_t read_gmm_masks_for_run(Int_t run,
       if (dtag == "UNKNOWN") continue;
 
       TString yfile = Form("%s/gmm_clean_%s_foil%d_delta_%s_allY.root",
-                           yBaseDir.Data(), opticsID.Data(), nf, dtag.Data());
+                           yBaseDir.Data(), rungroup.Data(), nf, dtag.Data());
       TString xfile = Form("%s/gmm_clean_%s_foil%d_delta_%s_allX.root",
-                           xBaseDir.Data(), opticsID.Data(), nf, dtag.Data());
+                           xBaseDir.Data(), rungroup.Data(), nf, dtag.Data());
       ny += read_gmm_mask_one_file(yfile, kTRUE,  ymask, verbose);
       nx += read_gmm_mask_one_file(xfile, kFALSE, xmask, verbose);
     }
@@ -315,7 +315,8 @@ void make_fit_ntuple_from_gmm(
                               Bool_t savePlots=kTRUE,
                               TString vetoFile="",
                               TString outputDir="HMS_6p117GeV/06a_fit_ntuple",
-                              TString inputRootOverride="") {
+                              TString inputRootOverride="",
+                              TString rungroup="") {
   gStyle->SetOptStat(0);
 
   OpticsInfoGMM info;
@@ -328,8 +329,13 @@ void make_fit_ntuple_from_gmm(
        << " NumFoil=" << info.numFoil
        << " delta intervals=" << nDeltaIntervals << endl;
 
+  if (rungroup.Length() == 0) {
+    cout << "ERROR: rungroup is required for GMM input filenames." << endl;
+    return;
+  }
+
   map<Long64_t, ColMaskInfo> ymask, xmask;
-  read_gmm_masks_for_run(nrun, info.opticsID,
+  read_gmm_masks_for_run(nrun, rungroup,
                          info.numFoil, nDeltaIntervals,
                          yBaseDir, xBaseDir, xTag,
                          ymask, xmask, kFALSE);
@@ -338,7 +344,7 @@ void make_fit_ntuple_from_gmm(
 
   if (ymask.empty() || xmask.empty()) {
     cout << "ERROR: empty Y or X GMM mask for run " << nrun << "." << endl;
-    cout << "Check yBaseDir/xBaseDir/xTag paths." << endl;
+    cout << "Check the rungroup and Y/X GMM input directories." << endl;
     return;
   }
 
@@ -356,8 +362,8 @@ void make_fit_ntuple_from_gmm(
   gSystem->mkdir(Form("%s/root", outputDir.Data()), kTRUE);
   gSystem->mkdir(Form("%s/plots", outputDir.Data()), kTRUE);
 
-  TString outputroot = Form("%s/root/Optics_%s_%d_fit_tree_gmm.root",
-                            outputDir.Data(), info.opticsID.Data(), FileID);
+  TString outputroot = Form("%s/root/Optics_%d_%d_fit_tree_gmm.root",
+                            outputDir.Data(), nrun, FileID);
   cout << "Input ROOT : " << inputroot << endl;
   cout << "Output TFit: " << outputroot << endl;
 
@@ -550,8 +556,8 @@ void plot_fit_ntuple_qa_from_existing(
   }
 
   TString inputroot =
-    Form("%s/root/Optics_%s_%d_fit_tree_gmm.root",
-         outputDir.Data(), info.opticsID.Data(), FileID);
+    Form("%s/root/Optics_%d_%d_fit_tree_gmm.root",
+         outputDir.Data(), nrun, FileID);
 
   TFile *f = TFile::Open(inputroot.Data(), "READ");
   if (!f || f->IsZombie()) {

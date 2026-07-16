@@ -58,7 +58,7 @@ OVERWRITE="${OVERWRITE:-0}"
 
 NTUPLE_MACRO="${PROJECT_DIR}/make_fit_ntuple_from_gmm.C"
 SVD_MACRO="${PROJECT_DIR}/fit_opt_matrix_gmm.C"
-OPTICS_METADATA="${PROJECT_DIR}/DATfiles/list_of_optics_run.dat"
+OPTICS_METADATA="${OPTICS_METADATA:-${PROJECT_DIR}/DATfiles/list_of_optics_run.dat}"
 
 [[ -d "$CAMPAIGN_DIR" ]] || {
   echo "ERROR: missing campaign directory: $CAMPAIGN_DIR"
@@ -138,6 +138,7 @@ log "============================================================"
 log "CAMPAIGN      = $CAMPAIGN"
 log "TAG           = $TAG"
 log "RUNGROUPS_TSV = $RUNGROUPS_TSV"
+log "OPTICS_METADATA = $OPTICS_METADATA"
 log "FILEID        = $FILEID"
 log "YBASE         = $YBASE"
 log "XBASE         = $XBASE"
@@ -240,7 +241,7 @@ while IFS=$'\t' read -r rungroup optics_id angle foils nruns runs input_root; do
 
   root_dir=$(dirname "$input_root")
 
-  expr="${NTUPLE_MACRO}(${optics_id},${FILEID},\"${TAG}\",\"${root_dir}\",\"${YBASE}\",\"${XBASE}\",${CER_CUT},${CAL_CUT},true,\"${VETO_FILE}\",\"${NTUPLE_DIR}\",\"${input_root}\")"
+  expr="${NTUPLE_MACRO}(${optics_id},${FILEID},\"${TAG}\",\"${root_dir}\",\"${YBASE}\",\"${XBASE}\",${CER_CUT},${CAL_CUT},true,\"${VETO_FILE}\",\"${NTUPLE_DIR}\",\"${input_root}\",\"${rungroup}\")"
   cmd=(hcana -b -l -q "$expr")
 
   print_command "${cmd[@]}"
@@ -317,7 +318,7 @@ if [[ "$OVERWRITE" == 1 ]]; then
   rm -f -- "$matrix_out" "$qa_out" "$old_pdf" "$new_pdf"
 fi
 
-svd_expr="${SVD_MACRO}(\"${TAG}\",${FILEID},${NFIT_MAX},${NSETTINGS},\"${NTUPLE_DIR}/root\",\"${SVD_DIR}\",\"${OLD_COEFFS}\")"
+svd_expr="${SVD_MACRO}(\"${TAG}\",${FILEID},${NFIT_MAX},${NSETTINGS},\"${NTUPLE_DIR}/root\",\"${SVD_DIR}\",\"${OLD_COEFFS}\",\"${RUNGROUPS_TSV}\",\"${OPTICS_METADATA}\")"
 svd_cmd=(hcana -b -l -q "$svd_expr")
 
 log "============================================================"

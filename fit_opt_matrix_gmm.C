@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <TFile.h>
 #include <TNtuple.h>
@@ -23,22 +24,79 @@
 
 
 void fit_opt_matrix_gmm(
-  TString tag="6p117_noVeto",
-  Int_t FileID=-1,
-  Int_t nfit_max_arg=200000,
-  Int_t nSettings=-1,
-  TString inputTreeDir="HMS_6p117GeV/06a_fit_ntuple/root",
-  TString outputDir="HMS_6p117GeV/06b_svd_fit",
-  TString oldCoeffsFile="DATfiles/nps_hms_optics_6p667_ang.dat") {
+  TString tag,
+  Int_t FileID,
+  Int_t nfit_max_arg,
+  Int_t nSettings,
+  TString inputTreeDir,
+  TString outputDir,
+  TString oldCoeffsFile,
+  TString rungroupsTsv,
+  TString opticsMetadataFile) {
   Int_t maxFoils=2;
   Int_t maxDel=5;
 
-  vector<int> runTot = {
-    611701, 611702, 611703, 611704,
-    611705, 611706, 611707, 611708
+  struct CampaignSetting {
+    TString rungroup;
+    Int_t opticsId;
   };
-  if (nSettings < 0 || nSettings > (Int_t)runTot.size()) nSettings = (Int_t)runTot.size();
-  runTot.resize(nSettings);
+
+  vector<CampaignSetting> settings;
+
+  ifstream rungroupFile(rungroupsTsv.Data());
+  if (!rungroupFile.is_open()) {
+    cout << "ERROR: cannot open campaign TSV: "
+         << rungroupsTsv << endl;
+    return;
+  }
+
+  string tsvLine;
+  while (getline(rungroupFile, tsvLine)) {
+    if (tsvLine.empty()) continue;
+    if (tsvLine.rfind("rungroup\t", 0) == 0) continue;
+
+    string rungroupField;
+    string opticsIdField;
+    stringstream row(tsvLine);
+
+    if (!getline(row, rungroupField, '\t') ||
+        !getline(row, opticsIdField, '\t')) {
+      cout << "ERROR: malformed campaign TSV row: "
+           << tsvLine << endl;
+      return;
+    }
+
+    CampaignSetting setting;
+    setting.rungroup = rungroupField.c_str();
+    setting.opticsId = TString(opticsIdField.c_str()).Atoi();
+
+    if (setting.rungroup.IsNull() || setting.opticsId <= 0) {
+      cout << "ERROR: invalid campaign TSV row: "
+           << tsvLine << endl;
+      return;
+    }
+
+    settings.push_back(setting);
+  }
+
+  rungroupFile.close();
+
+  if (settings.empty()) {
+    cout << "ERROR: no campaign settings read from "
+         << rungroupsTsv << endl;
+    return;
+  }
+
+  if (nSettings < 0 || nSettings > (Int_t)settings.size()) {
+    nSettings = (Int_t)settings.size();
+  }
+
+  settings.resize(nSettings);
+
+  cout << "Campaign settings read from: "
+       << rungroupsTsv << endl;
+  cout << "Number of settings: "
+       << settings.size() << endl;
 
   gROOT->Reset();
   gStyle->SetOptStat(0);
@@ -244,10 +302,11 @@ void fit_opt_matrix_gmm(
     ys_cent.push_back(pos);
   }
   
-  for (int iSetting=0; iSetting<nSettings; iSetting++){
-    //  Get info for that optics run
-    Int_t nrun = runTot[iSetting];
-    TString OpticsFile = "DATfiles/list_of_optics_run.dat";
+  for (int iSetting = 0; iSetting < nSettings; iSetting++) {
+    // Get the campaign setting selected by the rungroup TSV.
+    Int_t nrun = settings[iSetting].opticsId;
+    TString rungroup = settings[iSetting].rungroup;
+    TString OpticsFile = opticsMetadataFile;
     ifstream file_optics(OpticsFile.Data());
     TString opticsline;
     TString OpticsID="";
@@ -317,11 +376,30 @@ void fit_opt_matrix_gmm(
     }
     cout << RunNum << " " << OpticsID << " " << CentAngle << " " << nfoils << " " << SieveFlag << endl;
     
-    TString inputroot;
-    inputroot = Form("%s/Optics_%s_%d_fit_tree_gmm.root",
-                     inputTreeDir.Data(), OpticsID.Data(), FileID);
+    TString inputroot = Form(
+      "%s/Optics_%d_%d_fit_tree_gmm.root",
+      inputTreeDir.Data(),
+      nrun,
+      FileID
+    );
+
+    if (gSystem->AccessPathName(inputroot)) {
+      TString legacyInput = Form(
+        "%s/Optics_%s_%d_fit_tree_gmm.root",
+        inputTreeDir.Data(),
+        rungroup.Data(),
+        FileID
+      );
+
+      if (!gSystem->AccessPathName(legacyInput)) {
+        cout << " Using legacy rungroup-named fit tree: "
+             << legacyInput << endl;
+        inputroot = legacyInput;
+      }
+    }
+
     cout << " INfile = " << inputroot << endl;
-    TFile *fsimc = new TFile(inputroot);
+    TFile *fsimc = TFile::Open(inputroot, "READ");
     if (!fsimc || fsimc->IsZombie()) {
       cout << " WARNING: missing fit tree file, skipping run " << nrun << ": " << inputroot << endl;
       if (fsimc) fsimc->Close();
