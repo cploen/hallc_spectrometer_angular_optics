@@ -56,7 +56,8 @@ void analyze_fit_sample_balance(
   Int_t maxPerYBin = 1000,
   Int_t maxPerFoil = 15000,
   Int_t maxPerRunFoil = 30000,
-  Long64_t nfitMax = 200000
+  Long64_t nfitMax = 200000,
+  TString diagnosticOutputDir = ""
 ) {
   TString campaignDir = campaign;
   gSystem->ExpandPathName(campaignDir);
@@ -70,8 +71,12 @@ void analyze_fit_sample_balance(
   TString configDir = Form("%s/config", campaignDir.Data());
   TString inputTreeDir =
     Form("%s/06a_fit_ntuple/root", campaignDir.Data());
-  TString outputDir =
-    Form("%s/06b_svd_fit/diagnostics", campaignDir.Data());
+  TString outputDir = diagnosticOutputDir;
+  if (outputDir.IsNull()) {
+    outputDir = Form("%s/06b_svd_fit/diagnostics", campaignDir.Data());
+  } else {
+    gSystem->ExpandPathName(outputDir);
+  }
 
   TString findCommand = Form(
     "find '%s' -maxdepth 1 -type f "
