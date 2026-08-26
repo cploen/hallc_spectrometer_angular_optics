@@ -19,6 +19,8 @@ __pycache__/
 *.png
 *.jpg
 *.jpeg
+*_C.d
+*_C_ACLiC_dict_rdict.pcm
 
 # Logs and temporary files
 *.log
@@ -28,3 +30,16 @@ __pycache__/
 
 # OS files
 .DS_Store
+
+# Checked-in preliminary 6.667 GeV conditioning bundle.  Keep the rest of the
+# campaign workspace ignored while exposing this self-contained analysis set.
+!HMS_6p667GeV/
+HMS_6p667GeV/*
+!HMS_6p667GeV/08_preliminary_conditioning/
+!HMS_6p667GeV/08_preliminary_conditioning/**
+
+# Reproducible presentation QA files and transient PowerPoint metadata are not
+# analysis data and should not be committed.
+HMS_6p667GeV/08_preliminary_conditioning/deck_build/
+HMS_6p667GeV/08_preliminary_conditioning/*.inspect.ndjson
+HMS_6p667GeV/08_preliminary_conditioning/~$*.pptx

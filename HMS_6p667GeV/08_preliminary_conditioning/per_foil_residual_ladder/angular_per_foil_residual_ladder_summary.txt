@@ -1,0 +1,25 @@
+Angular per-foil training/held-out residual ladder
+training events = 166013
+held-out eligible events = 278684
+foils = [-8.0, -3.0, 0.0, 3.0, 8.0]
+evaluated N = 1..210
+relative-change reference = N=126
+primary method = direct SVD of unit-column X, independently refit at every N
+comparison method = current unscaled-XTX ROOT-SVD coefficient ladder
+
+rescaled_direct_X
+  foil -8 cm, training=44310, heldout=36160: xptar: best N>=35 is 202, RMS=2.10542511 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 210, RMS=0.145456577 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 210, RMS=1.06766883 mrad, first 5-N run >5% above minimum=none through 210
+  foil -3 cm, training=25505, heldout=8218: xptar: best N>=35 is 192, RMS=1.99245418 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 110, RMS=0.141392083 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 54, RMS=1.10425555 mrad, first 5-N run >5% above minimum=none through 210
+  foil 0 cm, training=30000, heldout=199492: xptar: best N>=35 is 208, RMS=1.77149646 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 106, RMS=0.130955094 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 121, RMS=1.0474435 mrad, first 5-N run >5% above minimum=none through 210
+  foil 3 cm, training=25731, heldout=9857: xptar: best N>=35 is 186, RMS=1.82393641 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 187, RMS=0.133025782 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 188, RMS=1.10221256 mrad, first 5-N run >5% above minimum=none through 210
+  foil 8 cm, training=40467, heldout=24957: xptar: best N>=35 is 61, RMS=2.39836512 mrad, first 5-N run >5% above minimum=64; ytar: best N>=35 is 163, RMS=0.144977087 cm, first 5-N run >5% above minimum=170; yptar: best N>=35 is 115, RMS=1.14556198 mrad, first 5-N run >5% above minimum=120
+
+current_XTX
+  foil -8 cm, training=44310, heldout=36160: xptar: best N>=35 is 168, RMS=2.20909121 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 173, RMS=0.152762513 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 175, RMS=1.08499935 mrad, first 5-N run >5% above minimum=none through 210
+  foil -3 cm, training=25505, heldout=8218: xptar: best N>=35 is 164, RMS=2.0564606 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 63, RMS=0.141762227 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 54, RMS=1.10446095 mrad, first 5-N run >5% above minimum=none through 210
+  foil 0 cm, training=30000, heldout=199492: xptar: best N>=35 is 199, RMS=1.79850384 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 179, RMS=0.131308727 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 173, RMS=1.04805099 mrad, first 5-N run >5% above minimum=none through 210
+  foil 3 cm, training=25731, heldout=9857: xptar: best N>=35 is 154, RMS=1.85570343 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 207, RMS=0.133874165 cm, first 5-N run >5% above minimum=none through 210; yptar: best N>=35 is 105, RMS=1.10189167 mrad, first 5-N run >5% above minimum=none through 210
+  foil 8 cm, training=40467, heldout=24957: xptar: best N>=35 is 199, RMS=1.83967606 mrad, first 5-N run >5% above minimum=none through 210; ytar: best N>=35 is 172, RMS=0.198616528 cm, first 5-N run >5% above minimum=173; yptar: best N>=35 is 113, RMS=1.15835561 mrad, first 5-N run >5% above minimum=164
+
+Table: HMS_6p667GeV/08_preliminary_conditioning/per_foil_residual_ladder/angular_per_foil_residual_ladder.tsv
+Onset table: HMS_6p667GeV/08_preliminary_conditioning/per_foil_residual_ladder/angular_per_foil_overfitting_onsets.tsv

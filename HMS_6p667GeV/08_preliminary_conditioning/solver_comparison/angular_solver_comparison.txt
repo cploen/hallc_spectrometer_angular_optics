@@ -1,0 +1,120 @@
+Preliminary angular-optics solver comparison
+events = 166013
+adjusted coefficients per reconstructed quantity = 210
+valid seed-matrix rows = 461
+seed rows carried fixed because they depend on xtar = 252
+saved clean output rows = 462 (210 adjusted, 252 fixed)
+scaling = divide each design-matrix column by its Euclidean length, then transform coefficients back
+relative singular-value cutoff used for comparisons = 2.2204460492503131e-16
+
+Full N=210 condition numbers (smaller is better):
+  current unscaled XTX = 5.73204849e+26
+  unscaled direct X = 3.48210734e+13
+  rescaled direct X = 346817.421
+  rescaled XTX = 1.2028242e+11
+
+Full N=210 retained directions using the same relative cutoff:
+  current unscaled XTX = 111/210
+  unscaled direct X = 210/210
+  rescaled direct X = 210/210
+  rescaled XTX = 210/210
+
+Residual RMS on the selected fit sample:
+  saved current XTX: xptar=1.97775282 mrad, ytar=0.147826856 cm, yptar=1.12551883 mrad
+  reformed current XTX: xptar=1.97772724 mrad, ytar=0.147848432 cm, yptar=1.12550396 mrad
+  unscaled direct X: xptar=1.90576546 mrad, ytar=0.14494056 cm, yptar=1.11670893 mrad
+  rescaled XTX: xptar=1.90576546 mrad, ytar=0.14494056 cm, yptar=1.11670893 mrad
+  rescaled direct X: xptar=1.90576546 mrad, ytar=0.14494056 cm, yptar=1.11670893 mrad
+
+Difference from the rescaled direct-X solution:
+  saved current XTX: prediction RMS xptar=0.528738338 mrad, ytar=0.0290691105 cm, yptar=0.140548281 mrad
+    raw coefficient relative differences = 1, 1, 1
+    scaled-coordinate relative differences = 1.02660481, 0.978247792, 0.988156956
+  reformed current XTX: prediction RMS xptar=0.528642642 mrad, ytar=0.0291786379 cm, yptar=0.140429132 mrad
+    raw coefficient relative differences = 1, 1, 1
+    scaled-coordinate relative differences = 1.0267205, 0.977381291, 0.988055951
+  unscaled direct X: prediction RMS xptar=7.98325399e-11 mrad, ytar=8.63843473e-12 cm, yptar=3.14024883e-11 mrad
+    raw coefficient relative differences = 4.23538691e-12, 7.69974303e-13, 5.51213167e-13
+    scaled-coordinate relative differences = 1.73713164e-11, 6.72035842e-11, 3.83307022e-11
+  rescaled XTX: prediction RMS xptar=2.05779692e-07 mrad, ytar=4.61320709e-09 cm, yptar=2.48259282e-08 mrad
+    raw coefficient relative differences = 8.44652211e-06, 8.73633584e-07, 2.31480811e-07
+    scaled-coordinate relative differences = 1.1871133e-06, 6.01602329e-07, 4.90767055e-07
+
+Eligible events excluded by the fit-sample caps = 278684
+Held-out events by setting:
+  rg01_theta12p490_foil0: 192731
+  rg02_theta15p195_foil0: 6761
+  rg03_theta12p490_foilpm8: 49246
+  rg04_theta15p195_foilpm3: 218
+  rg05_theta12p495_foilpm3: 17857
+  rg06_theta15p195_foilpm8: 1198
+  rg07_theta12p495_foilpm8: 10673
+
+Residual RMS on eligible events excluded from the fit:
+  saved current XTX: xptar=1.87416176 mrad, ytar=0.145497934 cm, yptar=1.06889589 mrad
+  reformed current XTX: xptar=1.8723043 mrad, ytar=0.146485733 cm, yptar=1.06889736 mrad
+  unscaled direct X: xptar=3.04945551 mrad, ytar=0.514136789 cm, yptar=3.83800684 mrad
+  rescaled XTX: xptar=3.04945559 mrad, ytar=0.514136677 cm, yptar=3.83800655 mrad
+  rescaled direct X: xptar=3.04945551 mrad, ytar=0.514136789 cm, yptar=3.83800684 mrad
+
+Held-out prediction difference from the rescaled direct-X solution:
+  saved current XTX: RMS xptar=2.26181789 mrad, ytar=0.546919394 cm, yptar=3.76306162 mrad; max xptar=1165.34126 mrad, ytar=288.421791 cm, yptar=1985.37154 mrad
+  reformed current XTX: RMS xptar=2.27570119 mrad, ytar=0.549652815 cm, yptar=3.76280254 mrad; max xptar=1172.84346 mrad, ytar=289.863623 cm, yptar=1985.22966 mrad
+  unscaled direct X: RMS xptar=1.65779563e-10 mrad, ytar=1.73850169e-11 cm, yptar=6.55716888e-11 mrad; max xptar=7.81139526e-08 mrad, ytar=8.19981193e-09 cm, yptar=3.11726809e-08 mrad
+  rescaled XTX: RMS xptar=2.88173029e-07 mrad, ytar=1.15555717e-07 cm, yptar=3.06343586e-07 mrad; max xptar=8.8808258e-05 mrad, ytar=6.09475627e-05 cm, yptar=0.000160759355 mrad
+
+Reconstructed vertex z on held-out events:
+  saved current XTX: RMS=0.727385422 cm, median abs=0.43947424 cm, p99 abs=1.7151533 cm, max abs=165.659737 cm
+  reformed current XTX: RMS=0.734899522 cm, median abs=0.439315619 cm, p99 abs=1.71668008 cm, max abs=174.565245 cm
+  unscaled direct X: RMS=0.691522544 cm, median abs=0.435649266 cm, p99 abs=1.71042303 cm, max abs=117.497001 cm
+  rescaled XTX: RMS=0.691522532 cm, median abs=0.435649264 cm, p99 abs=1.71042303 cm, max abs=117.496982 cm
+  rescaled direct X: RMS=0.691522544 cm, median abs=0.435649266 cm, p99 abs=1.71042303 cm, max abs=117.497001 cm
+  current-versus-rescaled vertex difference: RMS=0.549081315 cm, median abs=0.0702739155 cm, p90 abs=0.177732391 cm, p99 abs=0.367304287 cm, max abs=283.156739 cm
+
+Absolute current-matrix versus rescaled-direct prediction difference percentiles on held-out events:
+  xptar (mrad): median=0.231566526, p90=0.595226332, p95=0.766373821, p99=1.51620587, p99.9=2.66943244, max=1165.34126
+  ytar (cm): median=0.0146973541, p90=0.037106734, p95=0.0483764133, p99=0.0785412373, p99.9=0.133102978, max=288.421791
+  yptar (mrad): median=0.0723622138, p90=0.183791158, p95=0.228542619, p99=0.381801971, p99.9=0.893400566, max=1985.37154
+
+Per-setting held-out RMS: saved current XTX versus rescaled direct X, followed by their prediction difference
+  rg01_theta12p490_foil0 (n=192731): current=(1.79309 mrad, 0.13147 cm, 1.04725 mrad); rescaled=(1.77181 mrad, 0.133547 cm, 1.0559 mrad); difference=(0.383859 mrad, 0.0229855 cm, 0.125741 mrad)
+  rg02_theta15p195_foil0 (n=6761): current=(1.9604 mrad, 0.130266 cm, 1.08348 mrad); rescaled=(1.76268 mrad, 0.135474 cm, 1.11595 mrad); difference=(1.68302 mrad, 0.0356616 cm, 0.208138 mrad)
+  rg03_theta12p490_foilpm8 (n=49246): current=(2.01227 mrad, 0.151614 cm, 1.10488 mrad); rescaled=(1.90668 mrad, 0.143079 cm, 1.08556 mrad); difference=(0.540257 mrad, 0.029033 cm, 0.129253 mrad)
+  rg04_theta15p195_foilpm3 (n=218): current=(1.64692 mrad, 0.117507 cm, 1.05037 mrad); rescaled=(1.60852 mrad, 0.124714 cm, 1.09169 mrad); difference=(0.471348 mrad, 0.0293488 cm, 0.157836 mrad)
+  rg05_theta12p495_foilpm3 (n=17857): current=(1.95682 mrad, 0.137962 cm, 1.10989 mrad); rescaled=(1.90783 mrad, 0.141157 cm, 1.11924 mrad); difference=(0.412539 mrad, 0.0247824 cm, 0.123997 mrad)
+  rg06_theta15p195_foilpm8 (n=1198): current=(1.50778 mrad, 0.126524 cm, 1.10381 mrad); rescaled=(1.46626 mrad, 0.120091 cm, 1.09873 mrad); difference=(0.469611 mrad, 0.0405159 cm, 0.198182 mrad)
+  rg07_theta12p495_foilpm8 (n=10673): current=(2.41265 mrad, 0.299848 cm, 1.19661 mrad); rescaled=(12.6884 mrad, 2.53746 cm, 18.8682 mrad); difference=(11.29 mrad, 2.79194 cm, 19.2179 mrad)
+
+Candidate-N fit/held-out residual summary:
+  N=5: current rank=5/5, scaled rank=5/5; held-out current=(7.919 mrad, 0.838327 cm, 2.33906 mrad); scaled=(7.919 mrad, 0.838327 cm, 2.33906 mrad); vertex current=3.98636 cm, scaled=3.98636 cm
+  N=15: current rank=15/15, scaled rank=15/15; held-out current=(2.83536 mrad, 0.245503 cm, 1.19573 mrad); scaled=(2.83536 mrad, 0.245503 cm, 1.19573 mrad); vertex current=1.33855 cm, scaled=1.33855 cm
+  N=35: current rank=35/35, scaled rank=35/35; held-out current=(2.17051 mrad, 0.174581 cm, 1.11336 mrad); scaled=(2.17051 mrad, 0.174581 cm, 1.11336 mrad); vertex current=1.79743 cm, scaled=1.79743 cm
+  N=39: current rank=39/39, scaled rank=39/39; held-out current=(2.03038 mrad, 0.174169 cm, 1.11278 mrad); scaled=(2.03038 mrad, 0.174169 cm, 1.11278 mrad); vertex current=1.75645 cm, scaled=1.75644 cm
+  N=40: current rank=40/40, scaled rank=40/40; held-out current=(2.03099 mrad, 0.174094 cm, 1.11284 mrad); scaled=(2.03099 mrad, 0.174094 cm, 1.11284 mrad); vertex current=1.75708 cm, scaled=1.75708 cm
+  N=50: current rank=50/50, scaled rank=50/50; held-out current=(2.02355 mrad, 0.171018 cm, 1.11018 mrad); scaled=(2.02355 mrad, 0.171017 cm, 1.11018 mrad); vertex current=1.60536 cm, scaled=1.60526 cm
+  N=53: current rank=53/53, scaled rank=53/53; held-out current=(2.02217 mrad, 0.171536 cm, 1.11204 mrad); scaled=(2.02217 mrad, 0.171536 cm, 1.11205 mrad); vertex current=2.11949 cm, scaled=2.11942 cm
+  N=54: current rank=53/54, scaled rank=54/54; held-out current=(2.02243 mrad, 0.171508 cm, 1.11203 mrad); scaled=(2.02049 mrad, 0.171103 cm, 1.11191 mrad); vertex current=2.12154 cm, scaled=2.12039 cm
+  N=60: current rank=59/60, scaled rank=60/60; held-out current=(2.00849 mrad, 0.166381 cm, 1.10701 mrad); scaled=(2.00624 mrad, 0.166252 cm, 1.10702 mrad); vertex current=1.69715 cm, scaled=1.70512 cm
+  N=70: current rank=63/70, scaled rank=70/70; held-out current=(2.02744 mrad, 0.16341 cm, 1.08574 mrad); scaled=(2.03724 mrad, 0.169783 cm, 1.09498 mrad); vertex current=1.02918 cm, scaled=1.4057 cm
+  N=80: current rank=70/80, scaled rank=80/80; held-out current=(1.98868 mrad, 0.162811 cm, 1.08526 mrad); scaled=(1.99031 mrad, 0.16949 cm, 1.09472 mrad); vertex current=1.01831 cm, scaled=1.39461 cm
+  N=90: current rank=78/90, scaled rank=90/90; held-out current=(1.95762 mrad, 0.162116 cm, 1.08346 mrad); scaled=(1.95633 mrad, 0.168481 cm, 1.09133 mrad); vertex current=0.983983 cm, scaled=1.2963 cm
+  N=100: current rank=83/100, scaled rank=100/100; held-out current=(1.95395 mrad, 0.156228 cm, 1.07808 mrad); scaled=(1.94244 mrad, 0.168863 cm, 1.09071 mrad); vertex current=0.846448 cm, scaled=1.30501 cm
+  N=110: current rank=89/110, scaled rank=110/110; held-out current=(1.90989 mrad, 0.152183 cm, 1.07539 mrad); scaled=(1.93943 mrad, 0.167797 cm, 1.09003 mrad); vertex current=0.816081 cm, scaled=1.33165 cm
+  N=120: current rank=89/120, scaled rank=120/120; held-out current=(1.93852 mrad, 0.145069 cm, 1.07022 mrad); scaled=(2.11142 mrad, 0.136422 cm, 1.07952 mrad); vertex current=0.720339 cm, scaled=0.655289 cm
+  N=126: current rank=90/126, scaled rank=126/126; held-out current=(1.9441 mrad, 0.144533 cm, 1.07068 mrad); scaled=(2.09548 mrad, 0.136159 cm, 1.11436 mrad); vertex current=0.719747 cm, scaled=0.65417 cm
+  N=130: current rank=92/130, scaled rank=130/130; held-out current=(1.92492 mrad, 0.144567 cm, 1.07008 mrad); scaled=(2.07187 mrad, 0.136 cm, 1.11589 mrad); vertex current=0.717329 cm, scaled=0.653629 cm
+  N=140: current rank=96/140, scaled rank=140/140; held-out current=(1.92625 mrad, 0.144844 cm, 1.0703 mrad); scaled=(1.98954 mrad, 0.135941 cm, 1.11775 mrad); vertex current=0.720469 cm, scaled=0.653441 cm
+  N=150: current rank=101/150, scaled rank=150/150; held-out current=(1.91861 mrad, 0.144897 cm, 1.07096 mrad); scaled=(1.97274 mrad, 0.136131 cm, 1.10706 mrad); vertex current=0.723675 cm, scaled=0.6537 cm
+  N=160: current rank=106/160, scaled rank=160/160; held-out current=(1.90053 mrad, 0.147124 cm, 1.07527 mrad); scaled=(1.99133 mrad, 0.135906 cm, 1.11994 mrad); vertex current=0.774428 cm, scaled=0.652775 cm
+  N=170: current rank=109/170, scaled rank=170/170; held-out current=(1.88641 mrad, 0.142265 cm, 1.07184 mrad); scaled=(2.24675 mrad, 0.138241 cm, 1.12167 mrad); vertex current=0.711032 cm, scaled=0.656874 cm
+  N=180: current rank=111/180, scaled rank=180/180; held-out current=(1.87243 mrad, 0.145727 cm, 1.06855 mrad); scaled=(2.2677 mrad, 0.156121 cm, 1.10224 mrad); vertex current=0.727067 cm, scaled=0.691724 cm
+  N=190: current rank=111/190, scaled rank=190/190; held-out current=(1.87237 mrad, 0.146553 cm, 1.06927 mrad); scaled=(2.36786 mrad, 0.136113 cm, 1.54923 mrad); vertex current=0.737705 cm, scaled=0.651617 cm
+  N=200: current rank=111/200, scaled rank=200/200; held-out current=(1.87235 mrad, 0.146081 cm, 1.0691 mrad); scaled=(2.74575 mrad, 0.511994 cm, 2.85569 mrad); vertex current=0.732915 cm, scaled=0.720967 cm
+  N=210: current rank=111/210, scaled rank=210/210; held-out current=(1.8723 mrad, 0.146486 cm, 1.0689 mrad); scaled=(3.04946 mrad, 0.514137 cm, 3.83801 mrad); vertex current=0.7349 cm, scaled=0.691523 cm
+
+Current reformed XTX weakest singular value / cutoff = 7.85687635e-12
+Rescaled XTX weakest singular value / cutoff = 37441.8773
+
+Table: HMS_6p667GeV/08_preliminary_conditioning/solver_comparison/angular_solver_comparison.tsv
+Held-out table: HMS_6p667GeV/08_preliminary_conditioning/solver_comparison/angular_solver_comparison_heldout.tsv
+Candidate-N table: HMS_6p667GeV/08_preliminary_conditioning/solver_comparison/angular_candidate_N_comparison.tsv

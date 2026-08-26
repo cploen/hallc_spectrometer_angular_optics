@@ -1,0 +1,49 @@
+Preliminary HMS angular design-matrix conditioning
+events = 166013
+columns = 210
+raw condition number = 3.48210734e+13
+unit-column condition number = 346817.421
+raw numerical rank = 174
+unit-column numerical rank = 210
+column norm ratio = 3.4228231e+10
+max absolute unit-column correlation = 0.99786604
+largest adjacent gap in unit-column spectrum = 1.90276413 after mode 0
+
+Selected events by setting:
+  rg01_theta12p490_foil0: 15000, per foil [15000]
+  rg02_theta15p195_foil0: 15000, per foil [15000]
+  rg03_theta12p490_foilpm8: 30000, per foil [15000, 15000]
+  rg04_theta15p195_foilpm3: 21236, per foil [10505, 10731]
+  rg05_theta12p495_foilpm3: 30000, per foil [15000, 15000]
+  rg06_theta15p195_foilpm8: 24777, per foil [14310, 10467]
+  rg07_theta12p495_foilpm8: 30000, per foil [15000, 15000]
+
+Largest components of weakest unit-column mode:
+  column 129 term 33000:  0.631486944
+  column 130 term 24000: -0.506229938
+  column 128 term 42000: -0.4482295
+  column 131 term 15000:  0.218914283
+  column 127 term 51000:  0.172829474
+  column  72 term 32000:  0.107225614
+  column  73 term 23000: -0.0977889359
+  column 162 term 22110:  0.0879803465
+  column 161 term 31110: -0.0608947696
+  column  71 term 41000: -0.0594079172
+  column 163 term 13110: -0.0580659948
+  column 177 term 22020: -0.0546155911
+
+Leave-one-setting-out conditioning:
+  omit rg01_theta12p490_foil0: events=151013, raw=3.59674256e+13, unit-column=346918.233, ranks=175/210
+  omit rg02_theta15p195_foil0: events=151013, raw=3.50129697e+13, unit-column=331986.81, ranks=175/210
+  omit rg03_theta12p490_foilpm8: events=136013, raw=3.48172967e+13, unit-column=359291.889, ranks=177/210
+  omit rg04_theta15p195_foilpm3: events=144777, raw=3.40711369e+13, unit-column=335934.765, ranks=176/210
+  omit rg05_theta12p495_foilpm3: events=136013, raw=3.56143858e+13, unit-column=357834.649, ranks=177/210
+  omit rg06_theta15p195_foilpm8: events=141236, raw=3.52381857e+13, unit-column=348820.059, ranks=175/210
+  omit rg07_theta12p495_foilpm8: events=136013, raw=3.63709524e+13, unit-column=364777.677, ranks=176/210
+
+Matrix A/B comparison on the common selected sample:
+  A = HMS_6p667GeV/06b_svd_fit/matrices/nps_hms_newfit_6p667_gmm_clean.dat
+  B = HMS_6p667GeV/06b_svd_fit_local_clean/matrices/nps_hms_newfit_local_clean_parser.dat
+  xptar: coefficient relative L2=0.0233121001, prediction difference RMS=0.00455265018 mrad, max=0.155806644 mrad
+  ytar: coefficient relative L2=0.0299346017, prediction difference RMS=0.000781064766 cm, max=0.033555016 cm
+  yptar: coefficient relative L2=0.0282373227, prediction difference RMS=0.00263890257 mrad, max=0.204404743 mrad

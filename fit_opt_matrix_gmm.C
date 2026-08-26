@@ -224,17 +224,27 @@ void fit_opt_matrix_gmm(
   xtarexpon_fit.push_back(0);
   num_recon_terms_fit = 1;
     //
-    Double_t Coeff[4];
-    Int_t Exp[5];
+  Double_t Coeff[4];
+  Int_t Exp[5];
   while( good && line.compare(0,4," ---")!=0 ){
-    sscanf(line.c_str()," %le %le %le %le %1d%1d%1d%1d%1d"
-	   ,&Coeff[0],&Coeff[1]
-	   ,&Coeff[2],&Coeff[3]
-	   ,&Exp[0]
-	   ,&Exp[1]
-	   ,&Exp[2]
-	   ,&Exp[3]
-	   ,&Exp[4]);
+    // A blank line after the first separator in the July 2026 6.667 GeV
+    // seed matrix previously appended uninitialized coefficients/exponents.
+    // The resulting retained-xtar row differed across machines and changed
+    // the fit right-hand sides. Preserve that provenance and accept only
+    // complete coefficient rows here.
+    const int parsed =
+      sscanf(line.c_str()," %le %le %le %le %1d%1d%1d%1d%1d"
+	     ,&Coeff[0],&Coeff[1]
+	     ,&Coeff[2],&Coeff[3]
+	     ,&Exp[0]
+	     ,&Exp[1]
+	     ,&Exp[2]
+	     ,&Exp[3]
+	     ,&Exp[4]);
+    if (parsed != 9) {
+      good = getline(oldcoeffsfile,line).good();
+      continue;
+    }
     
     xptarcoeffs_old.push_back(Coeff[0]);
     ytarcoeffs_old.push_back(Coeff[1]);
@@ -765,4 +775,3 @@ void fit_opt_matrix_gmm(
   cout << "Saved matrix QA ROOT: " << qaRoot << endl;
  
 }
-
