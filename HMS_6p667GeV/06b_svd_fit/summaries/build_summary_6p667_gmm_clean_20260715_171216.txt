@@ -1,0 +1,164 @@
+============================================================
+GMM fit-tree and SVD build
+Started: Wed Jul 15 05:12:16 PM EDT 2026
+============================================================
+CAMPAIGN      = HMS_6p667GeV
+TAG           = 6p667_gmm_clean
+RUNGROUPS_TSV = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/rungroups_6p667_inputs.tsv
+FILEID        = -1
+YBASE         = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root
+XBASE         = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root
+NTUPLE_DIR    = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple
+SVD_DIR       = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit
+OLD_COEFFS    = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+VETO_FILE     = <none>
+CER_CUT       = 6.0
+CAL_CUT       = 0.65
+NFIT_MAX      = 200000
+NSETTINGS     = -1
+RUN_SVD       = 1
+DRYRUN        = 0
+OVERWRITE     = 0
+
+============================================================
+Building TFit tree
+rungroup   = rg01_theta12p490_foil0
+optics ID  = 666701
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666701_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666701\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666701_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666701_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666701,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root")...
+Parsed run 666701 OpticsID=666701 angle=12.49 NumFoil=1 delta intervals=5
+GMM mask summary run 666701: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666701.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg02_theta15p195_foil0
+optics ID  = 666702
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg02_theta15p195_foil0.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666702_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666702\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg02_theta15p195_foil0.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666702_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666702_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666702,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg02_theta15p195_foil0.root")...
+Parsed run 666702 OpticsID=666702 angle=15.195 NumFoil=1 delta intervals=5
+GMM mask summary run 666702: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666702.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg03_theta12p490_foilpm8
+optics ID  = 666703
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg03_theta12p490_foilpm8.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666703_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666703\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg03_theta12p490_foilpm8.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666703_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666703_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666703,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg03_theta12p490_foilpm8.root")...
+Parsed run 666703 OpticsID=666703 angle=12.49 NumFoil=2 delta intervals=5
+GMM mask summary run 666703: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666703.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg04_theta15p195_foilpm3
+optics ID  = 666704
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg04_theta15p195_foilpm3.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666704_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666704\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg04_theta15p195_foilpm3.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666704_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666704_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666704,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg04_theta15p195_foilpm3.root")...
+Parsed run 666704 OpticsID=666704 angle=15.195 NumFoil=2 delta intervals=5
+GMM mask summary run 666704: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666704.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg05_theta12p495_foilpm3
+optics ID  = 666705
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg05_theta12p495_foilpm3.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666705_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666705\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg05_theta12p495_foilpm3.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666705_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666705_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666705,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg05_theta12p495_foilpm3.root")...
+Parsed run 666705 OpticsID=666705 angle=12.495 NumFoil=2 delta intervals=5
+GMM mask summary run 666705: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666705.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg06_theta15p195_foilpm8
+optics ID  = 666706
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg06_theta15p195_foilpm8.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666706_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666706\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg06_theta15p195_foilpm8.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666706_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666706_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666706,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg06_theta15p195_foilpm8.root")...
+Parsed run 666706 OpticsID=666706 angle=15.195 NumFoil=2 delta intervals=5
+GMM mask summary run 666706: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666706.
+Check yBaseDir/xBaseDir/xTag paths.
+
+============================================================
+Building TFit tree
+rungroup   = rg07_theta12p495_foilpm8
+optics ID  = 666707
+input ROOT = /volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg07_theta12p495_foilpm8.root
+output     = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666707_-1_fit_tree_gmm.root
+============================================================
+  hcana -b -l -q /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C\(666707\,-1\,\"6p667_gmm_clean\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root\"\,6.0\,0.65\,true\,\"\"\,\"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple\"\,\"/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg07_theta12p495_foilpm8.root\"\) 
+hcana exit status = 0
+log               = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/logs/make_fit_ntuple_666707_6p667_gmm_clean_20260715_171216.log
+VALIDATION ERROR: missing or empty file: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666707_-1_fit_tree_gmm.root
+FAILED: no valid TFit output.
+Last 40 log lines:
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/make_fit_ntuple_from_gmm.C(666707,-1,"6p667_gmm_clean","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05a_gmm_cleanup_y/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05b_gmm_cleanup_x/root",6.0,0.65,true,"","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg07_theta12p495_foilpm8.root")...
+Parsed run 666707 OpticsID=666707 angle=12.495 NumFoil=2 delta intervals=5
+GMM mask summary run 666707: unique kept Y entries=0 unique kept X entries=0 (raw kept rows Y=0, X=0)
+ERROR: empty Y or X GMM mask for run 666707.
+Check yBaseDir/xBaseDir/xTag paths.
+
+ERROR: 7 requested TFit build(s) failed.
+SVD will not run.

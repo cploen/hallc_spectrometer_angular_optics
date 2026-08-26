@@ -1,0 +1,8 @@
+rungroup	optics_id	hms_angle_deg	foils	nruns	runs	rootfile
+rg01_theta12p490_foil0	666701	12.490	0	1	1544	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root
+rg02_theta15p195_foil0	666702	15.195	0	1	5162	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg02_theta15p195_foil0.root
+rg03_theta12p490_foilpm8	666703	12.490	±8	1	1540	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg03_theta12p490_foilpm8.root
+rg04_theta15p195_foilpm3	666704	15.195	±3	5	5156,5157,5158,5159,5160	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg04_theta15p195_foilpm3.root
+rg05_theta12p495_foilpm3	666705	12.495	±3	1	6985	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg05_theta12p495_foilpm3.root
+rg06_theta15p195_foilpm8	666706	15.195	±8	3	5161,5163,5164	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg06_theta15p195_foilpm8.root
+rg07_theta12p495_foilpm8	666707	12.495	±8	2	6983,6984	/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg07_theta12p495_foilpm8.root

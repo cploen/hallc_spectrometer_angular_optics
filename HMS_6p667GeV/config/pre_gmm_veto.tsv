@@ -1,0 +1,4 @@
+# rungroup	axis	exact_cut_name
+rg03_theta12p490_foilpm8	y	hYpFpYFp_cut_yscol_4_nfoil_0_ndel_2_part00_src_03
+rg03_theta12p490_foilpm8	y	hYpFpYFp_cut_yscol_6_nfoil_0_ndel_2_part00_src_06
+rg06_theta15p195_foilpm8 x hXpFpXFp_cut_xscol_7_nfoil_1_ndel_1_part00_zone_low_src_04

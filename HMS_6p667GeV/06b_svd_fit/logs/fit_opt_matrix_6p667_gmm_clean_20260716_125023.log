@@ -1,0 +1,320 @@
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/fit_opt_matrix_gmm.C("6p667_gmm_clean",-1,200000,-1,"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/rungroups_6p667_inputs.tsv","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat")...
+Campaign settings read from: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/rungroups_6p667_inputs.tsv
+Number of settings: 7
+Open  Old coeff file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+ skipped 11 comments lines in file : /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+ at line =  --------------------------------------------
+ skipped 1 separation lines in file : /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+
+num recon terms in OLD matrix = 462
+num recon terms in fit matrix = 210
+num recon terms in xtar matrix = 253
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666701 666701 12.49 1 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666701_-1_fit_tree_gmm.root
+ counts foil 0 : 15000
+ counts foil 1 : 0
+ ztar = 0
+ Ndelta = -9
+0 0 149 228 302 341 448 0 0 
+ Ndelta = -6.5
+0 10 266 356 537 637 747 19 0 
+ Ndelta = -2.5
+0 53 447 630 782 1000 1000 183 0 
+ Ndelta = 2.5
+0 60 274 453 623 935 1000 507 0 
+ Ndelta = 7.5
+0 40 166 249 412 646 955 545 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666702 666702 15.195 1 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666702_-1_fit_tree_gmm.root
+ counts foil 0 : 15000
+ counts foil 1 : 0
+ ztar = 0
+ Ndelta = -9
+0 0 143 296 466 523 696 0 0 
+ Ndelta = -6.5
+0 8 302 491 695 880 1000 20 0 
+ Ndelta = -2.5
+0 43 387 636 1000 1000 1000 210 0 
+ Ndelta = 2.5
+0 32 192 332 554 867 1000 487 0 
+ Ndelta = 7.5
+0 0 29 93 183 359 655 421 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666703 666703 12.49 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666703_-1_fit_tree_gmm.root
+ counts foil 0 : 15000
+ counts foil 1 : 15000
+ ztar = -8
+ Ndelta = -9
+0 36 188 287 363 324 209 0 0 
+ Ndelta = -6.5
+0 151 348 482 583 597 506 0 0 
+ Ndelta = -2.5
+0 214 502 693 892 1000 958 0 0 
+ Ndelta = 2.5
+0 157 394 579 779 986 1000 0 0 
+ Ndelta = 7.5
+0 81 176 326 529 732 928 0 0 
+ ztar = 8
+ Ndelta = -9
+0 0 83 194 309 411 527 497 0 
+ Ndelta = -6.5
+0 0 139 273 379 574 874 864 0 
+ Ndelta = -2.5
+0 0 101 293 626 833 1000 1000 0 
+ Ndelta = 2.5
+0 0 82 244 430 685 1000 1000 0 
+ Ndelta = 7.5
+0 0 39 120 241 417 799 966 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ztar foil -3
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666704 666704 15.195 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666704_-1_fit_tree_gmm.root
+ counts foil 0 : 10505
+ counts foil 1 : 10731
+ ztar = -3
+ Ndelta = -9
+0 0 124 210 286 287 318 0 0 
+ Ndelta = -6.5
+0 61 248 331 544 627 662 0 0 
+ Ndelta = -2.5
+0 107 307 480 687 919 1000 0 0 
+ Ndelta = 2.5
+0 52 147 225 418 613 891 0 0 
+ Ndelta = 7.5
+0 0 38 70 150 255 448 0 0 
+ ztar = 3
+ Ndelta = -9
+0 0 87 149 226 322 491 71 0 
+ Ndelta = -6.5
+0 0 123 245 357 506 741 449 0 
+ Ndelta = -2.5
+0 0 129 279 478 682 1000 968 0 
+ Ndelta = 2.5
+0 0 74 125 260 425 814 783 0 
+ Ndelta = 7.5
+0 0 0 36 76 125 339 371 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ztar foil -3
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666705 666705 12.495 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666705_-1_fit_tree_gmm.root
+ counts foil 0 : 15000
+ counts foil 1 : 15000
+ ztar = -3
+ Ndelta = -9
+0 0 141 199 266 273 300 0 0 
+ Ndelta = -6.5
+0 137 310 387 550 624 697 0 0 
+ Ndelta = -2.5
+0 229 559 732 999 1000 1000 0 0 
+ Ndelta = 2.5
+0 171 405 528 779 1000 1000 0 0 
+ Ndelta = 7.5
+0 69 177 287 489 699 993 0 0 
+ ztar = 3
+ Ndelta = -9
+0 0 104 168 247 271 445 47 0 
+ Ndelta = -6.5
+0 0 152 273 464 559 823 481 0 
+ Ndelta = -2.5
+0 0 239 369 758 961 1000 1000 0 
+ Ndelta = 2.5
+0 0 197 308 553 801 1000 1000 0 
+ Ndelta = 7.5
+0 0 93 171 343 490 856 827 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666706 666706 15.195 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666706_-1_fit_tree_gmm.root
+ counts foil 0 : 14310
+ counts foil 1 : 10467
+ ztar = -8
+ Ndelta = -9
+0 55 209 301 406 430 236 0 0 
+ Ndelta = -6.5
+0 157 380 572 745 870 727 0 0 
+ Ndelta = -2.5
+0 114 480 691 1000 1000 1000 0 0 
+ Ndelta = 2.5
+0 91 268 424 594 1000 1000 0 0 
+ Ndelta = 7.5
+0 18 58 135 275 400 674 0 0 
+ ztar = 8
+ Ndelta = -9
+0 0 15 145 214 314 549 544 0 
+ Ndelta = -6.5
+0 0 49 113 270 462 732 833 0 
+ Ndelta = -2.5
+0 0 51 204 364 617 1000 1000 0 
+ Ndelta = 2.5
+0 0 20 85 187 363 645 883 0 
+ Ndelta = 7.5
+0 0 0 0 39 112 264 393 0 
+ Open file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+666707 666707 12.495 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_666707_-1_fit_tree_gmm.root
+ counts foil 0 : 15000
+ counts foil 1 : 15000
+ ztar = -8
+ Ndelta = -9
+0 37 186 269 331 319 295 0 0 
+ Ndelta = -6.5
+0 129 327 463 576 643 593 0 0 
+ Ndelta = -2.5
+0 229 496 702 948 1000 1000 0 0 
+ Ndelta = 2.5
+0 145 361 537 801 972 1000 0 0 
+ Ndelta = 7.5
+0 66 208 284 482 649 952 0 0 
+ ztar = 8
+ Ndelta = -9
+0 0 83 158 272 351 474 473 0 
+ Ndelta = -6.5
+0 0 116 246 422 615 896 867 0 
+ Ndelta = -2.5
+0 0 114 319 640 968 1000 1000 0 
+ Ndelta = 2.5
+0 0 18 200 414 737 1000 1000 0 
+ Ndelta = 7.5
+0 0 0 108 229 418 862 1000 0 
+ nfit < nfit_max, using all collected events: 166013
+ number to fit = 166013 max = 166013
+0
+5000
+10000
+15000
+20000
+25000
+30000
+35000
+40000
+45000
+50000
+55000
+60000
+65000
+70000
+75000
+80000
+85000
+90000
+95000
+100000
+105000
+110000
+115000
+120000
+125000
+130000
+135000
+140000
+145000
+150000
+155000
+160000
+165000
+ytar solution ok = 1
+yptar solution ok = 1
+xptar solution ok = 1
+writing new coeffs file
+wrote new coeffs file
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      1948.59
+NDf                       =           10
+Edm                       =  2.95798e-08
+NCalls                    =           70
+Constant                  =      61258.2   +/-   196.658     
+Mean                      =    0.0123346   +/-   0.000379468 
+Sigma                     =     0.152638   +/-   0.000313173  	 (limited)
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      255.212
+NDf                       =           71
+Edm                       =  9.66686e-06
+NCalls                    =           53
+Constant                  =      11485.2   +/-   34.8186     
+Mean                      =    -0.676067   +/-   0.00283468  
+Sigma                     =       1.1514   +/-   0.0020459    	 (limited)
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      2666.27
+NDf                       =           95
+Edm                       =  6.04327e-08
+NCalls                    =           57
+Constant                  =      11299.2   +/-   36.3296     
+Mean                      =     -1.26589   +/-   0.0043039   
+Sigma                     =      1.72942   +/-   0.00354921   	 (limited)
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      522.182
+NDf                       =           10
+Edm                       =  2.01989e-08
+NCalls                    =           59
+Constant                  =      62042.2   +/-   194.946     
+Mean                      = -0.000530661   +/-   0.000373732 
+Sigma                     =     0.152019   +/-   0.000297504  	 (limited)
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      143.917
+NDf                       =           55
+Edm                       =  9.68313e-07
+NCalls                    =           52
+Constant                  =      11785.1   +/-   34.9191     
+Mean                      =  0.000895656   +/-   0.00275783  
+Sigma                     =      1.12297   +/-   0.00186263   	 (limited)
+****************************************
+Minimizer is Minuit2 / Migrad
+Chi2                      =      2415.14
+NDf                       =           97
+Edm                       =  8.15442e-07
+NCalls                    =           66
+Constant                  =      11334.1   +/-   36.5935     
+Mean                      =   0.00261069   +/-   0.00427494  
+Sigma                     =      1.72681   +/-   0.00358393   	 (limited)
+Info in <TCanvas::Print>: pdf file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/plots/fit_opt_matrix_6p667_gmm_clean_old_matrix_diff.pdf has been created
+Info in <TCanvas::Print>: pdf file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/plots/fit_opt_matrix_6p667_gmm_clean_new_matrix_diff.pdf has been created
+Saved matrix QA PDFs:
+  /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/plots/fit_opt_matrix_6p667_gmm_clean_old_matrix_diff.pdf
+  /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/plots/fit_opt_matrix_6p667_gmm_clean_new_matrix_diff.pdf
+Saved matrix QA ROOT: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/root/fit_opt_matrix_6p667_gmm_clean_qa.root

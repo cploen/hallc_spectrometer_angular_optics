@@ -1,0 +1,96 @@
+
+Processing /u/group/nps/cploen/ML_HMS_OPTICS_DEV/fit_opt_matrix_gmm.C("6p667_gmm_clean",-1,200000,-1,"/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit","/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat")...
+Open  Old coeff file = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+ skipped 11 comments lines in file : /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+ at line =  --------------------------------------------
+ skipped 1 separation lines in file : /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat
+
+num recon terms in OLD matrix = 462
+num recon terms in fit matrix = 210
+num recon terms in xtar matrix = 253
+ Open file = DATfiles/list_of_optics_run.dat
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611701 rg01_theta12p385_foil0 12.385 1 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg01_theta12p385_foil0_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg01_theta12p385_foil0_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611701: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg01_theta12p385_foil0_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611702 rg02_theta12p395_foil0 12.395 1 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg02_theta12p395_foil0_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg02_theta12p395_foil0_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611702: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg02_theta12p395_foil0_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611703 rg03_theta15p195_foil0 15.195 1 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg03_theta15p195_foil0_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg03_theta15p195_foil0_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611703: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg03_theta15p195_foil0_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ztar foil -3
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611704 rg04_theta12p395_foilpm3 12.395 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg04_theta12p395_foilpm3_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg04_theta12p395_foilpm3_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611704: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg04_theta12p395_foilpm3_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ztar foil -3
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611705 rg05_theta15p195_foilpm3 15.195 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg05_theta15p195_foilpm3_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg05_theta15p195_foilpm3_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611705: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg05_theta15p195_foilpm3_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611706 rg06_theta12p385_foilpm8 12.385 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg06_theta12p385_foilpm8_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg06_theta12p385_foilpm8_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611706: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg06_theta12p385_foilpm8_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611707 rg07_theta12p395_foilpm8 12.395 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg07_theta12p395_foilpm8_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg07_theta12p395_foilpm8_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611707: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg07_theta12p395_foilpm8_-1_fit_tree_gmm.root
+ Open file = DATfiles/list_of_optics_run.dat
+ztar foil -8
+ nd = 0 -10
+ nd = 1 -8
+ nd = 2 -5
+ nd = 3 0
+ nd = 4 5
+611708 rg08_theta15p195_foilpm8 15.195 2 1
+ INfile = /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg08_theta15p195_foilpm8_-1_fit_tree_gmm.root
+Error in <TFile::TFile>: file /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg08_theta15p195_foilpm8_-1_fit_tree_gmm.root does not exist
+ WARNING: missing fit tree file, skipping run 611708: /u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06a_fit_ntuple/root/Optics_rg08_theta15p195_foilpm8_-1_fit_tree_gmm.root
+ ERROR: no events collected for SVD fit.
