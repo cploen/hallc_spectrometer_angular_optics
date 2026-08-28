@@ -234,9 +234,13 @@ ROOT's solve-specific cutoff is
 tau_N = ROOT tolerance * largest singular value at that N.
 ```
 
-The plotted truncation margin is `log10(sigma_min / tau_N)`.  Zero therefore
-means that the weakest direction has reached that particular solve's cutoff;
-it is not a fixed threshold line reused for every `N`.
+The table stores `log10(sigma_min / tau_N)`.  The plots show the equivalent
+ratio `sigma_min / tau_N` on a logarithmic axis.  One marks the truncation
+threshold.  Values below one mean that the weakest mode is discarded.
+
+The threshold-distance plots include the current unscaled `X^T X` method,
+direct solves on unscaled and scaled `X`, and the scaled `X^T X` method.  Each
+curve is compared with the cutoff used for that numerical method at that `N`.
 
 ## Step 6: compare four numerical solve routes
 

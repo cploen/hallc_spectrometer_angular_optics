@@ -102,7 +102,9 @@ SVD separates the fit into modes. ROOT compares each mode strength with a numeri
 
 The cutoff is recalculated for every solve because it depends on the strongest mode in that solve. There is no single fixed cutoff line for the whole term ladder.
 
-The plots therefore show the distance between the weakest mode and that solve's own cutoff. A margin of zero means the weakest mode is at the cutoff.
+The plots show the weakest mode divided by the cutoff, using a logarithmic axis. A value of one means the weakest mode is at the cutoff. Values below one mean at least one mode is discarded.
+
+The result tables also give the same distance in decades:
 
 A **decade** means a factor of ten:
 

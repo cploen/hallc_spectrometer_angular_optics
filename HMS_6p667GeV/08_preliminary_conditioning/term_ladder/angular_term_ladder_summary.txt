@@ -6,8 +6,8 @@ valid seed-matrix rows = 461
 retained xtar rows after malformed-line rejection = 252
 ROOT-compatible relative SVD tolerance = 2.2204460492503131e-16
 retention rule = singular_value > tolerance * largest_singular_value
-truncation metric = log10(sigma_min) - log10(solve-specific threshold)
-zero margin means the weakest mode equals that rung's own threshold
+table margin = log10(sigma_min / truncation threshold)
+plot ratio = sigma_min / truncation threshold; one marks the cutoff
 
 Malformed-row ambiguity retained for provenance:
   The original fit accepted a blank seed-matrix line as an uninitialized xtar term.

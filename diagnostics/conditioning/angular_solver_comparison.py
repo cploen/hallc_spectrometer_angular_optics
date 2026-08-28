@@ -413,6 +413,158 @@ def candidate_residual_plot(output, records, sample):
     save_canvas(canvas, output / f"candidate_residuals_{sample}")
 
 
+def candidate_training_zoom_plot(output, records):
+    """Show the small training-RMS differences without the low-N scale."""
+    n_values = sorted({int(record["N"]) for record in records if int(record["N"]) >= 35})
+    canvas = ROOT.TCanvas(
+        "c_candidate_training_zoom",
+        "Training residuals zoom",
+        1200,
+        900,
+    )
+    canvas.Divide(1, 3)
+    objects = []
+    for target, (name, label, units) in enumerate(
+        zip(TARGET_NAMES, TARGET_LABELS, TARGET_UNITS), 1
+    ):
+        canvas.cd(target)
+        ROOT.gPad.SetRightMargin(0.30)
+        current_values = [
+            next(
+                record[f"fit_{name}_rms"]
+                for record in records
+                if record["N"] == nterms and record["method"] == "current XTX"
+            )
+            for nterms in n_values
+        ]
+        scaled_values = [
+            next(
+                record[f"fit_{name}_rms"]
+                for record in records
+                if record["N"] == nterms
+                and record["method"] == "rescaled direct X"
+            )
+            for nterms in n_values
+        ]
+        current_graph = graph(
+            [float(value) for value in n_values], current_values, ROOT.kBlue + 1, 20
+        )
+        scaled_graph = graph(
+            [float(value) for value in n_values], scaled_values, ROOT.kRed + 1, 22
+        )
+        current_graph.SetMarkerSize(0.8)
+        scaled_graph.SetMarkerSize(0.8)
+        multi = ROOT.TMultiGraph()
+        multi.Add(current_graph, "LP")
+        multi.Add(scaled_graph, "LP")
+        all_values = current_values + scaled_values
+        span = max(all_values) - min(all_values)
+        padding = 0.08 * span
+        multi.SetMinimum(min(all_values) - padding)
+        multi.SetMaximum(max(all_values) + padding)
+        multi.SetTitle(
+            f"Training residuals, N #geq 35: {label};N;Residual RMS ({units})"
+        )
+        multi.Draw("A")
+        objects.extend((multi, current_graph, scaled_graph))
+        if target == 1:
+            legend = ROOT.TLegend(0.72, 0.70, 0.99, 0.86)
+            legend.SetBorderSize(0)
+            legend.SetFillStyle(0)
+            legend.AddEntry(current_graph, "Current: unscaled X^{T}X", "lp")
+            legend.AddEntry(scaled_graph, "Direct: scaled X", "lp")
+            legend.Draw()
+            objects.append(legend)
+    save_canvas(canvas, output / "candidate_residuals_fit_zoom")
+
+
+def candidate_heldout_zoom_plot(output, records):
+    """Show held-out minima before the large high-N rise dominates the scale."""
+    n_values = sorted(
+        {
+            int(record["N"])
+            for record in records
+            if 35 <= int(record["N"]) <= 180
+        }
+    )
+    canvas = ROOT.TCanvas(
+        "c_candidate_heldout_zoom",
+        "Held-out residuals zoom",
+        1200,
+        900,
+    )
+    canvas.Divide(1, 3)
+    objects = []
+    for target, (name, label, units) in enumerate(
+        zip(TARGET_NAMES, TARGET_LABELS, TARGET_UNITS), 1
+    ):
+        canvas.cd(target)
+        ROOT.gPad.SetRightMargin(0.30)
+        current_values = [
+            next(
+                record[f"heldout_{name}_rms"]
+                for record in records
+                if record["N"] == nterms and record["method"] == "current XTX"
+            )
+            for nterms in n_values
+        ]
+        scaled_values = [
+            next(
+                record[f"heldout_{name}_rms"]
+                for record in records
+                if record["N"] == nterms
+                and record["method"] == "rescaled direct X"
+            )
+            for nterms in n_values
+        ]
+        current_graph = graph(
+            [float(value) for value in n_values], current_values, ROOT.kBlue + 1, 20
+        )
+        scaled_graph = graph(
+            [float(value) for value in n_values], scaled_values, ROOT.kRed + 1, 22
+        )
+        current_graph.SetMarkerSize(0.8)
+        scaled_graph.SetMarkerSize(0.8)
+        multi = ROOT.TMultiGraph()
+        multi.Add(current_graph, "LP")
+        multi.Add(scaled_graph, "LP")
+        all_values = current_values + scaled_values
+        span = max(all_values) - min(all_values)
+        padding = 0.08 * span
+        multi.SetMinimum(min(all_values) - padding)
+        multi.SetMaximum(max(all_values) + padding)
+        multi.SetTitle(
+            f"Held-out residuals, 35 #leq N #leq 180: {label};N;Residual RMS ({units})"
+        )
+        multi.Draw("A")
+
+        minimum_index = int(np.argmin(scaled_values))
+        best_n = n_values[minimum_index]
+        scaled_minimum = scaled_values[minimum_index]
+        current_at_best_n = current_values[minimum_index]
+        percent = 100.0 * (scaled_minimum - current_at_best_n) / current_at_best_n
+        direction = "above" if percent >= 0.0 else "below"
+        note = ROOT.TLatex()
+        note.SetNDC(True)
+        note.SetTextSize(0.055)
+        note.DrawLatex(0.72, 0.52, f"Scaled minimum: N={best_n}")
+        note.DrawLatex(
+            0.72,
+            0.43,
+            f"{abs(percent):.1f}% {direction} current",
+        )
+        objects.extend((multi, current_graph, scaled_graph, note))
+        if target == 1:
+            legend = ROOT.TLegend(0.72, 0.70, 0.99, 0.86)
+            legend.SetBorderSize(0)
+            legend.SetFillStyle(0)
+            legend.AddEntry(current_graph, "Current: unscaled X^{T}X", "lp")
+            legend.AddEntry(scaled_graph, "Direct: scaled X", "lp")
+            legend.Draw()
+            objects.append(legend)
+    save_canvas(canvas, output / "candidate_residuals_heldout_zoom")
+
+
 def candidate_vertex_plot(output, records):
     n_values = sorted({int(record["N"]) for record in records})
     current_values = [
@@ -671,7 +823,9 @@ def main():
         writer.writeheader()
         writer.writerows(candidate_records)
     candidate_residual_plot(args.output, candidate_records, "fit")
+    candidate_training_zoom_plot(args.output, candidate_records)
     candidate_residual_plot(args.output, candidate_records, "heldout")
+    candidate_heldout_zoom_plot(args.output, candidate_records)
     candidate_vertex_plot(args.output, candidate_records)
     training_heldout_plot(args.output, candidate_records)
 

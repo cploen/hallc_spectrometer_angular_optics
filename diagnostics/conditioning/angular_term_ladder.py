@@ -3,13 +3,14 @@
 
 The production solve factorizes G_N = X_N^T X_N with ROOT's default relative
 SVD tolerance.  Since the absolute cutoff changes with sigma_max(G_N), this
-script reports and plots the solve-specific signed margin
+script records the signed log margin
 
     log10(sigma_min(G_N)) - log10(tolerance * sigma_max(G_N)).
 
-Zero therefore means "at this solve's own truncation threshold".  A negative
-value means at least the weakest mode is below it.  No common absolute
-threshold is assumed across ladder rungs.
+The plots show the equivalent positive ratio sigma_min / threshold on a log
+axis.  One is the truncation threshold; values below one mean at least the
+weakest mode is discarded.  No common absolute threshold is assumed across
+ladder rungs.
 """
 
 from __future__ import annotations
@@ -209,6 +210,7 @@ def main():
     target_norm2 = np.sum(targets * targets, axis=0)
     column_norms = np.sqrt(np.diag(gram_full))
     tolerance = np.finfo(np.float64).eps
+    r_full = np.linalg.qr(design, mode="r")
 
     requested = list(range(1, maximum_terms + 1, max(args.step, 1)))
     if requested[-1] != maximum_terms:
@@ -237,6 +239,14 @@ def main():
             raise RuntimeError(
                 f"Unexpected scaled ROOT tolerance at N={nterms}: {scaled_tolerance}"
             )
+
+        r_prefix = r_full[:nterms, :nterms]
+        direct_singular = np.linalg.svd(r_prefix, compute_uv=False)
+        scaled_direct_singular = np.linalg.svd(
+            r_prefix / norms[None, :], compute_uv=False
+        )
+        direct_threshold = tolerance * direct_singular[0]
+        scaled_direct_threshold = tolerance * scaled_direct_singular[0]
 
         residual_variance = (
             target_norm2
@@ -271,6 +281,7 @@ def main():
                 "sigma_min_Ay": singular[-1],
                 "threshold_Ay": threshold,
                 "sigma_min_minus_threshold_Ay": singular[-1] - threshold,
+                "min_over_threshold_Ay": singular[-1] / threshold,
                 "log10_min_over_threshold_Ay": signed_margin(singular[-1], threshold),
                 "log10_min_retained_over_threshold_Ay": signed_margin(
                     smallest_retained, threshold
@@ -279,6 +290,8 @@ def main():
                 "rank_scaled": scaled_rank,
                 "truncated_scaled": nterms - scaled_rank,
                 "threshold_scaled_Gram": scaled_threshold,
+                "min_over_threshold_scaled_Gram": scaled_singular[-1]
+                / scaled_threshold,
                 "log10_min_over_threshold_scaled_Gram": signed_margin(
                     scaled_singular[-1], scaled_threshold
                 ),
@@ -286,6 +299,10 @@ def main():
                     scaled_singular[0] / scaled_singular[-1]
                     if scaled_singular[-1] > 0 else math.inf
                 ),
+                "min_over_threshold_direct_X": direct_singular[-1]
+                / direct_threshold,
+                "min_over_threshold_scaled_direct_X": scaled_direct_singular[-1]
+                / scaled_direct_threshold,
                 "xptar_residual_rms_mrad": residual_rms[0],
                 "ytar_residual_rms_cm": residual_rms[1],
                 "yptar_residual_rms_mrad": residual_rms[2],
@@ -307,7 +324,9 @@ def main():
     table_path = args.output / "angular_term_ladder.tsv"
     fields = list(records[0].keys())
     with table_path.open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields, delimiter="\t")
+        writer = csv.DictWriter(
+            stream, fieldnames=fields, delimiter="\t", lineterminator="\n"
+        )
         writer.writeheader()
         writer.writerows(records)
     coefficient_path = args.output / "angular_term_ladder_coefficients.npz"
@@ -322,71 +341,96 @@ def main():
     ROOT.gROOT.SetBatch(True)
     ROOT.gStyle.SetOptStat(0)
 
-    canvas = ROOT.TCanvas("c_margin", "Solve-specific truncation margin", 1050, 760)
-    margin_ay = graph(
-        n_values,
-        [record["log10_min_over_threshold_Ay"] for record in records],
-        ROOT.kBlue + 1,
-        20,
-    )
-    margin_scaled = graph(
-        n_values,
-        [record["log10_min_over_threshold_scaled_Gram"] for record in records],
-        ROOT.kRed + 1,
-        24,
+    canvas = ROOT.TCanvas("c_margin", "Truncation margin", 1200, 760)
+    canvas.SetLogy()
+    canvas.SetRightMargin(0.34)
+    margin_curves = (
+        (
+            "Current: unscaled X^{T}X",
+            "min_over_threshold_Ay",
+            ROOT.kBlue + 1,
+            20,
+        ),
+        (
+            "Direct: unscaled X",
+            "min_over_threshold_direct_X",
+            ROOT.kGreen + 2,
+            21,
+        ),
+        (
+            "Direct: scaled X",
+            "min_over_threshold_scaled_direct_X",
+            ROOT.kRed + 1,
+            22,
+        ),
+        (
+            "Scaled X^{T}X",
+            "min_over_threshold_scaled_Gram",
+            ROOT.kOrange + 7,
+            23,
+        ),
     )
     multi = ROOT.TMultiGraph()
+    margin_graphs = []
+    for _, field, color, marker in margin_curves:
+        values = [record[field] for record in records]
+        item = graph(n_values, values, color, marker)
+        item.SetMarkerSize(0.8)
+        multi.Add(item, "LP")
+        margin_graphs.append(item)
     multi.SetTitle(
-        "Distance from each solve's own SVD truncation threshold;"
-        "Number of fitted terms N;log_{10}(#sigma_{min}) - log_{10}(#tau_{N})  [decades]"
+        "Smallest singular value relative to truncation threshold;"
+        "Number of fitted terms N;#sigma_{min} / #tau"
     )
-    multi.Add(margin_ay, "LP")
-    multi.Add(margin_scaled, "LP")
     multi.Draw("A")
-    zero = ROOT.TLine(min(n_values), 0.0, max(n_values), 0.0)
-    zero.SetLineStyle(2)
-    zero.SetLineColor(ROOT.kGray + 2)
-    zero.Draw()
-    legend = ROOT.TLegend(0.14, 0.15, 0.55, 0.27)
-    legend.AddEntry(margin_ay, "Production G_{N}=X_{N}^{T}X_{N}", "lp")
-    legend.AddEntry(margin_scaled, "Unit-column Gram matrix", "lp")
-    legend.AddEntry(zero, "zero margin (solve-specific threshold)", "l")
+    ROOT.gStyle.SetLineStyleString(11, "24 12")
+    threshold_line = ROOT.TLine(min(n_values), 1.0, max(n_values), 1.0)
+    threshold_line.SetLineStyle(11)
+    threshold_line.SetLineColor(ROOT.kBlack)
+    threshold_line.SetLineWidth(3)
+    threshold_line.Draw()
+    legend = ROOT.TLegend(0.69, 0.63, 0.98, 0.88)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    for (label, _, _, _), item in zip(margin_curves, margin_graphs):
+        legend.AddEntry(item, label, "lp")
+    legend.AddEntry(threshold_line, "Truncation threshold (= 1)", "l")
     legend.Draw()
     save_canvas(canvas, args.output / "truncation_margin_vs_N")
 
     low_records = [record for record in records if record["N"] <= 70]
     low_n = [float(record["N"]) for record in low_records]
     canvas_margin_low = ROOT.TCanvas(
-        "c_margin_low", "Low-N solve-specific truncation margin", 1050, 760
+        "c_margin_low", "Low-N truncation margin", 1200, 760
     )
-    margin_ay_low = graph(
-        low_n,
-        [record["log10_min_over_threshold_Ay"] for record in low_records],
-        ROOT.kBlue + 1,
-        20,
-    )
-    margin_scaled_low = graph(
-        low_n,
-        [record["log10_min_over_threshold_scaled_Gram"] for record in low_records],
-        ROOT.kRed + 1,
-        24,
-    )
+    canvas_margin_low.SetLogy()
+    canvas_margin_low.SetRightMargin(0.34)
     multi_margin_low = ROOT.TMultiGraph()
+    margin_graphs_low = []
+    for _, field, color, marker in margin_curves:
+        values = [record[field] for record in low_records]
+        item = graph(low_n, values, color, marker)
+        item.SetMarkerSize(0.8)
+        multi_margin_low.Add(item, "LP")
+        margin_graphs_low.append(item)
     multi_margin_low.SetTitle(
-        "Low-N distance from each solve's own SVD threshold;"
-        "Number of fitted terms N;log_{10}(#sigma_{min}) - log_{10}(#tau_{N})  [decades]"
+        "Low-N smallest singular value relative to truncation threshold;"
+        "Number of fitted terms N;#sigma_{min} / #tau"
     )
-    multi_margin_low.Add(margin_ay_low, "LP")
-    multi_margin_low.Add(margin_scaled_low, "LP")
     multi_margin_low.Draw("A")
-    zero_low = ROOT.TLine(min(low_n), 0.0, max(low_n), 0.0)
-    zero_low.SetLineStyle(2)
-    zero_low.SetLineColor(ROOT.kGray + 2)
-    zero_low.Draw()
-    legend_margin_low = ROOT.TLegend(0.14, 0.15, 0.55, 0.27)
-    legend_margin_low.AddEntry(margin_ay_low, "Production G_{N}=X_{N}^{T}X_{N}", "lp")
-    legend_margin_low.AddEntry(margin_scaled_low, "Unit-column Gram matrix", "lp")
-    legend_margin_low.AddEntry(zero_low, "zero margin (solve-specific threshold)", "l")
+    threshold_line_low = ROOT.TLine(min(low_n), 1.0, max(low_n), 1.0)
+    threshold_line_low.SetLineStyle(11)
+    threshold_line_low.SetLineColor(ROOT.kBlack)
+    threshold_line_low.SetLineWidth(3)
+    threshold_line_low.Draw()
+    legend_margin_low = ROOT.TLegend(0.69, 0.63, 0.98, 0.88)
+    legend_margin_low.SetBorderSize(0)
+    legend_margin_low.SetFillStyle(0)
+    for (label, _, _, _), item in zip(margin_curves, margin_graphs_low):
+        legend_margin_low.AddEntry(item, label, "lp")
+    legend_margin_low.AddEntry(
+        threshold_line_low, "Truncation threshold (= 1)", "l"
+    )
     legend_margin_low.Draw()
     save_canvas(canvas_margin_low, args.output / "truncation_margin_lowN")
 
@@ -500,8 +544,8 @@ def main():
         f"retained xtar rows after malformed-line rejection = {xtar_rows}",
         f"ROOT-compatible relative SVD tolerance = {tolerance:.17g}",
         "retention rule = singular_value > tolerance * largest_singular_value",
-        "truncation metric = log10(sigma_min) - log10(solve-specific threshold)",
-        "zero margin means the weakest mode equals that rung's own threshold",
+        "table margin = log10(sigma_min / truncation threshold)",
+        "plot ratio = sigma_min / truncation threshold; one marks the cutoff",
         "",
         "Malformed-row ambiguity retained for provenance:",
         "  The original fit accepted a blank seed-matrix line as an uninitialized xtar term.",

@@ -42,7 +42,7 @@ The plotted threshold distance is solve-dependent:
 
 `log10(sigma_min(N)) - log10(tolerance * sigma_max(N))`.
 
-Thus zero means equality with that rung's own threshold. The horizontal zero reference is not a global truncation threshold.
+The table reports the signed margin in decades. The plots show the equivalent ratio on a logarithmic scale. A ratio of one means equality with the threshold used for that solve.
 
 | N | basis endpoint | rank | production margin (decades) | scaled margin (decades) | xptar RMS (mrad) | yptar RMS (mrad) | ytar RMS (cm) |
 |---:|---|---:|---:|---:|---:|---:|---:|
