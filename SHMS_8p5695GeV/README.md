@@ -8,7 +8,7 @@ The campaign name `SHMS_8p5695GeV` follows the existing spectrometer-and-momentu
 - User instruction: assume the supplied foil coordinates **−10, 0, +10 cm for all four runs**. Do not require reconfirmation before initial processing. This target is independent of arm and is also available for HMS.
 - User instruction: assume **centered SHMS sieve** (`SieveFlag=1`); position-option work remains deferred.
 - User supplied an ifarm file listing confirming all four ROOT paths exist. Approximate displayed sizes: 3283 842M, 3284 791M, 3285 847M, 3286 709M. Displayed timestamps: July 7, respectively 15:24, 15:20, 15:17, 15:14; the listing did not show a year. Their contents have not been read from this Mac.
-- Initial delta boundaries: −10, −8, −5, 0, 5, 10, 15, 20, 22 percent. These are chosen analysis bins covering the existing SHMS profile window, not values inferred from the reports or tuned using these events.
+- Delta boundaries: **−10, −6, −2, +2, +6, +10, +22 percent** (six slices). These follow Holly's shms_optics_a1n run-group 10301 divisions within our unchanged −10 to +22% acceptance: omit her −12 to −10 slice and cap her +10 to +25 slice at +22. The combined and individual-run DAT entries use seven boundaries. Regenerate angle scans and downstream slice-dependent outputs after this change; old slice indices and tuned angles must not be reused as if the intervals were unchanged. Existing foil-ridge polygons do not depend on these slice boundaries.
 
 ## Inputs
 
