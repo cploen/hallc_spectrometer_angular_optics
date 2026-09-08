@@ -1,6 +1,6 @@
 # SHMS 8.5695 GeV/c campaign
 
-The campaign name `SHMS_8p5695GeV` follows the existing spectrometer-and-momentum convention. Its `SHMS_` prefix selects the spectrometer; run numbers belong in the run metadata. These are initial inputs for individual-run checks, not a validated calibration or approved set of cuts.
+The campaign name `SHMS_8p5695GeV` follows the existing spectrometer-and-momentum convention. Its `SHMS_` prefix selects the spectrometer. Runs 3283–3286 form one run group with shared reported settings and the assumed three-foil target, following the existing HMS campaign organization. This is a preparation and validation campaign, not a finished calibration.
 
 ## Established settings and approved assumptions
 
@@ -12,7 +12,34 @@ The campaign name `SHMS_8p5695GeV` follows the existing spectrometer-and-momentu
 
 ## Inputs
 
-`config/rungroups_8p5695_inputs.tsv` retains one rungroup per run for the first checks, all with the same assumed three-foil target. This is an analysis organization choice, not a claim that the target differed among runs. Runs need not be combined to begin checking them. The corresponding shared metadata entries use optics IDs 3283–3286 in `DATfiles/list_of_optics_run.dat`.
+`config/rungroups_8p5695_inputs.tsv` contains one group,
+`rg01_theta8p915_foilpm10z0`, with optics ID **8569501** and all four run
+numbers. Its corresponding entry is in `DATfiles/list_of_optics_run.dat`.
+The individual IDs 3283–3286 remain available for diagnostics.
+
+From the repository root on ifarm, prepare the combined ROOT input:
+
+```sh
+bash diagnostics/prepare_shms_8p5695_inputs.sh
+```
+
+This uses ROOT's `hadd` to combine the four original files into
+`SHMS_8p5695GeV/inputs/shms_optics_8p5695_rg01_theta8p915_foilpm10z0.root`.
+It checks source readability and refuses to overwrite an existing output.
+Allow roughly the combined input size in additional storage. If a merge fails,
+its partial output must be inspected and moved aside before retrying.
+The table uses a repository-relative path: run workflow commands from the
+repository root. Numbered output folders are created by the standard runners.
+
+The next workflow stage is foil/ridge selection:
+
+```sh
+bash run_ytar_ridge_all_rungroups.sh SHMS_8p5695GeV
+```
+
+Inspect and tune those cuts before continuing through the standard candidate,
+GMM, and fit stages in the repository README. This command is a normal workflow
+run, not the bounded 50,000-event diagnostic.
 
 `config/ztar_runlist.txt` is the existing standalone ztar validation format with the exact replay path appended. Foil index 0 means −10 cm, index 1 means 0 cm, index 2 means +10 cm. At positive SHMS angle the ridge ordering in ytar is reversed; the geometry-aware ridge assignment preserves these metadata IDs.
 
@@ -24,6 +51,25 @@ After these files are installed on ifarm, the bounded read-only probe is:
 bash diagnostics/run_replay_probe.sh SHMS_8p5695GeV > replay_probe.txt 2>&1
 ```
 
-No X11 is needed. The probe samples at most 50,000 events per run. File existence and report metadata are established from user terminal output; branch/finite-value/cut-count validation remains pending.
+No X11 is needed for the probe. Reported tests read 50,000 events in each of
+the four runs with zero read errors. The probe still flags 5–10 invalid or
+nonscalar `P.extcor.ysieve` values per run; additional extreme finite values
+occur before selection. For run 3283, none passed the tested PID and nominal
+delta selection with the diagnostic `!(abs(P.extcor.ysieve)<1000)` condition.
+That selected sample contains 16,686 events, visible sieve holes, and three
+vertex peaks near −10, 0, +10 cm. A central-foil, narrower-delta view retains
+2,427 events with separated holes. These are user-supplied ifarm results and
+screenshots, not validation of the new fit geometry or the other runs' selected
+distributions.
+
+## Sharing
+
+Share this campaign with the matching repository branch
+`hms-shms-campaign-switch`, including its shared macros and DAT metadata.
+The campaign folder alone is not a standalone program. ROOT inputs and generated
+plots remain outside Git; collaborators with access to the original replay
+directory can reproduce the combined input with the preparation command above.
+No starting matrix is supplied yet: an appropriate SHMS `config/oldfit.dat`
+is still needed before fitting.
 
 See [the implementation record](../docs/HMS_SHMS_CHANGES.md) and [reference review](../docs/HMS_SHMS_REVIEW.md).

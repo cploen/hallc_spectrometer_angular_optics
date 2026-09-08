@@ -405,6 +405,11 @@ RUN: 666707, p=-6.667 GeV/c, Sieve, Mag ON, HMS_Angle = 12.495, Carbon +/- 8cm, 
 -10,-8.,-5.,0.,5.,10.
 
 # 2017 SHMS sample: report settings supplied by user.
+# Combined campaign group; individual-run IDs below remain for diagnostics.
+8569501,rg01_theta8p915_foilpm10z0,8.915,3,1,9,0.0
+-10,0,10
+-10,-8,-5,0,5,10,15,20,22
+
 # Foils -10,0,+10 cm from the supplied target description, assumed for all four runs by user instruction.
 # Centered sieve assumed; eight delta intervals are initial analysis bins.
 # Legacy ymis field below does not override the shared SHMS survey profile.
