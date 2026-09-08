@@ -19,6 +19,9 @@ import csv
 import math
 from array import array
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from spectrometer_config import from_campaign
 
 import numpy as np
 import ROOT
@@ -127,7 +130,8 @@ def direct_prefix_spectra(design, norms):
     return raw, scaled
 
 
-def eligible_indices(arrays, foils, delta_edges):
+def eligible_indices(arrays, foils, delta_edges, spec=None):
+    spec=spec or from_campaign("HMS_legacy")
     delta = arrays["delta"]
     foil_ok = np.zeros(len(delta), dtype=bool)
     for center in foils:
@@ -136,7 +140,7 @@ def eligible_indices(arrays, foils, delta_edges):
     for lower, upper in zip(delta_edges[:-1], delta_edges[1:]):
         delta_bin_ok |= (delta >= lower) & (delta < upper)
     ysieve_ok = np.zeros(len(delta), dtype=bool)
-    for center in (np.arange(9) - 4) * 0.6 * 2.54:
+    for center in np.array([spec.ys(i) for i in range(spec.ny)]):
         ysieve_ok |= np.abs(arrays["ysT"] - center) < 0.5
     return np.flatnonzero(
         (np.abs(delta) < 100.0)
@@ -161,6 +165,7 @@ def read_central_angles(path, wanted_ids):
 
 
 def load_heldout_problem(campaign, metadata_path, terms, file_id, nfit_max):
+    spec=from_campaign(campaign)
     settings = read_campaign_rows(next((campaign / "config").glob("rungroups_*_inputs.tsv")))
     metadata = read_optics_metadata(metadata_path, {setting[1] for setting in settings})
     angles_deg = read_central_angles(
@@ -187,9 +192,9 @@ def load_heldout_problem(campaign, metadata_path, terms, file_id, nfit_max):
         path = campaign / "06a_fit_ntuple/root" / f"Optics_{optics_id}_{file_id}_fit_tree_gmm.root"
         arrays = ROOT.RDataFrame("TFit", str(path)).AsNumpy(branches)
         selected, _ = selected_indices(
-            arrays, *metadata[optics_id], global_count, nfit_max
+            arrays, *metadata[optics_id], global_count, nfit_max, spec
         )
-        eligible = eligible_indices(arrays, *metadata[optics_id])
+        eligible = eligible_indices(arrays, *metadata[optics_id], spec)
         heldout = np.setdiff1d(eligible, selected, assume_unique=True)
         global_count += len(selected)
         if not len(heldout):
@@ -209,6 +214,10 @@ def load_heldout_problem(campaign, metadata_path, terms, file_id, nfit_max):
             + ymis
             - true_z * (math.sin(angle) - true_yptar * math.cos(angle))
         ) / (math.cos(angle) + true_yptar * math.sin(angle))
+        if spec.name=="SHMS":
+            ymis=spec.ymp
+            # Recover the reference's react.x from the SHMS truth identity.
+            xbeam=(true_ytar+ymis+true_z*(math.sin(angle)+true_yptar*math.cos(angle))) / (math.cos(angle)-true_yptar*math.sin(angle))
         target_parts.append(
             np.column_stack(
                 (
@@ -236,6 +245,7 @@ def load_heldout_problem(campaign, metadata_path, terms, file_id, nfit_max):
             "angle": np.concatenate(angle_parts),
             "ymis": np.concatenate(ymis_parts),
             "xbeam": np.concatenate(xbeam_parts),
+            "spectrometer": spec.name,
         },
     )
 
@@ -247,6 +257,8 @@ def reconstruct_vertex(clean_prediction, auxiliary):
     total_yptar = clean_prediction[:, 2] + auxiliary["xtar_prediction"][:, 2]
     sine = np.sin(auxiliary["angle"])
     cosine = np.cos(auxiliary["angle"])
+    if auxiliary.get("spectrometer")=="SHMS":
+        return (total_ytar_cm+auxiliary["ymis"]-auxiliary["xbeam"]*(cosine-total_yptar*sine)) / (-sine-total_yptar*cosine)
     return (
         total_ytar_cm
         + auxiliary["ymis"]
@@ -595,7 +607,7 @@ def candidate_vertex_plot(output, records):
     multi.Add(current_graph, "LP")
     multi.Add(scaled_graph, "LP")
     multi.SetTitle(
-        "Reconstructed HMS vertex on eligible events excluded from the fit;N;Vertex z residual RMS (cm)"
+        "Reconstructed spectrometer vertex on eligible events excluded from the fit;N;Vertex z residual RMS (cm)"
     )
     multi.Draw("A")
     legend = ROOT.TLegend(0.13, 0.72, 0.43, 0.86)

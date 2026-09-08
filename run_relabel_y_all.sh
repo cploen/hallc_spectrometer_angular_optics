@@ -8,6 +8,10 @@ fi
 
 PROJECT_DIR=$(pwd -P)
 CAMPAIGN="$1"
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 DRY_RUN="${2:-}"
 
 if [[ -n "$DRY_RUN" && "$DRY_RUN" != "--dry-run" ]]; then

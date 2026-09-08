@@ -8,6 +8,10 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 CAMPAIGN="$1"
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 SKIP_RE="${2:-^$}"
 
 if [[ ! -d "$CAMPAIGN" ]]; then
@@ -33,7 +37,7 @@ echo "Campaign: $CAMPAIGN"
 echo "Config:   $RGTSV"
 echo "Logs:     $LOGDIR"
 
-while IFS=$'\t' read -r rungroup optics_id hms_angle_deg foils nruns runs rootfile; do
+while IFS=$'\t' read -r rungroup optics_id angle_deg foils nruns runs rootfile; do
   [[ -z "$rungroup" ]] && continue
 
   if [[ "$rungroup" =~ $SKIP_RE ]]; then

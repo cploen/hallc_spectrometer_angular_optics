@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // make_xscol_candidate_tree.C
 // v3: preserves low/high xpfp zone gates for relabeled component cuts.
 //
@@ -293,9 +295,14 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
                                TString outputTsvOverride = "",
                                Double_t minCerNpe = 6.0,
                                Double_t minCalEtot = 0.65,
-                               Double_t deltaMinGlobal = -10.0,
-                               Double_t deltaMaxGlobal = 10.0,
+                               Double_t deltaMinGlobal = -999.0,
+                               Double_t deltaMaxGlobal = 999.0,
                                Bool_t requireYtarCut = kTRUE) {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+
+  if (deltaMinGlobal==-999.0) deltaMinGlobal=spec.deltaMin;
+  if (deltaMaxGlobal==999.0) deltaMaxGlobal=spec.deltaMax;
   using namespace MakeXCand;
 
   gROOT->SetBatch(kTRUE);
@@ -308,6 +315,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   TString OpticsFile = "DATfiles/list_of_optics_run.dat";
   RunInfo info;
   if (!ReadOpticsRunInfo(nrun, info, OpticsFile)) return;
+  if (!hallc::centeredSieveOnly(spec,info.sieveFlag)) return;
 
   if (info.numFoil <= 0 || info.ndelcut <= 0 || (Int_t)info.delcut.size() < 2) {
     cout << "ERROR: invalid NumFoil/ndelcut/delta edge metadata." << endl;
@@ -408,8 +416,8 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   cout << "XFP/XPFP cuts     = " << xCutFile << endl;
   cout << "Output ROOT       = " << outputroot << endl;
   cout << "Output TSV        = " << outputtsv << endl;
-  cout << "Baseline cuts     = H.cer.npeSum > " << minCerNpe
-       << ", H.cal.etottracknorm > " << minCalEtot
+  cout << "Baseline cuts     = " << spec.cherenkovBranch() << " > " << minCerNpe
+       << ", " << spec.branch("cal.etottracknorm") << " > " << minCalEtot
        << ", delta in (" << deltaMinGlobal
        << "," << deltaMaxGlobal << ")" << endl;
 
@@ -501,7 +509,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     xpfp_xfp_cut[nf].resize(nSlices);
     for (Int_t nd = 0; nd < nSlices; nd++) {
-      xpfp_xfp_cut[nf][nd].resize(9);
+      xpfp_xfp_cut[nf][nd].resize(spec.nx);
     }
   }
 
@@ -510,7 +518,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     singletonFallback[nf].resize(nSlices);
     for (Int_t nd = 0; nd < nSlices; nd++) {
-      singletonFallback[nf][nd].resize(9);
+      singletonFallback[nf][nd].resize(spec.nx);
     }
   }
 
@@ -543,7 +551,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
     TString zone = "";
 
     if (ParseXComponentCutName(name, xs, nf, nd, part, zone, src)) {
-      if (nf < 0 || nf >= info.numFoil || nd < 0 || nd >= nSlices || xs < 0 || xs > 8) continue;
+      if (nf < 0 || nf >= info.numFoil || nd < 0 || nd >= nSlices || xs < 0 || xs >= spec.nx) continue;
       XCutComponent comp;
       comp.cut = (TCutG*)obj->Clone(Form("xcand_component_x%d_f%d_d%d_p%d", xs, nf, nd, part));
       comp.part = part;
@@ -558,7 +566,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
     }
 
     if (ParseXSingletonCutName(name, xs, nf, nd)) {
-      if (nf < 0 || nf >= info.numFoil || nd < 0 || nd >= nSlices || xs < 0 || xs > 8) continue;
+      if (nf < 0 || nf >= info.numFoil || nd < 0 || nd >= nSlices || xs < 0 || xs >= spec.nx) continue;
       XCutComponent comp;
       comp.cut = (TCutG*)obj->Clone(Form("xcand_singleton_x%d_f%d_d%d", xs, nf, nd));
       comp.part = -1;
@@ -576,7 +584,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   Int_t nFallbackUsed = 0;
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     for (Int_t nd = 0; nd < nSlices; nd++) {
-      for (Int_t xs = 0; xs < 9; xs++) {
+      for (Int_t xs = 0; xs < spec.nx; xs++) {
         if (!xpfp_xfp_cut[nf][nd][xs].empty()) continue;
         if (singletonFallback[nf][nd][xs].empty()) continue;
         xpfp_xfp_cut[nf][nd][xs] = singletonFallback[nf][nd][xs];
@@ -599,7 +607,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     for (Int_t nd = 0; nd < nSlices; nd++) {
       cout << "  foil " << nf << " ndel " << nd << " :";
-      for (Int_t xs = 0; xs < 9; xs++) {
+      for (Int_t xs = 0; xs < spec.nx; xs++) {
         cout << " x" << xs << "=" << xpfp_xfp_cut[nf][nd][xs].size();
       }
       cout << endl;
@@ -630,26 +638,26 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   Double_t xbpm_tar = 0, ybpm_tar = 0, frx = 0, fry = 0;
 
   bool okRequired = true;
-  okRequired &= BindBranch(T, "H.cer.npeSum", &sumnpe, true);
-  okRequired &= BindBranch(T, "H.cal.etottracknorm", &etracknorm, true);
-  okRequired &= BindBranch(T, "H.gtr.y", &ytar, true);
-  okRequired &= BindBranch(T, "H.gtr.x", &xtar, true);
-  BindBranch(T, "H.react.x", &reactx, false);
-  BindBranch(T, "H.react.y", &reacty, false);
-  BindBranch(T, "H.react.z", &reactz, false);
-  okRequired &= BindBranch(T, "H.gtr.dp", &delta, true);
-  okRequired &= BindBranch(T, "H.gtr.ph", &yptar, true);
-  okRequired &= BindBranch(T, "H.gtr.th", &xptar, true);
-  okRequired &= BindBranch(T, "H.dc.y_fp", &yfp, true);
-  okRequired &= BindBranch(T, "H.dc.yp_fp", &ypfp, true);
-  okRequired &= BindBranch(T, "H.dc.x_fp", &xfp, true);
-  okRequired &= BindBranch(T, "H.dc.xp_fp", &xpfp, true);
-  okRequired &= BindBranch(T, "H.extcor.ysieve", &ysieve, true);
-  okRequired &= BindBranch(T, "H.extcor.xsieve", &xsieve, true);
-  BindBranch(T, "H.rb.raster.fr_xbpm_tar", &xbpm_tar, false);
-  BindBranch(T, "H.rb.raster.fr_ybpm_tar", &ybpm_tar, false);
-  BindBranch(T, "H.rb.raster.fr_xa", &frx, false);
-  BindBranch(T, "H.rb.raster.fr_ya", &fry, false);
+  okRequired &= BindBranch(T, spec.cherenkovBranch().c_str(), &sumnpe, true);
+  okRequired &= BindBranch(T, spec.branch("cal.etottracknorm").c_str(), &etracknorm, true);
+  okRequired &= BindBranch(T, spec.branch("gtr.y").c_str(), &ytar, true);
+  okRequired &= BindBranch(T, spec.branch("gtr.x").c_str(), &xtar, true);
+  BindBranch(T, spec.branch("react.x").c_str(), &reactx, false);
+  BindBranch(T, spec.branch("react.y").c_str(), &reacty, false);
+  BindBranch(T, spec.branch("react.z").c_str(), &reactz, false);
+  okRequired &= BindBranch(T, spec.branch("gtr.dp").c_str(), &delta, true);
+  okRequired &= BindBranch(T, spec.branch("gtr.ph").c_str(), &yptar, true);
+  okRequired &= BindBranch(T, spec.branch("gtr.th").c_str(), &xptar, true);
+  okRequired &= BindBranch(T, spec.branch("dc.y_fp").c_str(), &yfp, true);
+  okRequired &= BindBranch(T, spec.branch("dc.yp_fp").c_str(), &ypfp, true);
+  okRequired &= BindBranch(T, spec.branch("dc.x_fp").c_str(), &xfp, true);
+  okRequired &= BindBranch(T, spec.branch("dc.xp_fp").c_str(), &xpfp, true);
+  okRequired &= BindBranch(T, spec.branch("extcor.ysieve").c_str(), &ysieve, true);
+  okRequired &= BindBranch(T, spec.branch("extcor.xsieve").c_str(), &xsieve, true);
+  BindBranch(T, spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar, false);
+  BindBranch(T, spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar, false);
+  BindBranch(T, spec.branch("rb.raster.fr_xa").c_str(), &frx, false);
+  BindBranch(T, spec.branch("rb.raster.fr_ya").c_str(), &fry, false);
 
   if (!okRequired) {
     cout << "ERROR: stopping because one or more required replay branches are missing." << endl;
@@ -734,7 +742,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   counts.resize(info.numFoil);
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     counts[nf].resize(nSlices);
-    for (Int_t nd = 0; nd < nSlices; nd++) counts[nf][nd].resize(9, 0);
+    for (Int_t nd = 0; nd < nSlices; nd++) counts[nf][nd].resize(spec.nx, 0);
   }
 
   Long64_t nentries = T->GetEntries();
@@ -775,7 +783,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
 
     vector<Int_t> xMatches;
     vector<Int_t> xComponentMatchCounts;
-    for (Int_t xs = 0; xs < 9; xs++) {
+    for (Int_t xs = 0; xs < spec.nx; xs++) {
       Int_t nCompMatchThisXs = 0;
       const vector<XCutComponent>& comps = xpfp_xfp_cut[nf_found][nd_found][xs];
       for (size_t ic = 0; ic < comps.size(); ic++) {
@@ -833,12 +841,13 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     for (Int_t nd = 0; nd < nSlices; nd++) {
       cout << "  foil " << nf << " ndel " << nd << " :";
-      for (Int_t xs = 0; xs < 9; xs++) cout << " x" << xs << "=" << counts[nf][nd][xs];
+      for (Int_t xs = 0; xs < spec.nx; xs++) cout << " x" << xs << "=" << counts[nf][nd][xs];
       cout << endl;
     }
   }
 
   fout->cd();
+  hallc::writeProfile(spec);
   out->Write();
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     for (Int_t nd = 0; nd < nSlices; nd++) {
@@ -860,7 +869,7 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
 
   for (Int_t nf = 0; nf < info.numFoil; nf++) {
     for (Int_t nd = 0; nd < nSlices; nd++) {
-      for (Int_t xs = 0; xs < 9; xs++) {
+      for (Int_t xs = 0; xs < spec.nx; xs++) {
         ofs << tag << "\t"
             << nrun << "\t"
             << nf << "\t"

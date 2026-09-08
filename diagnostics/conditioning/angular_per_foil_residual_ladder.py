@@ -2,7 +2,7 @@
 """Delta-style angular residual ladders for every nominal foil.
 
 For every prefix N=1..210, independently solve the unit-column design matrix
-directly with SVD, transform the coefficients back to the HMS convention, and
+directly with SVD, transform the coefficients back to the Hall C convention, and
 measure residual RMS separately for selected training events and eligible
 events excluded by the fit caps.  The current unscaled-XTX ladder is evaluated
 from its saved coefficients for a method-matched comparison.
@@ -16,6 +16,9 @@ import gc
 import math
 from array import array
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from spectrometer_config import from_campaign
 
 import numpy as np
 import ROOT
@@ -53,7 +56,7 @@ def selected_foil_labels(campaign, metadata_path, file_id, nfit_max):
         )
         arrays = ROOT.RDataFrame("TFit", str(path)).AsNumpy(branches)
         selected, _ = selected_indices(
-            arrays, *metadata[optics_id], global_count, nfit_max
+            arrays, *metadata[optics_id], global_count, nfit_max, from_campaign(campaign)
         )
         labels.append(arrays["ztarT"][selected])
         global_count += len(selected)
@@ -204,7 +207,7 @@ def plot_ladder(
     multi.Add(training_graph, "LP")
     multi.Add(heldout_graph, "LP")
     multi.SetTitle(
-        f"HMS {target_label} residuals by N: foil z={foil:g} cm, {method_title};"
+        f"Spectrometer {target_label} residuals by N: foil z={foil:g} cm, {method_title};"
         f"Number of fitted terms N;Residual RMS ({units})"
     )
     multi.Draw("A")

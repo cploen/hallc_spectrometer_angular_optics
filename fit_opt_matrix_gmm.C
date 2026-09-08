@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -33,8 +35,10 @@ void fit_opt_matrix_gmm(
   TString oldCoeffsFile,
   TString rungroupsTsv,
   TString opticsMetadataFile) {
-  Int_t maxFoils=3;
-  Int_t maxDel=5;
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(rungroupsTsv, spec)) return;
+
+  // Foils and delta slices are run metadata, independent of spectrometer.
 
   struct CampaignSetting {
     TString rungroup;
@@ -112,8 +116,8 @@ void fit_opt_matrix_gmm(
   gSystem->mkdir(Form("%s/plots", outputDir.Data()), kTRUE);
 
   string newcoeffsfilename =
-    Form("%s/matrices/nps_hms_newfit_%s.dat",
-         outputDir.Data(), tag.Data());
+    Form("%s/matrices/nps_%s_newfit_%s.dat",
+         outputDir.Data(), spec.lowerName().c_str(), tag.Data());
 
   string oldcoeffsfilename = oldCoeffsFile.Data();
   int nfit=0,npar,nfit_max=nfit_max_arg,npar_final=0,max_order=6,norder;
@@ -305,10 +309,10 @@ void fit_opt_matrix_gmm(
   //
   
   
-  const Int_t nysieve=9;  
+  const Int_t nysieve=spec.ny;
   vector <Double_t> ys_cent;
   for (Int_t nys=0;nys<nysieve;nys++) {
-    Double_t pos=(nys-4)*0.6*2.54;
+    Double_t pos=spec.ys(nys);
     ys_cent.push_back(pos);
   }
   
@@ -317,6 +321,8 @@ void fit_opt_matrix_gmm(
     Int_t nrun = settings[iSetting].opticsId;
     TString rungroup = settings[iSetting].rungroup;
     TString OpticsFile = opticsMetadataFile;
+    hallc::RunMetadata validatedRun;
+    if (!hallc::loadRunMetadata(nrun,validatedRun,opticsMetadataFile.Data())) return;
     ifstream file_optics(OpticsFile.Data());
     TString opticsline;
     TString OpticsID="";
@@ -384,6 +390,9 @@ void fit_opt_matrix_gmm(
     } else {
       cout << " No file = " << OpticsFile << endl;    
     }
+    if (!hallc::centeredSieveOnly(spec,SieveFlag)) return;
+    const Int_t maxFoils=nfoils;
+    const Int_t maxDel=ndelcut-1;
     cout << RunNum << " " << OpticsID << " " << CentAngle << " " << nfoils << " " << SieveFlag << endl;
     
     TString inputroot = Form(
@@ -762,6 +771,7 @@ void fit_opt_matrix_gmm(
     Form("%s/root/fit_opt_matrix_%s_qa.root",
          outputDir.Data(), tag.Data());
   TFile foutQA(qaRoot, "RECREATE");
+  hallc::writeProfile(spec);
   hytardiff->Write(); hyptardiff->Write(); hxptardiff->Write();
   hytarnewdiff->Write(); hyptarnewdiff->Write(); hxptarnewdiff->Write();
   hytar->Write(); hyptar->Write(); hxptar->Write();

@@ -1,3 +1,5 @@
+// HMS/SHMS: put run list under HMS_<campaign>/ or SHMS_<campaign>/; see docs/HMS_SHMS_REVIEW.md.
+#include "../../../spectrometer_root.h"
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
@@ -32,6 +34,7 @@ struct RunFoils {
   Int_t run;
   TString opticsID;
   vector<double> foils;
+  TString replayFile;
 };
 
 struct DeltaSlice {
@@ -43,6 +46,7 @@ struct DeltaSlice {
 
 vector<double> ParseFoilList(const string& s) {
   vector<double> foils;
+  TString replayFile;
   string item;
   stringstream ss(s);
   while (getline(ss, item, ',')) {
@@ -81,6 +85,9 @@ vector<RunFoils> ReadRunList(const TString& runListFile) {
     rf.run = run;
     rf.opticsID = opticsID.c_str();
     rf.foils = ParseFoilList(foilString);
+    string replayPath;
+    getline(ss,replayPath);
+    rf.replayFile=TString(replayPath.c_str()).Strip(TString::kBoth);
     runs.push_back(rf);
   }
 
@@ -119,6 +126,15 @@ void fit_ztar_resolution_by_delta_slice(
   TString label = "newfit_6p667_ztar_delta_resolution",
   bool includeHighPositiveDelta = false
 ) {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(runListFile,spec)) return;
+  auto armText=[&](TString text) {
+    text.ReplaceAll("H.cer.",(spec.prefix+"."+spec.cer+".").c_str());
+    text.ReplaceAll("H.",(spec.prefix+".").c_str());
+    text.ReplaceAll("HMS",spec.name.c_str());
+    return text;
+  };
+
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
 
@@ -135,6 +151,12 @@ void fit_ztar_resolution_by_delta_slice(
     {  0.0,  5.0,    "0 < #delta < 5", kMagenta + 1},
     {  5.0, 10.0,    "5 < #delta < 10", kOrange + 7}
   };
+  if (spec.shms()) {
+    // Extra positive-delta intervals cover the nominal SHMS acceptance.
+    slices.push_back({10.,15.,"10 < #delta < 15",kCyan+2});
+    slices.push_back({15.,20.,"15 < #delta < 20",kViolet+1});
+    slices.push_back({20.,22.,"20 < #delta < 22",kGray+2});
+  }
   set<double> foilSet;
   for (auto& rf : runs) {
     for (double z : rf.foils) foilSet.insert(z);
@@ -202,7 +224,7 @@ void fit_ztar_resolution_by_delta_slice(
 
       TH1D* hsum = new TH1D(
         hname,
-        Form("Combined runs, foil z_{nom}=%.1f cm; H.react.z [cm]; Counts", znom),
+        Form(armText("Combined runs, foil z_{nom}=%.1f cm; H.react.z [cm]; Counts").Data(), znom),
         600, -20.0, 20.0
       );
       hsum->Sumw2();
@@ -214,6 +236,8 @@ void fit_ztar_resolution_by_delta_slice(
 
         TString replayFile = Form("%s/nps_hms_optics_%s_1_-1.root",
                                   rootDir.Data(), rf.opticsID.Data());
+    if (!rf.replayFile.IsNull()) replayFile=rf.replayFile;
+    else if (spec.shms()) { cerr << "ERROR: SHMS run list needs the exact replay path in its fourth field." << endl; return; }
 
         TFile* f = TFile::Open(replayFile, "READ");
         if (!f || f->IsZombie()) {
@@ -227,6 +251,7 @@ void fit_ztar_resolution_by_delta_slice(
           f->Close();
           continue;
         }
+    if (!hallc::requireBranches(T,{spec.cherenkovBranch(),spec.branch("gtr.dp"),spec.branch("react.z"),spec.branch("cal.etottracknorm")})) { f->Close(); continue; }
 
         TString htmpName = Form("htmp_run%d_foil_%g_slice_%zu", rf.run, znom, is);
         htmpName.ReplaceAll("-", "m");
@@ -234,10 +259,10 @@ void fit_ztar_resolution_by_delta_slice(
 
         TH1D* htmp = new TH1D(htmpName, htmpName, 600, -20.0, 20.0);
 
-        TString cut = Form("H.cer.npeSum>2 && H.cal.etottracknorm>0.65 && H.gtr.dp>%g && H.gtr.dp<%g",
+        TString cut = Form(armText("H.cer.npeSum>2 && H.cal.etottracknorm>0.65 && H.gtr.dp>%g && H.gtr.dp<%g").Data(),
                            sl.low, sl.high);
 
-        TString drawCmd = Form("H.react.z >> %s", htmpName.Data());
+        TString drawCmd = Form(armText("H.react.z >> %s").Data(), htmpName.Data());
         T->Draw(drawCmd, cut, "goff");
 
         if (htmp->GetEntries() > 0) {
@@ -356,7 +381,7 @@ void fit_ztar_resolution_by_delta_slice(
 
     header.SetTextSize(0.026);
     header.DrawLatex(0.12, 0.875, Form("Combined like foil runs: %s", includedRuns.Data()));
-    header.DrawLatex(0.12, 0.842, Form("cuts: H.cer.npeSum > 2, H.cal.etottracknorm > 0.65"));
+    header.DrawLatex(0.12, 0.842, Form(armText("cuts: H.cer.npeSum > 2, H.cal.etottracknorm > 0.65").Data()));
 
     double yText = 0.69;
 
@@ -416,6 +441,8 @@ void fit_ztar_resolution_by_delta_slice(
   for (auto& rf : runs) {
     TString replayFile = Form("%s/nps_hms_optics_%s_1_-1.root",
                               rootDir.Data(), rf.opticsID.Data());
+    if (!rf.replayFile.IsNull()) replayFile=rf.replayFile;
+    else if (spec.shms()) { cerr << "ERROR: SHMS run list needs the exact replay path in its fourth field." << endl; return; }
 
     TFile* f = TFile::Open(replayFile, "READ");
     if (!f || f->IsZombie()) {
@@ -429,6 +456,7 @@ void fit_ztar_resolution_by_delta_slice(
       f->Close();
       continue;
     }
+    if (!hallc::requireBranches(T,{spec.cherenkovBranch(),spec.branch("gtr.dp"),spec.branch("react.z"),spec.branch("cal.etottracknorm")})) { f->Close(); continue; }
 
     for (double znom : rf.foils) {
       individualPageIndex++;
@@ -464,14 +492,14 @@ void fit_ztar_resolution_by_delta_slice(
 
         TH1D* h = new TH1D(
           hname,
-          Form("Run %d, foil z_{nom}=%.1f cm; H.react.z [cm]; Counts", rf.run, znom),
+          Form(armText("Run %d, foil z_{nom}=%.1f cm; H.react.z [cm]; Counts").Data(), rf.run, znom),
           600, -20.0, 20.0
         );
 
-        TString cut = Form("H.cer.npeSum>2 && H.cal.etottracknorm>0.65 && H.gtr.dp>%g && H.gtr.dp<%g",
+        TString cut = Form(armText("H.cer.npeSum>2 && H.cal.etottracknorm>0.65 && H.gtr.dp>%g && H.gtr.dp<%g").Data(),
                            sl.low, sl.high);
 
-        TString drawCmd = Form("H.react.z >> %s", hname.Data());
+        TString drawCmd = Form(armText("H.react.z >> %s").Data(), hname.Data());
         T->Draw(drawCmd, cut, "goff");
 
         h->SetLineColor(sl.color);
@@ -549,7 +577,7 @@ void fit_ztar_resolution_by_delta_slice(
       // Canvas title already gives run and foil; do not repeat it inside the plot.
       header.SetTextSize(0.030);
       header.DrawLatex(0.12, 0.885, Form("Individual run diagnostic;"));
-      header.DrawLatex(0.12, 0.852, Form("cuts: H.cer.npeSum > 2, H.cal.etottracknorm > 0.65"));
+      header.DrawLatex(0.12, 0.852, Form(armText("cuts: H.cer.npeSum > 2, H.cal.etottracknorm > 0.65").Data()));
 
       TLatex text;
       text.SetNDC();

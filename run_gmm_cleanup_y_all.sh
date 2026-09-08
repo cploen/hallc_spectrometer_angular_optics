@@ -8,6 +8,10 @@ fi
 
 PROJECT_DIR=$(pwd -P)
 CAMPAIGN="$1"
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 DRY_RUN="${2:-}"
 
 if [[ -n "$DRY_RUN" && "$DRY_RUN" != "--dry-run" ]]; then
@@ -26,7 +30,7 @@ ROOTDIR="${OUTPUT_DIR}/root"
 TSVDIR="${OUTPUT_DIR}/tsv"
 
 MIN_EVENTS="${MIN_EVENTS:-30}"
-MAX_COMPONENTS="${MAX_COMPONENTS:-9}"
+MAX_COMPONENTS="${MAX_COMPONENTS:-$HALLC_NX}"
 KEEP_FRAC="${KEEP_FRAC:-0.90}"
 
 [[ -d "$CAMPAIGN_DIR" ]] || {

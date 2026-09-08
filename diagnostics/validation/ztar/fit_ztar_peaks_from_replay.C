@@ -1,3 +1,5 @@
+// HMS/SHMS: put run list under HMS_<campaign>/ or SHMS_<campaign>/; see docs/HMS_SHMS_REVIEW.md.
+#include "../../../spectrometer_root.h"
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1D.h>
@@ -34,10 +36,12 @@ struct RunFoils {
   Int_t run;
   TString opticsID;
   vector<double> foils;
+  TString replayFile;
 };
 
 vector<double> ParseFoilList(const string& s) {
   vector<double> foils;
+  TString replayFile;
   string item;
   stringstream ss(s);
 
@@ -81,6 +85,9 @@ vector<RunFoils> ReadRunList(const TString& runListFile) {
     rf.opticsID = opticsID.c_str();
     rf.foils = ParseFoilList(foilString);
 
+    string replayPath;
+    getline(ss,replayPath);
+    rf.replayFile=TString(replayPath.c_str()).Strip(TString::kBoth);
     runs.push_back(rf);
   }
 
@@ -132,6 +139,15 @@ void fit_ztar_peaks_from_replay(
   Double_t deltaLow = -999.0,
   Double_t deltaHigh = 999.0
 ) {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(runListFile,spec)) return;
+  auto armText=[&](TString text) {
+    text.ReplaceAll("H.cer.",(spec.prefix+"."+spec.cer+".").c_str());
+    text.ReplaceAll("H.",(spec.prefix+".").c_str());
+    text.ReplaceAll("HMS",spec.name.c_str());
+    return text;
+  };
+
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
 
@@ -147,6 +163,7 @@ void fit_ztar_peaks_from_replay(
     cout << "ERROR: rootDir is still a placeholder. Pass an explicit replay ROOT directory." << endl;
     return;
   }
+  if (spec.shms() && deltaLow<=-900.0 && deltaHigh>=900.0) { deltaLow=spec.deltaMin; deltaHigh=spec.deltaMax; }
   if (deltaLow <= -900.0 || deltaHigh >= 900.0) {
     cout << "ERROR: delta range is still a placeholder. Pass explicit deltaLow and deltaHigh." << endl;
     return;
@@ -183,6 +200,8 @@ void fit_ztar_peaks_from_replay(
 
     TString replayFile = Form("%s/nps_hms_optics_%s_1_-1.root",
                               rootDir.Data(), rf.opticsID.Data());
+    if (!rf.replayFile.IsNull()) replayFile=rf.replayFile;
+    else if (spec.shms()) { cerr << "ERROR: SHMS run list needs the exact replay path in its fourth field." << endl; return; }
     TString replayFileReal = RealPathOrOriginal(replayFile);
 
     TFile* f = new TFile(replayFile);
@@ -197,19 +216,20 @@ void fit_ztar_peaks_from_replay(
       f->Close();
       continue;
     }
+    if (!hallc::requireBranches(T,{spec.cherenkovBranch(),spec.branch("gtr.dp"),spec.branch("react.z")})) { f->Close(); continue; }
 
     TString hname = Form("hz_reactz_run%d", rf.run);
     TH1D* hz = new TH1D(
       hname,
-      Form("Run %d: H.react.z, %.1f < #delta < %.1f; H.react.z [cm]; Counts",
+      Form(armText("Run %d: H.react.z, %.1f < #delta < %.1f; H.react.z [cm]; Counts").Data(),
            rf.run, deltaLow, deltaHigh),
       600, -20.0, 20.0
     );
 
-    TString cut = Form("H.cer.npeSum>2 && H.gtr.dp>%g && H.gtr.dp<%g",
+    TString cut = Form(armText("H.cer.npeSum>2 && H.gtr.dp>%g && H.gtr.dp<%g").Data(),
                        deltaLow, deltaHigh);
 
-    TString drawCmd = Form("H.react.z >> %s", hname.Data());
+    TString drawCmd = Form(armText("H.react.z >> %s").Data(), hname.Data());
     T->Draw(drawCmd, cut, "goff");
 
     if (hz->GetEntries() == 0) {
@@ -320,7 +340,7 @@ void fit_ztar_peaks_from_replay(
      
      header.SetTextSize(0.032);
      header.DrawLatex(0.13, 0.86, Form("Label: %s", label.Data()));
-     header.DrawLatex(0.13, 0.82, Form("Cut: H.cer.npeSum>2, %.1f < H.gtr.dp < %.1f",
+     header.DrawLatex(0.13, 0.82, Form(armText("Cut: H.cer.npeSum>2, %.1f < H.gtr.dp < %.1f").Data(),
                                        deltaLow, deltaHigh));
      
     double yText = 0.75;

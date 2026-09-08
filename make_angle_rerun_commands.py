@@ -6,15 +6,9 @@ import re
 import shlex
 import sys
 from pathlib import Path
+from spectrometer_config import from_campaign, run_metadata, delta_index
 
 
-DELTA_EDGES = [
-    (-10, -8),
-    (-8, -5),
-    (-5, 0),
-    (0, 5),
-    (5, 10),
-]
 
 XMACRO = "assign_xfp_xpfp_angleScanBands_split.C"
 YMACRO = "assign_yfp_ypfp_angleScanBands.C"
@@ -22,13 +16,6 @@ YMACRO = "assign_yfp_ypfp_angleScanBands.C"
 
 def parse_encoded_number(value):
     return float(value.replace("m", "-").replace("p", "."))
-
-
-def delta_index(delta_min, delta_max):
-    pair = (int(delta_min), int(delta_max))
-    if pair not in DELTA_EDGES:
-        raise ValueError(f"unsupported delta interval {pair}")
-    return DELTA_EDGES.index(pair)
 
 
 def canonical_number(value):
@@ -161,6 +148,7 @@ def main():
     )
     parser.add_argument("campaign", help="campaign directory, e.g. HMS_5p878GeV")
     args = parser.parse_args()
+    spec=from_campaign(args.campaign)
 
     project_dir = Path.cwd().resolve()
     campaign_dir = project_dir / args.campaign
@@ -238,7 +226,7 @@ def main():
             dmax = parse_encoded_number(dmax_s)
             xmin = parse_encoded_number(xmin_s)
             xmax = parse_encoded_number(xmax_s)
-            n_delta = delta_index(dmin, dmax)
+            n_delta = delta_index(run_metadata(optics_id)["edges"], dmin, dmax)
 
             if xmin <= -998:
                 zone = "low"
@@ -260,14 +248,14 @@ def main():
 
             expression_1 = (
                 f'{XMACRO}({optics_id},{dmin:g},{dmax:g},"{tag}",'
-                f'9,1.0,0.12,0.06,0.18,2,0.003,0.025,0.30,true,'
+                f'{spec.nx},1.0,0.12,0.06,0.18,2,0.003,0.025,0.30,true,'
                 f'{foil},-1,-1,-999,false,__THETA__,{xmin:g},{xmax:g},'
                 f'true,"{args.campaign}","__ROOTFILE__")'
             )
 
             expression_2 = (
                 f'{XMACRO}({optics_id},{dmin:g},{dmax:g},"{tag}",'
-                f'9,1.0,0.10,0.045,0.12,2,0.0015,0.012,0.22,true,'
+                f'{spec.nx},1.0,0.10,0.045,0.12,2,0.0015,0.012,0.22,true,'
                 f'{foil},-1,-1,-999,false,__THETA__,{xmin:g},{xmax:g},'
                 f'true,"{args.campaign}","__ROOTFILE__")'
             )
@@ -300,7 +288,7 @@ def main():
 
             dmin = parse_encoded_number(dmin_s)
             dmax = parse_encoded_number(dmax_s)
-            n_delta = delta_index(dmin, dmax)
+            n_delta = delta_index(run_metadata(optics_id)["edges"], dmin, dmax)
 
             theta = ytheta.get(
                 (tag, int(foil), n_delta),
@@ -309,14 +297,14 @@ def main():
 
             expression_1 = (
                 f'{YMACRO}({optics_id},{dmin:g},{dmax:g},"{tag}",'
-                f'9,1.0,0.18,0.08,0.25,2,0.005,0.04,0.45,true,'
+                f'{spec.ny},1.0,0.18,0.08,0.25,2,0.005,0.04,0.45,true,'
                 f'{foil},-1,-1,-999,false,__THETA__,'
                 f'"{args.campaign}","__ROOTFILE__")'
             )
 
             expression_2 = (
                 f'{YMACRO}({optics_id},{dmin:g},{dmax:g},"{tag}",'
-                f'9,1.0,0.14,0.05,0.15,2,0.0025,0.02,0.30,true,'
+                f'{spec.ny},1.0,0.14,0.05,0.15,2,0.0025,0.02,0.30,true,'
                 f'{foil},-1,-1,-999,false,__THETA__,'
                 f'"{args.campaign}","__ROOTFILE__")'
             )

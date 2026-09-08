@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // XFP/XPFP angle-scan band pipeline, mechanically ported from evolved YFP/YPFP pipeline.
 // Adds clean-gap scoring, stability-aware theta selection, fixed-theta override,
 // batch delta-slice wrapper, ndel-safe output naming, and delete-before-rewrite.
@@ -1201,7 +1203,7 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
                                                 Double_t deltaMin=-10.0,
                                                 Double_t deltaMax=-8.0,
                                                 TString ytarTag="auto_ycut",
-                                                Int_t maxBands=9,
+                                                Int_t maxBands=0,
                                                 Double_t thetaStepDeg=1.0,
                                                 Double_t minPeakSep=0.18,
                                                 Double_t minPeakFraction=0.05,
@@ -1221,6 +1223,14 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
                      Bool_t writeAutoCuts=true,
                      const char *campaignDir="HMS_6p117GeV",
                      const char *inputRootOverride="") {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+  if (spec.shms() && (!inputRootOverride || !*inputRootOverride)) {
+    std::cerr << "ERROR: SHMS requires the replay path from campaign inputs." << std::endl;
+    return;
+  }
+  if (maxBands<=0) maxBands=spec.nx;
+
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptStat(0);
   gStyle->SetPalette(kBird);
@@ -1241,6 +1251,7 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
   TString metaFile = XFP_DAT_DIR + "/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_angleScan(nrun, info, metaFile.Data())) return;
 
+  if (!hallc::centeredSieveOnly(spec,info.sieveFlag)) return;
   Int_t ndelIndex = FindDeltaIndex_angleScan_v2(info, deltaMin, deltaMax, ndelOverride);
   if (ndelIndex < 0) return;
 
@@ -1328,20 +1339,21 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
   Double_t sumnpe=0, etracknorm=0;
   Double_t ytar=0, delta=0, xfp=0, xpfp=0;
 
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.dp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp")})) return;
   T->SetBranchStatus("*",0);
-  T->SetBranchStatus("H.cer.npeSum",1);
-  T->SetBranchStatus("H.cal.etottracknorm",1);
-  T->SetBranchStatus("H.gtr.y",1);
-  T->SetBranchStatus("H.gtr.dp",1);
-  T->SetBranchStatus("H.dc.x_fp",1);
-  T->SetBranchStatus("H.dc.xp_fp",1);
+  T->SetBranchStatus(spec.cherenkovBranch().c_str(),1);
+  T->SetBranchStatus(spec.branch("cal.etottracknorm").c_str(),1);
+  T->SetBranchStatus(spec.branch("gtr.y").c_str(),1);
+  T->SetBranchStatus(spec.branch("gtr.dp").c_str(),1);
+  T->SetBranchStatus(spec.branch("dc.x_fp").c_str(),1);
+  T->SetBranchStatus(spec.branch("dc.xp_fp").c_str(),1);
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.dc.x_fp", &xfp);
-  T->SetBranchAddress("H.dc.xp_fp", &xpfp);
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("dc.x_fp").c_str(), &xfp);
+  T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
 
   // Plot convention: x = xpfp, y = xfp.
   std::vector<double> xvals; // xpfp
@@ -1355,6 +1367,7 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
     T->GetEntry(i);
 
     if (!(sumnpe > 6.0 && etracknorm > 0.65)) continue;
+    if (spec.shms() && !spec.acceptsDelta(delta)) continue;
     nPassBasic++;
 
     if (useYtarCut && ytarCut) {
@@ -2454,7 +2467,7 @@ void run_xfp_xpfp_angleScan_oneZone(Int_t nrun=1544,
 
       Int_t xscol = XscolFromQBand_angleScan((Int_t)b, (Int_t)bandPeaks.size());
 
-      if (!useXpfpGate && (xscol < 0 || xscol > 8)) {
+      if (!useXpfpGate && (xscol < 0 || xscol >= spec.nx)) {
         cout << "WARNING: skipping qband " << b
              << " because mapped xscol=" << xscol
              << " is outside [0,8]" << endl;
@@ -2549,7 +2562,7 @@ void assign_xfp_xpfp_angleScanBands_split(Int_t nrun=1544,
                      Double_t deltaMin=-8.0,
                      Double_t deltaMax=-5.0,
                      const char *ytarTag="ML_dev",
-                     Int_t maxBands=9,
+                     Int_t maxBands=0,
                      Double_t thetaStepDeg=1.0,
                      Double_t minPeakSep=0.18,
                      Double_t minPeakFrac=0.08,
@@ -2603,12 +2616,14 @@ void assign_xfp_xpfp_angleScanBands_split(Int_t nrun=1544,
   cout << "============================================================" << endl;
   cout << "BATCH MODE: XFP/XPFP angle scan over standard delta slices" << endl;
   cout << "Run: " << nrun << "  foilIndex: " << foilIndex << endl;
-  cout << "Delta edges: -10,-8,-5,0,5,10" << endl;
+  cout << "Delta edges: from run metadata" << endl;
   cout << "ytarTag: " << ytarTag << endl;
   cout << "============================================================" << endl;
 
-  const int nEdges = 6;
-  const double edges[nEdges] = {-10.0, -8.0, -5.0, 0.0, 5.0, 10.0};
+  hallc::RunMetadata scanInfo;
+  if (!hallc::loadRunMetadata(nrun,scanInfo)) return;
+  const auto& edges=scanInfo.edges;
+  const int nEdges=int(edges.size());
 
   for (int i = 0; i < nEdges - 1; ++i) {
     cout << endl;

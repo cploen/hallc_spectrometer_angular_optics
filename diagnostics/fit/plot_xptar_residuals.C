@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "../../spectrometer_root.h"
 #include <TSystem.h>
 #include <TString.h>
 #include "TFile.h"
@@ -34,6 +36,9 @@ void plot_xptar_residuals(
   const char *outputDir,
   const char *tag
 ){
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(inputTreeFile, spec)) return;
+
 gStyle->SetPalette(1,0);
  gStyle->SetOptStat(1000011);
  gStyle->SetOptFit(11);
@@ -54,69 +59,22 @@ gStyle->SetPalette(1,0);
  //  
  TString  tnrun=Form("%d",nrun);
   //  Get info for that optics run
- TString OpticsFile = opticsMetadataFile;
-   ifstream file_optics(OpticsFile.Data());
- TString opticsline;
-  TString OpticsID="";
-  Int_t RunNum=0.;
-  Double_t CentAngle=0.;
-  Int_t SieveFlag=1;
-  Int_t NumFoil=0;
-  Double_t ymis =0.0;
-  TString temp;
- //
-  vector <Double_t> ztar_foil;
-  Int_t ndelcut;
-  vector<Double_t > delcut;
-  if (file_optics.is_open()) {
-    //
-    cout << " Open file = " << OpticsFile << endl;
-    while (RunNum != nrun && file_optics.good()) {
-      temp.ReadToDelim(file_optics,',');
-      cout << temp << endl;
-      if (temp.Atoi() == nrun) {
-	RunNum = temp.Atoi();
-      } else {
-	temp.ReadLine(file_optics);
-      }
-    }
-    if (RunNum==nrun) {
-      temp.ReadToDelim(file_optics,',');
-      OpticsID = temp;
-      temp.ReadToDelim(file_optics,',');
-      CentAngle = temp.Atof();
-      temp.ReadToDelim(file_optics,',');
-      NumFoil = temp.Atoi();
-      temp.ReadToDelim(file_optics,',');
-      SieveFlag = temp.Atoi();
-      temp.ReadToDelim(file_optics,',');
-      ndelcut = temp.Atoi();
-      temp.ReadToDelim(file_optics);
-      ymis = temp.Atof();
-      for (Int_t nf=0;nf<NumFoil-1;nf++) {
-        temp.ReadToDelim(file_optics,',');
-	ztar_foil.push_back(temp.Atof());
-      }
-        temp.ReadToDelim(file_optics);
-	ztar_foil.push_back(temp.Atof());
-      for (Int_t nd=0;nd<ndelcut;nd++) {
-        temp.ReadToDelim(file_optics,',');
-	delcut.push_back(temp.Atof());
-      }
-        temp.ReadToDelim(file_optics);
-	delcut.push_back(temp.Atof());
-    }
-  } else {
-    cout << "ERROR: cannot open optics metadata: " << OpticsFile << endl;
-    return;
-  }
-  if (RunNum != nrun) {
-    cout << "ERROR: run " << nrun << " not found in optics metadata: "
-         << OpticsFile << endl;
-    return;
-  }
-  cout << RunNum << " " << OpticsID << " " << CentAngle << " " << NumFoil << " " << SieveFlag << endl;
-  if (NumFoil==0) return;
+ // Separately approved existing-bug correction: ndelcut is the interval
+ // count here, while the metadata field counts boundaries. Read exactly the
+ // foil line and edge line so the next run cannot become a spurious edge.
+ hallc::RunMetadata metadata;
+ if (!hallc::loadRunMetadata(nrun,metadata,opticsMetadataFile)) return;
+ if (!hallc::centeredSieveOnly(spec,metadata.sieveFlag)) return;
+ const TString OpticsID=metadata.opticsId.c_str();
+ const Int_t RunNum=nrun, NumFoil=metadata.foils.size();
+ const Int_t SieveFlag=metadata.sieveFlag;
+ const Double_t CentAngle=metadata.angle;
+ const vector<Double_t> ztar_foil=metadata.foils;
+ const vector<Double_t> delcut=metadata.edges;
+ const Int_t ndelcut=delcut.size()-1;
+ cout << "Metadata: " << NumFoil << " foils; " << delcut.size()
+      << " delta boundaries; " << ndelcut << " intervals" << endl;
+
  //
    TString inputroot = inputTreeFile;
    TString outdir = outputDir;
@@ -163,10 +121,10 @@ gStyle->SetPalette(1,0);
  //
   vector <Double_t> ys_cent;
   vector <Double_t> xs_cent;
-  for (Int_t nys=0;nys<9;nys++) {
-    Double_t ypos=(nys-4)*0.6*2.54;
+  for (Int_t nys=0;nys<spec.ny;nys++) {
+    Double_t ypos=spec.ys(nys);
     ys_cent.push_back(ypos);
-    Double_t xpos=(nys-4)*2.54;
+    Double_t xpos=spec.xs(nys);
     xs_cent.push_back(xpos);
   }
  //
@@ -217,23 +175,23 @@ gStyle->SetPalette(1,0);
   hXpDiff_Ys_cent[nf].resize(ndelcut);
   hXpDiff_Ys_centerr[nf].resize(ndelcut);
    for (Int_t nd=0;nd<ndelcut;nd++) {
-      hXpDiff[nf][nd].resize(9);
-      hXpDiff_Ys[nf][nd].resize(9);
-      hXpDiff_mean[nf][nd].resize(9);
-      hXpDiff_sigma[nf][nd].resize(9);
-      hXpDiff_cent[nf][nd].resize(9);
-      hXpDiff_centerr[nf][nd].resize(9);
-      hXpDiff_Ys_mean[nf][nd].resize(9);
-      hXpDiff_Ys_sigma[nf][nd].resize(9);
-      hXpDiff_Ys_cent[nf][nd].resize(9);
-      hXpDiff_Ys_centerr[nf][nd].resize(9);
-      gXpDiff_Ys_XpTrue[nf][nd].resize(9);
-      for (Int_t ny=0;ny<9;ny++) {
-	hXpDiff_Ys[nf][nd][ny].resize(9);
-      hXpDiff_Ys_mean[nf][nd][ny].resize(9);
-      hXpDiff_Ys_sigma[nf][nd][ny].resize(9);
-      hXpDiff_Ys_cent[nf][nd][ny].resize(9);
-      hXpDiff_Ys_centerr[nf][nd][ny].resize(9);
+      hXpDiff[nf][nd].resize(spec.ny);
+      hXpDiff_Ys[nf][nd].resize(spec.ny);
+      hXpDiff_mean[nf][nd].resize(spec.ny);
+      hXpDiff_sigma[nf][nd].resize(spec.ny);
+      hXpDiff_cent[nf][nd].resize(spec.ny);
+      hXpDiff_centerr[nf][nd].resize(spec.ny);
+      hXpDiff_Ys_mean[nf][nd].resize(spec.ny);
+      hXpDiff_Ys_sigma[nf][nd].resize(spec.ny);
+      hXpDiff_Ys_cent[nf][nd].resize(spec.ny);
+      hXpDiff_Ys_centerr[nf][nd].resize(spec.ny);
+      gXpDiff_Ys_XpTrue[nf][nd].resize(spec.ny);
+      for (Int_t ny=0;ny<spec.ny;ny++) {
+	hXpDiff_Ys[nf][nd][ny].resize(spec.ny);
+      hXpDiff_Ys_mean[nf][nd][ny].resize(spec.ny);
+      hXpDiff_Ys_sigma[nf][nd][ny].resize(spec.ny);
+      hXpDiff_Ys_cent[nf][nd][ny].resize(spec.ny);
+      hXpDiff_Ys_centerr[nf][nd][ny].resize(spec.ny);
       }
 
    }}
@@ -247,10 +205,10 @@ gStyle->SetPalette(1,0);
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
       hXpDiff_XpTrue[nf][nd]  = new TH2F(Form("hXpDiff_XpTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Xptar_true (rad); Xptar_true - Xptar (mr) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,80,-20.,20.);
         HList.Add(hXpDiff_XpTrue[nf][nd]);
-    for (Int_t nxs=0;nxs<9;nxs++) {
+    for (Int_t nxs=0;nxs<spec.nx;nxs++) {
       hXpDiff[nf][nd][nxs]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d",nf,nd,nxs),Form("Run %s Ztar %3.2f Xs = %d DelCut %3.1f; Xptar_true - Xptar (mr)",tnrun.Data(),ztar_foil[nf],nxs,DelCent),80,-20.,20.);
         HList.Add(hXpDiff[nf][nd][nxs]);
-    for (Int_t nys=0;nys<9;nys++) {
+    for (Int_t nys=0;nys<spec.ny;nys++) {
       hXpDiff_Ys[nf][nd][nxs][nys]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d_Ys_%d",nf,nd,nxs,nys),Form("Run %s Ztar %3.2f Xs = %d  Ys = %d DelCut %3.1f; Xptar_true - Xptar (mr)",tnrun.Data(),ztar_foil[nf],nxs,nys,DelCent),80,-20.,20.);
         HList.Add(hXpDiff_Ys[nf][nd][nxs][nys]);
     }
@@ -271,10 +229,10 @@ Long64_t nentries = FitTree->GetEntries();
 	hYtar[nf]->Fill(ytar);
 	hZtar[nf]->Fill(ztar);
 	   hXpDiff_XpTrue[nf][nd]->Fill(xptarT,(xptar-xptarT)*1000);
-           for (Int_t nxs=0;nxs<9;nxs++) {
+           for (Int_t nxs=0;nxs<spec.nx;nxs++) {
 	     if ( abs(xsieveT-xs_cent[nxs])<.5) {
 	       hXpDiff[nf][nd][nxs]->Fill((xptar-xptarT)*1000);
-               for (Int_t nys=0;nys<9;nys++) {
+               for (Int_t nys=0;nys<spec.ny;nys++) {
 		 if ( abs(ysieveT-ys_cent[nys])<.5)hXpDiff_Ys[nf][nd][nxs][nys]->Fill((xptar-xptarT)*1000);
 	       }
 	     }
@@ -308,7 +266,7 @@ Long64_t nentries = FitTree->GetEntries();
 	for  (Int_t nd=0;nd<ndelcut;nd++) {
 	  //	  candel[nf][nd] = new TCanvas(Form("Candel_%d_%d",nf,nd),Form("Candel_%d_%d",nf,nd), 700,700);
 	  //	  candel[nf][nd]->Divide(2,5);
-           for (Int_t nxs=0;nxs<9;nxs++) {
+           for (Int_t nxs=0;nxs<spec.nx;nxs++) {
 	     //   candel[nf][nd]->cd(nxs+1);
 	     //  hXpDiff[nf][nd][nxs]->Draw();
 	     hXpDiff_mean[nf][nd][nxs]= hXpDiff[nf][nd][nxs]->GetMean()-Xp_offset;
@@ -316,7 +274,7 @@ Long64_t nentries = FitTree->GetEntries();
 	     hXpDiff_cent[nf][nd][nxs]= xs_cent[nxs];
 	     hXpDiff_centerr[nf][nd][nxs]= 0.0001;
 
-	   gXpDiff_XpTrue[nf][nd] = new TGraphErrors(9,&hXpDiff_cent[nf][nd][0],&hXpDiff_mean[nf][nd][0],&hXpDiff_centerr[nf][nd][0],&hXpDiff_sigma[nf][nd][0]);
+	   gXpDiff_XpTrue[nf][nd] = new TGraphErrors(spec.ny,&hXpDiff_cent[nf][nd][0],&hXpDiff_mean[nf][nd][0],&hXpDiff_centerr[nf][nd][0],&hXpDiff_sigma[nf][nd][0]);
 	   colind++;
 	   if (colind==5) colind++;
 	   if (colind==8) colind=1;
@@ -324,8 +282,8 @@ Long64_t nentries = FitTree->GetEntries();
 	   gXpDiff_XpTrue[nf][nd]->SetMarkerStyle(nd+20);
 	   }
 	   //
-             for (Int_t nxs=0;nxs<9;nxs++) {
-            for (Int_t nys=0;nys<9;nys++) {
+             for (Int_t nxs=0;nxs<spec.nx;nxs++) {
+            for (Int_t nys=0;nys<spec.ny;nys++) {
 		 hXpDiff_Ys_mean[nf][nd][nxs][nys]= hXpDiff_Ys[nf][nd][nxs][nys]->GetMean()-Xp_offset;
 		 hXpDiff_Ys_sigma[nf][nd][nxs][nys]=hXpDiff_Ys[nf][nd][nxs][nys]->GetRMS();
 		 hXpDiff_Ys_cent[nf][nd][nxs][nys]=ys_cent[nys];
@@ -334,7 +292,7 @@ Long64_t nentries = FitTree->GetEntries();
 	    
 	    }
 	    Int_t colind2=0;
-             for (Int_t nxs=0;nxs<9;nxs++) {
+             for (Int_t nxs=0;nxs<spec.nx;nxs++) {
 	       gXpDiff_Ys_XpTrue[nf][nd][nxs] = new TGraphErrors(hXpDiff_Ys_cent[nf][nd][nxs].size(),&hXpDiff_Ys_cent[nf][nd][nxs][0],&hXpDiff_Ys_mean[nf][nd][nxs][0],&hXpDiff_Ys_centerr[nf][nd][nxs][0],&hXpDiff_Ys_sigma[nf][nd][nxs][0]);
 	       colind2++;
 	   if (colind2==5) colind2++;
@@ -355,13 +313,13 @@ Long64_t nentries = FitTree->GetEntries();
 	  	  canFoilDel[nf][nd]->Divide(1,1);
 		  legFoilDel[nf][nd] = new TLegend(.79,.65,.99,.95,"");
 		  mgrFoilDel[nf][nd]=new TMultiGraph();  
-             for (Int_t nxs=0;nxs<9;nxs++) {
+             for (Int_t nxs=0;nxs<spec.nx;nxs++) {
 	  mgrFoilDel[nf][nd]->Add(gXpDiff_Ys_XpTrue[nf][nd][nxs]);
       legFoilDel[nf][nd]->AddEntry(gXpDiff_Ys_XpTrue[nf][nd][nxs],Form("Xs = %3.1f",xs_cent[nxs]),"p");
 	     }
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
 	  	  canFoilDel[nf][nd]->cd(1);
-		  mgrFoilDel[nf][nd]->SetTitle(Form("Ztar = %4.1f Del = %3.1f HMS Angle = %4.2f; Y_sieve (cm); Xptar -Xp_true (mr)",ztar_foil[nf],DelCent,CentAngle));
+		  mgrFoilDel[nf][nd]->SetTitle(Form("Ztar = %4.1f Del = %3.1f Spectrometer Angle = %4.2f; Y_sieve (cm); Xptar -Xp_true (mr)",ztar_foil[nf],DelCent,CentAngle));
 	mgrFoilDel[nf][nd]->SetMinimum(-20);
 	mgrFoilDel[nf][nd]->SetMaximum(+20);
 	mgrFoilDel[nf][nd]->Draw("AP");
@@ -386,7 +344,7 @@ Long64_t nentries = FitTree->GetEntries();
       leg[nf]->AddEntry(gXpDiff_XpTrue[nf][nd],Form("Delta = %3.1f",DelCent),"p");
 	    }
 	candel[nf]->cd(1);
-	mgr[nf]->SetTitle(Form("Ztar = %4.1f HMS Angle = %4.2f; X_sieve (cm); Xptar -Xp_true (mr)",ztar_foil[nf],CentAngle));
+	mgr[nf]->SetTitle(Form("Ztar = %4.1f Spectrometer Angle = %4.2f; X_sieve (cm); Xptar -Xp_true (mr)",ztar_foil[nf],CentAngle));
 	mgr[nf]->SetMinimum(-20);
 	mgr[nf]->SetMaximum(+20);
 	mgr[nf]->Draw("AP");

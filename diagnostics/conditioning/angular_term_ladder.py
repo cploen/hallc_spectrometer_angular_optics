@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Nested prefix ladder for the corrected HMS angular optics basis.
+"""Nested prefix ladder for the corrected spectrometer angular optics basis.
 
 The production solve factorizes G_N = X_N^T X_N with ROOT's default relative
 SVD tolerance.  Since the absolute cutoff changes with sigma_max(G_N), this
@@ -21,6 +21,9 @@ import math
 import re
 from array import array
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from spectrometer_config import from_campaign
 
 import numpy as np
 import ROOT
@@ -112,7 +115,7 @@ def load_problem(campaign: Path, metadata_path: Path, file_id: int, nfit_max: in
         )
         arrays = ROOT.RDataFrame("TFit", str(tree_path)).AsNumpy(branches)
         indices, per_foil = selected_indices(
-            arrays, *metadata[optics_id], global_count, nfit_max
+            arrays, *metadata[optics_id], global_count, nfit_max, from_campaign(campaign)
         )
         design = build_design(arrays, indices, fit_terms)
         xtar_values = evaluate_terms(arrays, indices, xtar_rows)

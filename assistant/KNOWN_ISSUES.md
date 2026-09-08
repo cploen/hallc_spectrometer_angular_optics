@@ -1,5 +1,7 @@
 # Known Issues and Workflow Hazards
 
+The separately approved residual-plot boundary/interval reader correction and deferred matrix-parser validation are documented in [HMS_SHMS_CHANGES.md](../docs/HMS_SHMS_CHANGES.md#separately-approved-existing-residual-plot-bug).
+
 This file records confirmed limitations and recurring hazards in the current Hall C optics code.
 
 The repository root is referred to as:

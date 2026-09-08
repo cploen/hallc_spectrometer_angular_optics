@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preliminary conditioning study for the selected HMS angular-fit sample.
+"""Preliminary conditioning study for the selected spectrometer angular-fit sample.
 
 This intentionally mirrors the event-order caps in fit_opt_matrix_gmm.C while
 ignoring blank or malformed matrix rows. It does not refit or alter a matrix.
@@ -12,6 +12,9 @@ import csv
 import math
 import re
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from spectrometer_config import from_campaign
 
 import numpy as np
 import ROOT
@@ -98,7 +101,8 @@ def read_optics_metadata(path: Path, wanted_ids: set[int]):
     return result
 
 
-def selected_indices(arrays, foils, delta_edges, global_before, nfit_max):
+def selected_indices(arrays, foils, delta_edges, global_before, nfit_max, spec=None):
+    spec=spec or from_campaign("HMS_legacy")
     delta = arrays["delta"]
     ztar = arrays["ztarT"]
     ysieve = arrays["ysT"]
@@ -113,7 +117,7 @@ def selected_indices(arrays, foils, delta_edges, global_before, nfit_max):
         mask = (delta >= delta_edges[index]) & (delta < delta_edges[index + 1])
         delta_index[mask] = index
 
-    ys_centers = (np.arange(9) - 4) * 0.6 * 2.54
+    ys_centers = np.array([spec.ys(i) for i in range(spec.ny)])
     ys_index = np.full(nentries, -1, dtype=np.int16)
     for index, center in enumerate(ys_centers):
         ys_index[np.abs(ysieve - center) < 0.5] = index
@@ -230,7 +234,7 @@ def main():
         )
         arrays = ROOT.RDataFrame("TFit", str(tree_path)).AsNumpy(branches)
         indices, per_foil = selected_indices(
-            arrays, *metadata[optics_id], global_count, args.nfit_max
+            arrays, *metadata[optics_id], global_count, args.nfit_max, from_campaign(args.campaign)
         )
         design = build_design(arrays, indices, terms)
         designs.append(design)
@@ -279,7 +283,7 @@ def main():
     weakest = metrics["weakest_scaled_vector"]
     top = np.argsort(np.abs(weakest))[::-1][:12]
     lines = [
-        "Preliminary HMS angular design-matrix conditioning",
+        "Preliminary spectrometer angular design-matrix conditioning",
         f"events = {len(design)}",
         f"columns = {design.shape[1]}",
         f"raw condition number = {metrics['singular'][0] / metrics['singular'][-1]:.9g}",

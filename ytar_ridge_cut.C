@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // ytar_ridge_cut.C //
 // Multi-foil extension of central-width-guarded ridge-envelope selection.
 //
@@ -778,6 +780,9 @@ void ytar_ridge_cut(Int_t nrun=1544,
                                              const char *inputRootOverride="",
                                              const char *campaignDir="HMS_6p117GeV")
 {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1,0);
 
@@ -785,6 +790,10 @@ void ytar_ridge_cut(Int_t nrun=1544,
   TString inputID = inputFileID;
   TString handID = handFileID;
   TString inputRootOverrideStr = inputRootOverride;
+  if (spec.shms() && inputRootOverrideStr.IsNull()) {
+    std::cerr << "ERROR: SHMS requires the replay path from campaign inputs." << std::endl;
+    return;
+  }
   TString campaign = campaignDir;
   if (campaign.EndsWith("/")) campaign.Chop();
   TString step01 = campaign + "/01_ytar_cuts";
@@ -792,8 +801,8 @@ void ytar_ridge_cut(Int_t nrun=1544,
   // ----------------------------
   // Main settings
   // ----------------------------
-  const double deltaMin = -10.0;
-  const double deltaMax =  10.0;
+  const double deltaMin = spec.deltaMin;
+  const double deltaMax = spec.deltaMax;
 
   const double deltaStep = 0.25;
   const double deltaHalfWindow = 0.35;
@@ -866,17 +875,18 @@ void ytar_ridge_cut(Int_t nrun=1544,
   Double_t delta = 0.0;
   Double_t ytar = 0.0;
 
-  if (!HasBranch(T, "H.cer.npeSum") ||
-      !HasBranch(T, "H.gtr.dp") ||
-      !HasBranch(T, "H.gtr.y")) {
+  if (!HasBranch(T, spec.cherenkovBranch().c_str()) ||
+      !HasBranch(T, spec.branch("gtr.dp").c_str()) ||
+      !HasBranch(T, spec.branch("gtr.y").c_str())) {
     cerr << "ERROR: missing required branch." << endl;
-    cerr << "Need H.cer.npeSum, H.gtr.dp, H.gtr.y" << endl;
+    cerr << "Need selected-spectrometer Cherenkov, gtr.dp and gtr.y branches" << endl;
     return;
   }
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.gtr.y", &ytar);
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("gtr.dp"), spec.branch("gtr.y")})) return;
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
 
   vector<EventLite> events;
 
@@ -936,6 +946,19 @@ void ytar_ridge_cut(Int_t nrun=1544,
     minPeakSeparation
   );
 
+  if (spec.shms()) {
+    hallc::RunMetadata meta;
+    if (!hallc::loadRunMetadata(nrun,meta) || !hallc::centeredSieveOnly(spec,meta.sieveFlag)) return;
+    if (peaks.size()!=meta.foils.size()) {
+      cerr << "ERROR: SHMS ridge count differs from foil metadata; inspect before assigning foil IDs." << endl;
+      return;
+    }
+    vector<int> order(meta.foils.size());
+    for (size_t i=0;i<order.size();++i) order[i]=int(i);
+    const double sine=sin(meta.angle*TMath::Pi()/180.0);
+    sort(order.begin(),order.end(),[&](int a,int b){return -meta.foils[a]*sine < -meta.foils[b]*sine;});
+    for (size_t i=0;i<peaks.size();++i) peaks[i].index=order[i];
+  }
   cout << "Detected major foil ridges = " << peaks.size() << endl;
 
   for (auto &p : peaks) {
@@ -956,7 +979,7 @@ void ytar_ridge_cut(Int_t nrun=1544,
     cerr << "WARNING: detected more than 3 dominant ridges. Review diagnostic plot." << endl;
   }
 
-  vector<TCutG*> expertCuts = LoadExpertCuts(nrun, handID);
+  vector<TCutG*> expertCuts = spec.shms() ? vector<TCutG*>() : LoadExpertCuts(nrun, handID);
 
   vector<RidgeCutResult> results;
 

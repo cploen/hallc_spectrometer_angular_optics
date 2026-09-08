@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -34,7 +36,7 @@ void run_xfp_xpfp_dynamicSplit_batch(
     TString campaignDir = "HMS_6p117GeV",
     TString inputRootFile = "",
     Int_t foilIndex = 0,
-    Int_t maxBands = 9,
+    Int_t maxBands = 0,
     Double_t thetaStepDeg = 1.0,
     Double_t minPeakSep = 0.12,
     Double_t minPeakFrac = 0.06,
@@ -51,6 +53,10 @@ void run_xfp_xpfp_dynamicSplit_batch(
     Double_t minCalEtot = 0.65,
     Long64_t maxEvents = -1)
 {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+  if (maxBands<=0) maxBands=spec.nx;
+
   gROOT->SetBatch(kTRUE);
 
   campaignDir = campaignDir.Strip(TString::kBoth);
@@ -148,8 +154,10 @@ void run_xfp_xpfp_dynamicSplit_batch(
     return;
   }
 
-  const double edges[] = {-10.0, -8.0, -5.0, 0.0, 5.0, 10.0};
-  const int nEdges = sizeof(edges) / sizeof(edges[0]);
+  hallc::RunMetadata scanInfo;
+  if (!hallc::loadRunMetadata(metadataRun,scanInfo)) return;
+  const auto& edges=scanInfo.edges;
+  const int nEdges=int(edges.size());
   const int nSlices = nEdges - 1;
 
   double xpfp = 0.0;
@@ -158,18 +166,19 @@ void run_xfp_xpfp_dynamicSplit_batch(
   double cer = 0.0;
   double cal = 0.0;
 
+  if (!hallc::requireBranches(T, {spec.branch("dc.xp_fp"), spec.branch("gtr.dp"), spec.branch("gtr.y"), spec.cherenkovBranch(), spec.branch("cal.etottracknorm")})) return;
   T->SetBranchStatus("*", 0);
-  T->SetBranchStatus("H.dc.xp_fp", 1);
-  T->SetBranchStatus("H.gtr.dp", 1);
-  T->SetBranchStatus("H.gtr.y", 1);
-  T->SetBranchStatus("H.cer.npeSum", 1);
-  T->SetBranchStatus("H.cal.etottracknorm", 1);
+  T->SetBranchStatus(spec.branch("dc.xp_fp").c_str(), 1);
+  T->SetBranchStatus(spec.branch("gtr.dp").c_str(), 1);
+  T->SetBranchStatus(spec.branch("gtr.y").c_str(), 1);
+  T->SetBranchStatus(spec.cherenkovBranch().c_str(), 1);
+  T->SetBranchStatus(spec.branch("cal.etottracknorm").c_str(), 1);
 
-  T->SetBranchAddress("H.dc.xp_fp", &xpfp);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.cer.npeSum", &cer);
-  T->SetBranchAddress("H.cal.etottracknorm", &cal);
+  T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &cer);
+  T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &cal);
 
   std::vector<std::vector<double> > xpfpBySlice(nSlices);
 
@@ -179,6 +188,7 @@ void run_xfp_xpfp_dynamicSplit_batch(
   for (Long64_t i = 0; i < nentries; ++i) {
     T->GetEntry(i);
 
+    if (spec.shms() && !spec.acceptsDelta(delta)) continue;
     if (!(cer > minCerNpe)) continue;
     if (!(cal > minCalEtot)) continue;
     if (!ycut->IsInside(ytar, delta)) continue;

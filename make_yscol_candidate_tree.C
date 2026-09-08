@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // make_yscol_candidate_tree.C
 //
 // Bridge macro for YFP/YPFP -> (xsieve,ysieve) GMM cleanup.
@@ -61,6 +63,9 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
                                TString yCutOverride="",
                                TString outputRootOverride="",
                                TString outputTsvOverride="") {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+
   Bool_t CutYtarFlag = kTRUE;
   Bool_t CutYpFpYFpFlag = kTRUE;
 
@@ -128,6 +133,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   temp.ReadToDelim(file_optics);
   delcut.push_back(temp.Atof());
 
+  if (!hallc::centeredSieveOnly(spec,SieveFlag)) return;
   const Int_t nSlices = static_cast<Int_t>(delcut.size()) - 1;
 
   cout << "Run " << RunNum
@@ -261,7 +267,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   for (Int_t nf=0; nf<NumFoil; nf++) {
     ypfp_yfp_cut[nf].resize(nSlices);
     for (Int_t nd=0; nd<nSlices; nd++) {
-      ypfp_yfp_cut[nf][nd].resize(9);
+      ypfp_yfp_cut[nf][nd].resize(spec.ny);
     }
   }
 
@@ -293,7 +299,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
           &ys, &nf, &nd, &part, &src);
 
       if (ok != 5) continue;
-      if (ys < 0 || ys > 8) continue;
+      if (ys < 0 || ys >= spec.ny) continue;
       if (nf < 0 || nf >= NumFoil) continue;
       if (nd < 0 || nd >= nSlices) continue;
 
@@ -317,7 +323,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
     // Use singleton aliases only where no components were found.
     for (Int_t nf=0; nf<NumFoil; nf++) {
       for (Int_t nd=0; nd<nSlices; nd++) {
-        for (Int_t ny=0; ny<9; ny++) {
+        for (Int_t ny=0; ny< spec.ny; ny++) {
           if (!ypfp_yfp_cut[nf][nd][ny].empty()) continue;
 
           TString cname = Form(
@@ -379,26 +385,27 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   Double_t ysieve=0, xsieve=0;
   Double_t xbpm_tar=0, ybpm_tar=0, frx=0, fry=0;
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.x", &xtar);
-  T->SetBranchAddress("H.react.x", &reactx);
-  T->SetBranchAddress("H.react.y", &reacty);
-  T->SetBranchAddress("H.react.z", &reactz);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.gtr.ph", &yptar);
-  T->SetBranchAddress("H.gtr.th", &xptar);
-  T->SetBranchAddress("H.dc.y_fp", &yfp);
-  T->SetBranchAddress("H.dc.yp_fp", &ypfp);
-  T->SetBranchAddress("H.dc.x_fp", &xfp);
-  T->SetBranchAddress("H.dc.xp_fp", &xpfp);
-  T->SetBranchAddress("H.extcor.ysieve", &ysieve);
-  T->SetBranchAddress("H.extcor.xsieve", &xsieve);
-  T->SetBranchAddress("H.rb.raster.fr_xbpm_tar", &xbpm_tar);
-  T->SetBranchAddress("H.rb.raster.fr_ybpm_tar", &ybpm_tar);
-  T->SetBranchAddress("H.rb.raster.fr_xa", &frx);
-  T->SetBranchAddress("H.rb.raster.fr_ya", &fry);
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve"), spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(spec.branch("gtr.x").c_str(), &xtar);
+  T->SetBranchAddress(spec.branch("react.x").c_str(), &reactx);
+  T->SetBranchAddress(spec.branch("react.y").c_str(), &reacty);
+  T->SetBranchAddress(spec.branch("react.z").c_str(), &reactz);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("gtr.ph").c_str(), &yptar);
+  T->SetBranchAddress(spec.branch("gtr.th").c_str(), &xptar);
+  T->SetBranchAddress(spec.branch("dc.y_fp").c_str(), &yfp);
+  T->SetBranchAddress(spec.branch("dc.yp_fp").c_str(), &ypfp);
+  T->SetBranchAddress(spec.branch("dc.x_fp").c_str(), &xfp);
+  T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
+  T->SetBranchAddress(spec.branch("extcor.ysieve").c_str(), &ysieve);
+  T->SetBranchAddress(spec.branch("extcor.xsieve").c_str(), &xsieve);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_xa").c_str(), &frx);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_ya").c_str(), &fry);
 
   // ------------------------------------------------------------------
   // Output tree.
@@ -470,7 +477,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   counts.resize(NumFoil);
   for (Int_t nf=0; nf<NumFoil; nf++) {
     counts[nf].resize(nSlices);
-    for (Int_t nd=0; nd<nSlices; nd++) counts[nf][nd].resize(9, 0);
+    for (Int_t nd=0; nd<nSlices; nd++) counts[nf][nd].resize(spec.ny, 0);
   }
 
   Long64_t nentries = T->GetEntries();
@@ -482,7 +489,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
     if (i%50000==0) cout << "  entry " << i << endl;
 
     // Match manual fit_ntuple baseline for now.
-    base_pass_out = (etracknorm > 0.65 && sumnpe > 6.0 && delta > -10.0 && delta < 10.0) ? 1 : 0;
+    base_pass_out = (etracknorm > 0.65 && sumnpe > 6.0 && spec.acceptsDelta(delta)) ? 1 : 0;
     if (!base_pass_out) continue;
     nBase++;
 
@@ -506,7 +513,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
 
     vector<Int_t> yMatches;
 
-    for (Int_t ny=0; ny<9; ny++) {
+    for (Int_t ny=0; ny< spec.ny; ny++) {
       bool matchedThisYscol = false;
 
       const vector<TCutG*>& components =
@@ -559,12 +566,13 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   for (Int_t nf=0; nf<NumFoil; nf++) {
     for (Int_t nd=0; nd<nSlices; nd++) {
       cout << "  foil " << nf << " ndel " << nd << " :";
-      for (Int_t ny=0; ny<9; ny++) cout << " y" << ny << "=" << counts[nf][nd][ny];
+      for (Int_t ny=0; ny< spec.ny; ny++) cout << " y" << ny << "=" << counts[nf][nd][ny];
       cout << endl;
     }
   }
 
   fout->cd();
+  hallc::writeProfile(spec);
   out->Write();
   for (Int_t nf=0; nf<NumFoil; nf++) {
     for (Int_t nd=0; nd<nSlices; nd++) {
@@ -577,7 +585,7 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   ofs << "rungroup\trun\tfoil\tndel\tyscol\tN\tdelta_low\tdelta_high\tzfoil\n";
   for (Int_t nf=0; nf<NumFoil; nf++) {
     for (Int_t nd=0; nd<nSlices; nd++) {
-      for (Int_t ny=0; ny<9; ny++) {
+      for (Int_t ny=0; ny< spec.ny; ny++) {
         ofs << tag << "\t" << nrun << "\t" << nf << "\t" << nd << "\t" << ny << "\t"
             << counts[nf][nd][ny] << "\t" << delcut[nd] << "\t" << delcut[nd+1]
             << "\t" << ztar_foil[nf] << "\n";

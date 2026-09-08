@@ -2,6 +2,8 @@
 
 Semi-automated preparation of HMS and SHMS sieve data for optics-matrix fitting.
 
+Campaign names `HMS_…` and `SHMS_…` now select the spectrometer automatically; no additional arm input is needed. Foil positions remain independent run metadata (including −10, 0, +10 cm for either arm). SHMS currently assumes the centered sieve. See the [implementation and per-file change record](docs/HMS_SHMS_CHANGES.md) and [reference/validation review](docs/HMS_SHMS_REVIEW.md). Real SHMS replay validation is pending.
+
 ## 1. Software requirements
 
 The workflow requires:

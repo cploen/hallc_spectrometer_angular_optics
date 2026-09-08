@@ -1,0 +1,2 @@
+
+Current HMS/SHMS implementation: [campaign switch and per-file changes](../docs/HMS_SHMS_CHANGES.md). The arm is selected solely by the `HMS_…` / `SHMS_…` campaign name. Target foil positions are independent metadata for either arm. Centered SHMS sieve is assumed; real-replay validation is pending. Executable repository files take precedence over historical copied source snippets below or in this folder.

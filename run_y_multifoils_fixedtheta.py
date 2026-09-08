@@ -6,8 +6,8 @@ import argparse
 import csv
 import subprocess
 from pathlib import Path
+from spectrometer_config import from_campaign, run_metadata
 
-EDGES = [-10, -8, -5, 0, 5, 10]
 MACRO = "assign_yfp_ypfp_angleScanBands.C"
 OPTICS_DAT = Path("DATfiles/list_of_optics_run.dat")
 
@@ -67,6 +67,7 @@ def load_reference_thetas(
     theta_tsv: Path,
     reference_rungroup: str,
     reference_foil: int,
+    n_slices: int,
 ) -> dict[int, float]:
     selected: dict[int, float] = {}
 
@@ -79,7 +80,7 @@ def load_reference_thetas(
 
             selected[int(row["ndel"])] = float(row["thetaDeg"])
 
-    missing = [ndel for ndel in range(5) if ndel not in selected]
+    missing = [ndel for ndel in range(n_slices) if ndel not in selected]
     if missing:
         raise RuntimeError(
             f"missing Y theta rows for reference={reference_rungroup}, "
@@ -103,6 +104,7 @@ def main() -> None:
     args = parse_args()
 
     campaign = Path(args.campaign)
+    spec = from_campaign(campaign)
     config = find_rungroup_config(campaign)
     rungroups = load_rungroups(config)
 
@@ -118,6 +120,14 @@ def main() -> None:
 
     target = rungroups[args.target_rungroup]
     target_id = int(target["optics_id"])
+    target_meta=run_metadata(target_id)
+    reference_meta=run_metadata(int(rungroups[args.reference_rungroup]["optics_id"]))
+    edges=target_meta["edges"]
+    if edges!=reference_meta["edges"]:
+        raise ValueError("Target and reference delta boundaries differ; saved angles cannot be reused by index")
+    if spec.name=="SHMS" and (target_meta["sieve_flag"]!=1 or reference_meta["sieve_flag"]!=1):
+        raise ValueError("This version assumes the centered SHMS sieve")
+    n_slices=len(edges)-1
     rootfile = Path(target["rootfile"])
 
     if not rootfile.exists():
@@ -139,6 +149,7 @@ def main() -> None:
         theta_tsv,
         args.reference_rungroup,
         args.reference_foil,
+        n_slices,
     )
 
     print(f"Campaign:          {campaign}")
@@ -151,9 +162,9 @@ def main() -> None:
     print()
 
     for foil in range(num_foils):
-        for ndel in range(5):
-            delta_min = EDGES[ndel]
-            delta_max = EDGES[ndel + 1]
+        for ndel in range(n_slices):
+            delta_min = edges[ndel]
+            delta_max = edges[ndel + 1]
             fixed_theta = theta[ndel]
 
             print(
@@ -167,7 +178,7 @@ def main() -> None:
                 f'{MACRO}('
                 f'{target_id},{delta_min},{delta_max},'
                 f'"{args.target_rungroup}",'
-                f'9,1.0,0.18,0.08,0.25,1,0.005,0.08,1.0,'
+                f'{spec.ny},1.0,0.18,0.08,0.25,1,0.005,0.08,1.0,'
                 f'true,{foil},-1,-1,-999,false,{fixed_theta},'
                 f'"{campaign}","{rootfile}")'
             )

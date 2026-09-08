@@ -4,6 +4,10 @@ set -euo pipefail
 METADATA_RUN=${METADATA_RUN:?ERROR: METADATA_RUN is required}
 RUNGROUP=${RUNGROUP:?ERROR: RUNGROUP is required}
 CAMPAIGN=${CAMPAIGN:?ERROR: CAMPAIGN is required}
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 INPUT_ROOT=${INPUT_ROOT:?ERROR: INPUT_ROOT is required}
 
 MACRO=${MACRO:-relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch.C}
@@ -41,14 +45,7 @@ token_to_num() {
 }
 
 delta_tag_to_ndel() {
-  case "$1" in
-    m10_to_m8) echo 0 ;;
-    m8_to_m5)  echo 1 ;;
-    m5_to_0)   echo 2 ;;
-    0_to_5)    echo 3 ;;
-    5_to_10)   echo 4 ;;
-    *) echo UNKNOWN ;;
-  esac
+  python3 "$HALLC_CONFIG_DIR/spectrometer_config.py" "$CAMPAIGN" --run "$METADATA_RUN" --delta-tag "$1"
 }
 
 shopt -s nullglob

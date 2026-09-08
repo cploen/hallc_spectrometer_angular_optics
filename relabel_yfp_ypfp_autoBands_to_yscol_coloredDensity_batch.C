@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch.C
 //
 // Post-process current YFP/YPFP AUTO BAND cuts whose embedded yscol labels
@@ -79,6 +81,7 @@ using std::endl;
 
 // Optional internal overrides used by batch mode so each delta slice can
 // build on the relabeled output from the previous slice.
+static hallc::Spectrometer YRELABEL_SPEC;
 static TString RELABEL_INPUT_CUT_OVERRIDE = "";
 static TString RELABEL_OUTPUT_CUT_OVERRIDE = "";
 
@@ -247,14 +250,14 @@ static TString DiagnosticRoot_relabel(const TString& campaignDir,
 
 static double YsGuide_relabel(int yscol)
 {
-  return (yscol - 4) * 0.6 * 2.54; // cm, from plot_yfp_cuts.C
+  return YRELABEL_SPEC.ys(yscol); // cm, from plot_yfp_cuts.C
 }
 
 static int NearestYscol_relabel(double ys)
 {
   int best = 0;
   double bestDist = 1.0e99;
-  for (int i = 0; i < 9; ++i) {
+  for (int i = 0; i < YRELABEL_SPEC.ny; ++i) {
     double d = std::fabs(ys - YsGuide_relabel(i));
     if (d < bestDist) {
       bestDist = d;
@@ -264,9 +267,9 @@ static int NearestYscol_relabel(double ys)
   return best;
 }
 
-static void DrawYsGuides_relabel(double yMin=-12.5, double yMax=12.5)
+static void DrawYsGuides_relabel(double yMin=-YRELABEL_SPEC.xPlotMax(), double yMax=YRELABEL_SPEC.xPlotMax())
 {
-  for (int nys = 0; nys < 9; ++nys) {
+  for (int nys = 0; nys < YRELABEL_SPEC.ny; ++nys) {
     double pos = YsGuide_relabel(nys);
     TLine* line = new TLine(pos, yMin, pos, yMax);
     line->SetLineColor(kRed+1);
@@ -418,7 +421,7 @@ static void DrawDensityBoxes_relabel(TH2D* h, int baseColor, bool logScale=true)
 static void DrawFrame_relabel(const TString& title)
 {
   TH2D* frame = new TH2D("frame_relabel_tmp", title + ";ysieve (cm);xsieve (cm)",
-                         10, -7.0, 7.0, 10, -12.5, 12.5);
+                         10, -YRELABEL_SPEC.yPlotMax(), YRELABEL_SPEC.yPlotMax(), 10, -YRELABEL_SPEC.xPlotMax(), YRELABEL_SPEC.xPlotMax());
   frame->SetDirectory(nullptr);
   frame->SetStats(0);
   frame->Draw("AXIS");
@@ -439,6 +442,8 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
                                                         Int_t minEvents=25,
                                                         Bool_t writeRelabeledCuts=true)
 {
+  if (!hallc::loadSpectrometer(campaignDir,YRELABEL_SPEC)) return;
+
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptStat(0);
 
@@ -478,6 +483,7 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
   RelabelRunInfo info;
   TString metaFile = "DATfiles/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_relabel(nrun, info, metaFile.Data())) return;
+  if (!hallc::centeredSieveOnly(YRELABEL_SPEC,info.sieveFlag)) return;
 
   if (foilIndex < 0 || foilIndex >= info.numFoil) {
     cout << "ERROR: foilIndex out of range: " << foilIndex << endl;
@@ -546,7 +552,7 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
     b.cut = (TCutG*)obj->Clone(Form("old_auto_cut_ys%d_foil%d_ndel%d", oldYs, foilIndex, ndelIndex));
     b.hYsXs = new TH2D(Form("hYsXs_oldYs%d", oldYs),
                        Form("old label yscol %d;ysieve (cm);xsieve (cm)", oldYs),
-                       100, -7.0, 7.0, 100, -12.5, 12.5);
+                       100, -YRELABEL_SPEC.yPlotMax(), YRELABEL_SPEC.yPlotMax(), 100, -YRELABEL_SPEC.xPlotMax(), YRELABEL_SPEC.xPlotMax());
     b.hYsXs->SetDirectory(nullptr);
     b.hYpY = new TH2D(Form("hYpFpYFp_oldYs%d", oldYs),
                       Form("old label yscol %d;ypfp;yfp", oldYs),
@@ -587,24 +593,25 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
   Double_t yfp=0, ypfp=0;
   Double_t ysieve=0, xsieve=0;
 
+  if (!hallc::requireBranches(T, {YRELABEL_SPEC.cherenkovBranch(), YRELABEL_SPEC.branch("cal.etottracknorm"), YRELABEL_SPEC.branch("gtr.y"), YRELABEL_SPEC.branch("gtr.dp"), YRELABEL_SPEC.branch("dc.y_fp"), YRELABEL_SPEC.branch("dc.yp_fp"), YRELABEL_SPEC.branch("extcor.ysieve"), YRELABEL_SPEC.branch("extcor.xsieve")})) return;
   T->SetBranchStatus("*",0);
-  T->SetBranchStatus("H.cer.npeSum",1);
-  T->SetBranchStatus("H.cal.etottracknorm",1);
-  T->SetBranchStatus("H.gtr.y",1);
-  T->SetBranchStatus("H.gtr.dp",1);
-  T->SetBranchStatus("H.dc.y_fp",1);
-  T->SetBranchStatus("H.dc.yp_fp",1);
-  T->SetBranchStatus("H.extcor.ysieve",1);
-  T->SetBranchStatus("H.extcor.xsieve",1);
+  T->SetBranchStatus(YRELABEL_SPEC.cherenkovBranch().c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("cal.etottracknorm").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("gtr.y").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("gtr.dp").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("dc.y_fp").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("dc.yp_fp").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("extcor.ysieve").c_str(),1);
+  T->SetBranchStatus(YRELABEL_SPEC.branch("extcor.xsieve").c_str(),1);
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.dc.y_fp", &yfp);
-  T->SetBranchAddress("H.dc.yp_fp", &ypfp);
-  T->SetBranchAddress("H.extcor.ysieve", &ysieve);
-  T->SetBranchAddress("H.extcor.xsieve", &xsieve);
+  T->SetBranchAddress(YRELABEL_SPEC.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("dc.y_fp").c_str(), &yfp);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("dc.yp_fp").c_str(), &ypfp);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("extcor.ysieve").c_str(), &ysieve);
+  T->SetBranchAddress(YRELABEL_SPEC.branch("extcor.xsieve").c_str(), &xsieve);
 
   TCutG* ytarCut = nullptr;
   if (useYtarCut)
@@ -678,7 +685,7 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
         b.write = true;
       }
     } else {
-      b.write = (b.n >= minEvents && b.newYscol >= 0 && b.newYscol <= 8);
+      b.write = (b.n >= minEvents && b.newYscol >= 0 && b.newYscol < YRELABEL_SPEC.ny);
     }
 
   }
@@ -971,6 +978,7 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch(
   RelabelRunInfo info;
   TString metaFile = "DATfiles/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_relabel(nrun, info, metaFile.Data())) return;
+  if (!hallc::centeredSieveOnly(YRELABEL_SPEC,info.sieveFlag)) return;
 
   if (foilIndex < 0 || foilIndex >= info.numFoil) {
     cout << "ERROR: foilIndex out of range: " << foilIndex << endl;

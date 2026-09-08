@@ -6,10 +6,10 @@ import argparse
 import csv
 import subprocess
 from pathlib import Path
+from spectrometer_config import from_campaign, run_metadata
 
 import ROOT
 
-EDGES = [-10, -8, -5, 0, 5, 10]
 MACRO = "assign_xfp_xpfp_angleScanBands_split.C"
 OPTICS_DAT = Path("DATfiles/list_of_optics_run.dat")
 
@@ -75,6 +75,7 @@ def load_reference_thetas(
     theta_tsv: Path,
     reference_rungroup: str,
     reference_foil: int,
+    n_slices: int,
 ) -> dict[tuple[int, str], float]:
     selected: dict[tuple[int, str], float] = {}
 
@@ -91,7 +92,7 @@ def load_reference_thetas(
 
     missing = [
         (ndel, zone)
-        for ndel in range(5)
+        for ndel in range(n_slices)
         for zone in ("low", "high")
         if (ndel, zone) not in selected
     ]
@@ -130,6 +131,7 @@ def compute_split(
     foil: int,
     delta_min: float,
     delta_max: float,
+    spec,
 ) -> tuple[float | None, int]:
     input_file = ROOT.TFile.Open(str(rootfile), "READ")
 
@@ -159,11 +161,14 @@ def compute_split(
     for entry in range(tree.GetEntries()):
         tree.GetEntry(entry)
 
-        cer = float(getattr(tree, "H.cer.npeSum"))
-        cal = float(getattr(tree, "H.cal.etottracknorm"))
-        delta = float(getattr(tree, "H.gtr.dp"))
-        ytar = float(getattr(tree, "H.gtr.y"))
-        xpfp = float(getattr(tree, "H.dc.xp_fp"))
+        cer = float(getattr(tree, spec.cherenkov_branch))
+        cal = float(getattr(tree, spec.branch("cal.etottracknorm")))
+        delta = float(getattr(tree, spec.branch("gtr.dp")))
+        ytar = float(getattr(tree, spec.branch("gtr.y")))
+        xpfp = float(getattr(tree, spec.branch("dc.xp_fp")))
+
+        if spec.name=="SHMS" and not spec.delta_min < delta < spec.delta_max:
+            continue
 
         if cer <= 2.0 or cal <= 0.65:
             continue
@@ -203,6 +208,7 @@ def main() -> None:
     args = parse_args()
 
     campaign = Path(args.campaign)
+    spec = from_campaign(campaign)
     config = find_rungroup_config(campaign)
     rungroups = load_rungroups(config)
 
@@ -220,6 +226,14 @@ def main() -> None:
 
     target = rungroups[args.target_rungroup]
     target_id = int(target["optics_id"])
+    target_meta=run_metadata(target_id)
+    reference_meta=run_metadata(int(rungroups[args.reference_rungroup]["optics_id"]))
+    edges=target_meta["edges"]
+    if edges!=reference_meta["edges"]:
+        raise ValueError("Target and reference delta boundaries differ; saved angles cannot be reused by index")
+    if spec.name=="SHMS" and (target_meta["sieve_flag"]!=1 or reference_meta["sieve_flag"]!=1):
+        raise ValueError("This version assumes the centered SHMS sieve")
+    n_slices=len(edges)-1
     rootfile = Path(target["rootfile"])
 
     if not rootfile.is_file():
@@ -251,6 +265,7 @@ def main() -> None:
         theta_tsv,
         args.reference_rungroup,
         args.reference_foil,
+        n_slices,
     )
 
     print(f"Campaign:          {campaign}")
@@ -263,9 +278,9 @@ def main() -> None:
     print(f"Ytar cuts:         {ytar_cut_file}")
 
     for foil in range(num_foils):
-        for ndel in range(5):
-            delta_min = EDGES[ndel]
-            delta_max = EDGES[ndel + 1]
+        for ndel in range(n_slices):
+            delta_min = edges[ndel]
+            delta_max = edges[ndel + 1]
 
             split, event_count = compute_split(
                 rootfile,
@@ -273,6 +288,7 @@ def main() -> None:
                 foil,
                 delta_min,
                 delta_max,
+                spec,
             )
 
             if split is None:
@@ -306,7 +322,7 @@ def main() -> None:
                     f'{MACRO}('
                     f'{target_id},{delta_min},{delta_max},'
                     f'"{args.target_rungroup}",'
-                    f'9,1.0,0.12,0.06,0.18,2,'
+                    f'{spec.nx},1.0,0.12,0.06,0.18,2,'
                     f'0.003,0.025,0.30,'
                     f'true,{foil},-1,-1,-999,false,'
                     f'{fixed_theta},{xpfp_min},{xpfp_max},true,'

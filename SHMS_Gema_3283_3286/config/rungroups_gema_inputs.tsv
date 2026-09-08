@@ -1,0 +1,5 @@
+rungroup	optics_id	angle_deg	foils	nruns	runs	rootfile
+rg01_theta8p915_foilpm10z0_run3283	3283	8.915	-10,0,10	1	3283	/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3283_-1.root
+rg02_theta8p915_foilpm10z0_run3284	3284	8.915	-10,0,10	1	3284	/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3284_-1.root
+rg03_theta8p915_foilpm10z0_run3285	3285	8.915	-10,0,10	1	3285	/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3285_-1.root
+rg04_theta8p915_foilpm10z0_run3286	3286	8.915	-10,0,10	1	3286	/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3286_-1.root

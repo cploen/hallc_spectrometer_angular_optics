@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 #include <TFile.h>
 #include <TTree.h>
 #include <TString.h>
@@ -25,6 +27,7 @@ struct OpticsInfoGMM {
   TString opticsID = "";
   Double_t centAngleDeg = 0.0;
   Int_t numFoil = 0;
+  Int_t sieveFlag = 0;
   Int_t ndelcut = 0;       // number of delta edges in DB file
   vector<Double_t> zfoil;
   vector<Double_t> delcut; // delta edges
@@ -166,6 +169,7 @@ static Bool_t read_optics_info_gmm(Int_t nrun, const TString &opticsFile, Optics
     info.opticsID = fields[1].c_str();
     info.centAngleDeg = atof(fields[2].c_str());
     info.numFoil = atoi(fields[3].c_str());
+    info.sieveFlag = atoi(fields[4].c_str());
     info.ndelcut = atoi(fields[5].c_str());
 
     string foilLine, delLine;
@@ -251,21 +255,17 @@ static Long64_t read_gmm_mask_one_file(const TString &fname,
 }
 
 
-static TString delta_tag_gmm(Int_t ndel) {
-  switch (ndel) {
-    case 0: return "m10_to_m8";
-    case 1: return "m8_to_m5";
-    case 2: return "m5_to_0";
-    case 3: return "0_to_5";
-    case 4: return "5_to_10";
-    default: return "UNKNOWN";
-  }
+// File tags follow the actual run's interval edges for either arm.
+static TString delta_edge_tag_gmm(double edge) {
+  TString tag=Form("%g",std::abs(edge));
+  tag.ReplaceAll(".","p");
+  return edge<0 ? "m"+tag : tag;
 }
 
 static Long64_t read_gmm_masks_for_run(Int_t run,
                                         const TString &rungroup,
                                         Int_t nFoils,
-                                        Int_t nDeltaIntervals,
+                                        const vector<Double_t>& deltaEdges,
                                         const TString &yBaseDir,
                                         const TString &xBaseDir,
                                         const TString &xTag,
@@ -277,9 +277,8 @@ static Long64_t read_gmm_masks_for_run(Int_t run,
   Long64_t ny=0, nx=0;
 
   for (Int_t nf=0; nf<nFoils; nf++) {
-    for (Int_t nd=0; nd<nDeltaIntervals; nd++) {
-      TString dtag = delta_tag_gmm(nd);
-      if (dtag == "UNKNOWN") continue;
+    for (Int_t nd=0; nd<int(deltaEdges.size())-1; nd++) {
+      TString dtag = delta_edge_tag_gmm(deltaEdges[nd])+"_to_"+delta_edge_tag_gmm(deltaEdges[nd+1]);
 
       TString yfile = Form("%s/gmm_clean_%s_foil%d_delta_%s_allY.root",
                            yBaseDir.Data(), rungroup.Data(), nf, dtag.Data());
@@ -317,10 +316,25 @@ void make_fit_ntuple_from_gmm(
                               TString outputDir="HMS_6p117GeV/06a_fit_ntuple",
                               TString inputRootOverride="",
                               TString rungroup="") {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(outputDir, spec)) return;
+
+  for (const auto& maskDir : {yBaseDir,xBaseDir}) {
+    hallc::Spectrometer maskSpec;
+    if (!hallc::loadSpectrometer(maskDir,maskSpec) || maskSpec.name!=spec.name) {
+      std::cerr << "ERROR: GMM mask and output campaign spectrometers disagree." << std::endl;
+      return;
+    }
+  }
+  if (spec.shms() && inputRootOverride.IsNull()) {
+    std::cerr << "ERROR: SHMS requires the replay path from campaign inputs." << std::endl;
+    return;
+  }
   gStyle->SetOptStat(0);
 
   OpticsInfoGMM info;
   if (!read_optics_info_gmm(nrun, "DATfiles/list_of_optics_run.dat", info)) return;
+  if (!hallc::centeredSieveOnly(spec,info.sieveFlag)) return;
 
   const Int_t nDeltaIntervals = (Int_t)info.delcut.size() - 1;
   cout << "Parsed run " << nrun
@@ -336,7 +350,7 @@ void make_fit_ntuple_from_gmm(
 
   map<Long64_t, ColMaskInfo> ymask, xmask;
   read_gmm_masks_for_run(nrun, rungroup,
-                         info.numFoil, nDeltaIntervals,
+                         info.numFoil, info.delcut,
                          yBaseDir, xBaseDir, xTag,
                          ymask, xmask, kFALSE);
 
@@ -386,24 +400,25 @@ void make_fit_ntuple_from_gmm(
   Double_t yfp=0, ypfp=0, xfp=0, xpfp=0;
   Double_t ysieve=0, xsieve=0, xbpm_tar=0, ybpm_tar=0;
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.x", &xtar);
-  T->SetBranchAddress("H.react.x", &reactx);
-  T->SetBranchAddress("H.react.y", &reacty);
-  T->SetBranchAddress("H.react.z", &reactz);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.gtr.ph", &yptar);
-  T->SetBranchAddress("H.gtr.th", &xptar);
-  T->SetBranchAddress("H.dc.y_fp", &yfp);
-  T->SetBranchAddress("H.dc.yp_fp", &ypfp);
-  T->SetBranchAddress("H.dc.x_fp", &xfp);
-  T->SetBranchAddress("H.dc.xp_fp", &xpfp);
-  T->SetBranchAddress("H.extcor.ysieve", &ysieve);
-  T->SetBranchAddress("H.extcor.xsieve", &xsieve);
-  T->SetBranchAddress("H.rb.raster.fr_xbpm_tar", &xbpm_tar);
-  T->SetBranchAddress("H.rb.raster.fr_ybpm_tar", &ybpm_tar);
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve"), spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(spec.branch("gtr.x").c_str(), &xtar);
+  T->SetBranchAddress(spec.branch("react.x").c_str(), &reactx);
+  T->SetBranchAddress(spec.branch("react.y").c_str(), &reacty);
+  T->SetBranchAddress(spec.branch("react.z").c_str(), &reactz);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("gtr.ph").c_str(), &yptar);
+  T->SetBranchAddress(spec.branch("gtr.th").c_str(), &xptar);
+  T->SetBranchAddress(spec.branch("dc.y_fp").c_str(), &yfp);
+  T->SetBranchAddress(spec.branch("dc.yp_fp").c_str(), &ypfp);
+  T->SetBranchAddress(spec.branch("dc.x_fp").c_str(), &xfp);
+  T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
+  T->SetBranchAddress(spec.branch("extcor.ysieve").c_str(), &ysieve);
+  T->SetBranchAddress(spec.branch("extcor.xsieve").c_str(), &xsieve);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
+  T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
 
   TFile fout(outputroot.Data(), "RECREATE");
   TTree *otree = new TTree("TFit", "FitTree from GMM-cleaned yscol/xscol intersection");
@@ -442,24 +457,12 @@ void make_fit_ntuple_from_gmm(
 
   vector<Double_t> ys_cent;
   vector<Double_t> xs_cent;
-  for (Int_t i=0; i<9; i++) {
-    ys_cent.push_back((i-4)*0.6*2.54);
-    xs_cent.push_back((i-4)*2.54);
-  }
+  for (int i=0;i<spec.ny;++i) ys_cent.push_back(spec.ys(i));
+  for (int i=0;i<spec.nx;++i) xs_cent.push_back(spec.xs(i));
 
-  Double_t centAngle = info.centAngleDeg*TMath::Pi()/180.0;
-  Double_t y_mis;
-  Double_t x_mis;
-  if (TMath::Abs(info.centAngleDeg)<40) y_mis = 0.1*(0.52-0.012*TMath::Abs(info.centAngleDeg)+0.002*TMath::Abs(info.centAngleDeg)*TMath::Abs(info.centAngleDeg));
-  else y_mis = 0.1*(0.52-0.012*40. + 0.002*40.*40.);
-  if (TMath::Abs(info.centAngleDeg)<50) x_mis = 0.1*(2.37-0.086*TMath::Abs(info.centAngleDeg)+0.0012*TMath::Abs(info.centAngleDeg)*TMath::Abs(info.centAngleDeg));
-  else x_mis = 0.1*(2.37-0.086*50.+0.0012*50.*50.);
-
-  const Double_t zdis_sieve = 168.0;
-
-  TH2F *hTrueSieve = new TH2F("hTrueSieve", Form("run %d accepted GMM targets; ysieveT (cm); xsieveT (cm)", nrun), 80, -7, 7, 100, -13, 13);
-  TH2F *hRecoSieve = new TH2F("hRecoSieve", Form("run %d accepted reconstructed sieve; ysieve (cm); xsieve (cm)", nrun), 80, -7, 7, 100, -13, 13);
-  TH1F *hDelta = new TH1F("hDelta", Form("run %d accepted delta; delta; counts", nrun), 80, -10, 10);
+  TH2F *hTrueSieve = new TH2F("hTrueSieve", Form("run %d accepted GMM targets; ysieveT (cm); xsieveT (cm)", nrun), 80, -spec.yPlotMax(), spec.yPlotMax(), 100, -(spec.shms()?14.:13.), (spec.shms()?14.:13.));
+  TH2F *hRecoSieve = new TH2F("hRecoSieve", Form("run %d accepted reconstructed sieve; ysieve (cm); xsieve (cm)", nrun), 80, -spec.yPlotMax(), spec.yPlotMax(), 100, -(spec.shms()?14.:13.), (spec.shms()?14.:13.));
+  TH1F *hDelta = new TH1F("hDelta", Form("run %d accepted delta; delta; counts", nrun), 80, spec.deltaMin, spec.deltaMax);
   TH1F *hFoil = new TH1F("hFoil", Form("run %d accepted foil; foil; counts", nrun), 5, -0.5, 4.5);
 
   Long64_t nentries = T->GetEntries();
@@ -476,11 +479,11 @@ void make_fit_ntuple_from_gmm(
       nMismatch++;
       continue;
     }
-    if (iy->second.col < 0 || iy->second.col >= 9 || ix->second.col < 0 || ix->second.col >= 9) continue;
+    if (iy->second.col < 0 || iy->second.col >= spec.ny || ix->second.col < 0 || ix->second.col >= spec.nx) continue;
     if (iy->second.foil < 0 || iy->second.foil >= (Int_t)info.zfoil.size()) continue;
 
     T->GetEntry(i);
-    if (!(sumnpe > cerCut && etracknorm > calCut && delta > -10.0 && delta < 10.0)) {
+    if (!(sumnpe > cerCut && etracknorm > calCut && spec.acceptsDelta(delta))) {
       nPIDFail++;
       continue;
     }
@@ -497,16 +500,12 @@ void make_fit_ntuple_from_gmm(
     }
 
     Double_t zf = info.zfoil[foilT];
-    Double_t xbeam = -xbpm_tar;
-    Double_t ybeam =  ybpm_tar; // retained for possible future diagnostics
-    (void)ybeam;
-
-    Double_t ytar_cent = zf*TMath::Sin(centAngle) + xbeam*TMath::Cos(centAngle) - y_mis;
-    yptarT = (ys_cent[yscolT] - ytar_cent) / (zdis_sieve - zf*TMath::Cos(centAngle));
-    ytarT  = zf*(TMath::Sin(centAngle) - yptarT*TMath::Cos(centAngle))
-           + xbeam*(TMath::Cos(centAngle) + yptarT*TMath::Sin(centAngle)) - y_mis;
-    xptarT = xs_cent[xscolT] / (zdis_sieve - zf*TMath::Cos(centAngle));
-    xtarT  = -reacty - x_mis - xptarT*zf*TMath::Cos(centAngle);
+    const auto truth=hallc::targetTruth(spec,info.centAngleDeg,zf,
+        xs_cent[xscolT],ys_cent[yscolT],delta,reactx,reacty,xbpm_tar);
+    xptarT=truth.xptar; yptarT=truth.yptar;
+    xtarT=truth.xtar; ytarT=truth.ytar;
+    if (!(std::isfinite(xptarT) && std::isfinite(yptarT) &&
+          std::isfinite(xtarT) && std::isfinite(ytarT))) continue;
 
     ysieveT = ys_cent[yscolT];
     xsieveT = xs_cent[xscolT];
@@ -528,6 +527,7 @@ void make_fit_ntuple_from_gmm(
   cout << "  events vetoed by HIP rules    : " << nVeto << endl;
   cout << "  TFit rows written             : " << nFilled << endl;
 
+  hallc::writeProfile(spec);
   otree->Write();
   hTrueSieve->Write();
   hRecoSieve->Write();

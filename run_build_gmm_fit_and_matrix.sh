@@ -23,6 +23,10 @@ fi
 
 PROJECT_DIR=$(pwd -P)
 CAMPAIGN="$1"
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 TAG="$2"
 MODE="${3:-}"
 
@@ -300,7 +304,7 @@ if [[ "$RUN_SVD" != 1 ]]; then
   exit 0
 fi
 
-matrix_out="${SVD_DIR}/matrices/nps_hms_newfit_${TAG}.dat"
+matrix_out="${SVD_DIR}/matrices/nps_${HALLC_ARM}_newfit_${TAG}.dat"
 qa_out="${SVD_DIR}/root/fit_opt_matrix_${TAG}_qa.root"
 old_pdf="${SVD_DIR}/plots/fit_opt_matrix_${TAG}_old_matrix_diff.pdf"
 new_pdf="${SVD_DIR}/plots/fit_opt_matrix_${TAG}_new_matrix_diff.pdf"

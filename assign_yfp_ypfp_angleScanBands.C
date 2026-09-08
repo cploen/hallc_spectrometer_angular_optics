@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // STABLE-THETA PATCH: chooses theta using local-neighborhood stability-adjusted score.\n// DELETE-SLICE PATCH: removes all old yscol cuts for the same nfoil/ndel before rewriting.
 // FIXED-THETA PATCH: fixedThetaDeg final argument; fixedThetaDeg >= -900 scans only that angle.
 // BATCH PATCH: safe ndel naming + all-delta wrapper. Scoring unchanged.
@@ -864,7 +866,7 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
                                                 Double_t deltaMin=-10.0,
                                                 Double_t deltaMax=-8.0,
                                                 TString ytarTag="auto_ycut",
-                                                Int_t maxBands=9,
+                                                Int_t maxBands=0,
                                                 Double_t thetaStepDeg=1.0,
                                                 Double_t minPeakSep=0.18,
                                                 Double_t minPeakFraction=0.05,
@@ -881,6 +883,14 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
                      Double_t fixedThetaDeg=-999.0,
                      const char *campaignDir="HMS_6p117",
                      const char *inputRootOverride="") {
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(campaignDir, spec)) return;
+  if (spec.shms() && (!inputRootOverride || !*inputRootOverride)) {
+    std::cerr << "ERROR: SHMS requires the replay path from campaign inputs." << std::endl;
+    return;
+  }
+  if (maxBands<=0) maxBands=spec.ny;
+
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptStat(0);
   gStyle->SetPalette(kBird);
@@ -901,6 +911,7 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
   TString metaFile = YFP_DAT_DIR + "/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_angleScan(nrun, info, metaFile.Data())) return;
 
+  if (!hallc::centeredSieveOnly(spec,info.sieveFlag)) return;
   Int_t ndelIndex = FindDeltaIndex_angleScan_v2(info, deltaMin, deltaMax, ndelOverride);
   if (ndelIndex < 0) return;
 
@@ -951,20 +962,21 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
   Double_t sumnpe=0, etracknorm=0;
   Double_t ytar=0, delta=0, yfp=0, ypfp=0;
 
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.dp"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp")})) return;
   T->SetBranchStatus("*",0);
-  T->SetBranchStatus("H.cer.npeSum",1);
-  T->SetBranchStatus("H.cal.etottracknorm",1);
-  T->SetBranchStatus("H.gtr.y",1);
-  T->SetBranchStatus("H.gtr.dp",1);
-  T->SetBranchStatus("H.dc.y_fp",1);
-  T->SetBranchStatus("H.dc.yp_fp",1);
+  T->SetBranchStatus(spec.cherenkovBranch().c_str(),1);
+  T->SetBranchStatus(spec.branch("cal.etottracknorm").c_str(),1);
+  T->SetBranchStatus(spec.branch("gtr.y").c_str(),1);
+  T->SetBranchStatus(spec.branch("gtr.dp").c_str(),1);
+  T->SetBranchStatus(spec.branch("dc.y_fp").c_str(),1);
+  T->SetBranchStatus(spec.branch("dc.yp_fp").c_str(),1);
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.dc.y_fp", &yfp);
-  T->SetBranchAddress("H.dc.yp_fp", &ypfp);
+  T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(spec.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(spec.branch("dc.y_fp").c_str(), &yfp);
+  T->SetBranchAddress(spec.branch("dc.yp_fp").c_str(), &ypfp);
 
   // Plot convention: x = ypfp, y = yfp.
   std::vector<double> xvals; // ypfp
@@ -978,6 +990,7 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
     T->GetEntry(i);
 
     if (!(sumnpe > 6.0 && etracknorm > 0.65)) continue;
+    if (spec.shms() && !spec.acceptsDelta(delta)) continue;
     nPassBasic++;
 
     if (useYtarCut && ytarCut) {
@@ -1914,7 +1927,7 @@ void run_yfp_ypfp_angleScan_oneDelta(Int_t nrun=1544,
     for (size_t b = 0; b < bandPeaks.size(); ++b) {
       Int_t yscol = YscolFromQBand_angleScan((Int_t)b, (Int_t)bandPeaks.size());
 
-      if (yscol < 0 || yscol > 8) {
+      if (yscol < 0 || yscol >= spec.ny) {
         cout << "WARNING: skipping qband " << b
              << " because mapped yscol=" << yscol
              << " is outside [0,8]" << endl;
@@ -1995,7 +2008,7 @@ void assign_yfp_ypfp_angleScanBands(Int_t nrun=1544,
                      Double_t deltaMin=-8.0,
                      Double_t deltaMax=-5.0,
                      const char *ytarTag="ML_dev",
-                     Int_t maxBands=9,
+                     Int_t maxBands=0,
                      Double_t thetaStepDeg=1.0,
                      Double_t minPeakSep=0.18,
                      Double_t minPeakFrac=0.08,
@@ -2043,12 +2056,14 @@ void assign_yfp_ypfp_angleScanBands(Int_t nrun=1544,
   cout << "============================================================" << endl;
   cout << "BATCH MODE: YFP/YPFP angle scan over standard delta slices" << endl;
   cout << "Run: " << nrun << "  foilIndex: " << foilIndex << endl;
-  cout << "Delta edges: -10,-8,-5,0,5,10" << endl;
+  cout << "Delta edges: from run metadata" << endl;
   cout << "ytarTag: " << ytarTag << endl;
   cout << "============================================================" << endl;
 
-  const int nEdges = 6;
-  const double edges[nEdges] = {-10.0, -8.0, -5.0, 0.0, 5.0, 10.0};
+  hallc::RunMetadata scanInfo;
+  if (!hallc::loadRunMetadata(nrun,scanInfo)) return;
+  const auto& edges=scanInfo.edges;
+  const int nEdges=int(edges.size());
 
   for (int i = 0; i < nEdges - 1; ++i) {
     cout << endl;

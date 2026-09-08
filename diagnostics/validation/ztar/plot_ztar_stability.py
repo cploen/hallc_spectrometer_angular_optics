@@ -2,6 +2,9 @@
 
 import argparse
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from spectrometer_config import from_campaign, run_metadata
 from matplotlib.backends.backend_pdf import PdfPages
 
 import pandas as pd
@@ -56,7 +59,9 @@ def add_labels_staggered(ax, xvals, yvals, labels, dx=0.18, dy_step=0.18):
         )
 
 
-def add_hms_angle(df):
+def add_campaign_angle(df, campaign, spec):
+    # Historical HMS values remain a fallback for old NPS tables.
+    # Campaign metadata takes precedence for either arm.
     angle_map = {
         # 6.667 GeV/c, HMS angle 12.490
         1537: 12.490,
@@ -81,7 +86,26 @@ def add_hms_angle(df):
         6985: 12.500,
     }
 
-    df["hms_angle_deg"] = df["run"].map(angle_map)
+    if spec.name != "HMS":
+        angle_map = {}
+    for table in (campaign / "config").glob("rungroups_*_inputs.tsv"):
+        settings = pd.read_csv(table, sep="\t")
+        for _, row in settings.iterrows():
+            angle = row.get("angle_deg", row.get("hms_angle_deg"))
+            if angle is None:
+                continue
+            for run in str(row["runs"]).split(","):
+                angle_map[int(run)] = float(angle)
+            angle_map[int(row["optics_id"])] = float(angle)
+    for run in df["run"].unique():
+        if int(run) not in angle_map:
+            try:
+                angle_map[int(run)] = run_metadata(int(run))["angle_deg"]
+            except (ValueError, FileNotFoundError):
+                pass
+    df["angle_deg"] = df["run"].map(angle_map)
+    if df["angle_deg"].isna().any():
+        raise ValueError("Missing run angle in campaign inputs/optics metadata")
     return df
 
 
@@ -179,7 +203,10 @@ def main():
     )
     args = parser.parse_args()
 
-    tsv_path = Path(args.tsv)
+    tsv_path = Path(args.tsv).resolve()
+    spec = from_campaign(str(tsv_path))
+    campaign = next(parent for parent in tsv_path.parents
+                    if parent.name.startswith(spec.name+"_") or parent.name==spec.name)
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
@@ -258,10 +285,10 @@ def main():
     )
     df["arrangement"] = df["run"].map(arrangement_map)
     df["group_label"] = df["run_label"] + " (" + df["arrangement"] + ")"
-    df = add_hms_angle(df)
+    df = add_campaign_angle(df, campaign, spec)
 
-    arrangements = ["0 cm", "±3 cm", "±8 cm"]
-    markers = {"0 cm": "o", "±3 cm": "s", "±8 cm": "^"}
+    # Any target arrangement is valid for either spectrometer.
+    arrangements = list(dict.fromkeys(df["arrangement"]))
 
     with PdfPages(combined_pdf_path) as combined_pdf:
 
@@ -345,9 +372,9 @@ def main():
                 dy_step=0.22,
             )
 
-        set_clean_foil_ticks(ax)
+        set_clean_foil_ticks(ax, lo=float(df["nominal_foil_z_cm"].min()), hi=float(df["nominal_foil_z_cm"].max()))
         ax.set_xlabel("Nominal foil z [cm]")
-        ax.set_ylabel("Fitted H.react.z peak mean [cm]")
+        ax.set_ylabel(f"Fitted {spec.prefix}.react.z peak mean [cm]")
         ax.set_title("Fitted z peak mean vs nominal foil position")
         ax.grid(True, alpha=0.3)
 
@@ -403,7 +430,7 @@ def main():
         savefig(fig, f"{tag}_residual_by_run_and_foil", combined_pdf)
         plt.close(fig)
 
-        # Pair-derived table: two-foil runs.
+        # Outer-foil pair table for any target with at least two foils.
         pair_rows = []
 
         for run, sub in df.groupby("run"):
@@ -411,11 +438,11 @@ def main():
             foils = sub["nominal_foil_z_cm"].tolist()
             arr = classify_arrangement(foils)
 
-            if len(sub) != 2:
+            if len(sub) < 2:
                 continue
 
             minus = sub.iloc[0]
-            plus = sub.iloc[1]
+            plus = sub.iloc[-1]
 
             mean_minus = float(minus["fit_mean_cm"])
             mean_plus = float(plus["fit_mean_cm"])
@@ -442,9 +469,9 @@ def main():
                     "expected_separation_cm": expected_sep,
                     "separation_residual_cm": pair_sep - expected_sep,
                     "foil_abs_cm": 0.5 * expected_sep,
-                    "hms_angle_deg": (
-                        float(minus["hms_angle_deg"])
-                        if pd.notna(minus["hms_angle_deg"])
+                    "angle_deg": (
+                        float(minus["angle_deg"])
+                        if pd.notna(minus["angle_deg"])
                         else float("nan")
                     ),
                 }
@@ -473,9 +500,9 @@ def main():
                     "expected_separation_cm": 0.0,
                     "separation_residual_cm": 0.0,
                     "foil_abs_cm": 0.0,
-                    "hms_angle_deg": (
-                        float(row["hms_angle_deg"])
-                        if pd.notna(row["hms_angle_deg"])
+                    "angle_deg": (
+                        float(row["angle_deg"])
+                        if pd.notna(row["angle_deg"])
                         else float("nan")
                     ),
                 }
@@ -570,7 +597,7 @@ def main():
                     )
 
             ax.axhline(0, linestyle="--", linewidth=1.6)
-            ax.set_xticks([0, 3, 8])
+            ax.set_xticks(sorted(pair_df["foil_abs_cm"].unique()))
             ax.set_xlabel("Absolute foil distance from nominal center [cm]")
             ax.set_ylabel("Fitted center [cm]")
             ax.set_title("Ztar center stability vs foil distance")
@@ -580,7 +607,7 @@ def main():
             savefig(fig, f"{tag}_center_vs_foil_distance", combined_pdf)
             plt.close(fig)
 
-            # 6. Pair/single center vs HMS angle.
+            # 6. Pair/single center vs spectrometer angle.
             fig, ax = plt.subplots(figsize=(10.5, 6.2))
 
             for foil_abs in sorted(pair_df["foil_abs_cm"].dropna().unique()):
@@ -589,7 +616,7 @@ def main():
                     continue
 
                 ax.scatter(
-                    sub["hms_angle_deg"],
+                    sub["angle_deg"],
                     sub["pair_center_cm"],
                     marker="s",
                     s=120,
@@ -601,7 +628,7 @@ def main():
                     x_offsets = [0.030, 0.115, -0.105, 0.200, -0.190, 0.285, -0.275]
                     y_offsets = [0.000, 0.090, -0.090, 0.180, -0.180, 0.270, -0.270]
                     ax.text(
-                        row["hms_angle_deg"] + x_offsets[j % len(x_offsets)],
+                        row["angle_deg"] + x_offsets[j % len(x_offsets)],
                         row["pair_center_cm"] + y_offsets[j % len(y_offsets)],
                         str(int(row["run"])),
                         fontsize=14,
@@ -609,14 +636,14 @@ def main():
                     )
 
             ax.axhline(0, linestyle="--", linewidth=1.6)
-            ax.set_xlim(pair_df["hms_angle_deg"].min() - 0.45, pair_df["hms_angle_deg"].max() + 0.45)
-            ax.set_xlabel("HMS angle [deg]")
+            ax.set_xlim(pair_df["angle_deg"].min() - 0.45, pair_df["angle_deg"].max() + 0.45)
+            ax.set_xlabel("Spectrometer angle [deg]")
             ax.set_ylabel("Fitted center [cm]")
-            ax.set_title("Ztar center stability vs HMS angle")
+            ax.set_title("Ztar center stability vs spectrometer angle")
             ax.grid(True, alpha=0.3)
 
             make_axes_readable(ax)
-            savefig(fig, f"{tag}_center_vs_hms_angle", combined_pdf)
+            savefig(fig, f"{tag}_center_vs_angle", combined_pdf)
             plt.close(fig)
 
     print(f"Wrote combined PDF: {combined_pdf_path}")

@@ -9,6 +9,10 @@ if [[ $# -lt 3 || $# -gt 4 ]]; then
 fi
 
 CAMPAIGN="$1"
+# HMS/SHMS selection comes from the campaign name.
+source "$(dirname -- "${BASH_SOURCE[0]}")/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN" || exit 1
+
 RUNGROUP="$2"
 FOIL_INDEX="$3"
 DRY_RUN="${4:-}"
@@ -38,7 +42,7 @@ row=$(awk -F'\t' -v rg="$RUNGROUP" 'NR > 1 && $1 == rg {print; exit}' "$RGTSV")
   exit 1
 }
 
-IFS=$'\t' read -r rungroup optics_id hms_angle_deg foils nruns runs rootfile <<< "$row"
+IFS=$'\t' read -r rungroup optics_id angle_deg foils nruns runs rootfile <<< "$row"
 
 [[ "$optics_id" =~ ^[0-9]+$ ]] || {
   echo "ERROR: invalid optics_id: $optics_id" >&2
@@ -50,7 +54,7 @@ IFS=$'\t' read -r rungroup optics_id hms_angle_deg foils nruns runs rootfile <<<
   exit 1
 }
 
-expr="${MACRO}(${optics_id},-10,10,\"${rungroup}\",9,1.0,0.18,0.08,0.25,1,0.005,0.08,1.0,true,${FOIL_INDEX},-1,-1,-999,true,-999.0,\"${CAMPAIGN}\",\"${rootfile}\")"
+expr="${MACRO}(${optics_id},${HALLC_DELTA_MIN},${HALLC_DELTA_MAX},\"${rungroup}\",${HALLC_NY},1.0,0.18,0.08,0.25,1,0.005,0.08,1.0,true,${FOIL_INDEX},-1,-1,-999,true,-999.0,\"${CAMPAIGN}\",\"${rootfile}\")"
 
 echo "Campaign:   $CAMPAIGN"
 echo "Rungroup:   $rungroup"

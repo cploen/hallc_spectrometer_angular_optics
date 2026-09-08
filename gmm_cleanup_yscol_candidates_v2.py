@@ -13,7 +13,7 @@ Default behavior for one rungroup/foil/delta slice:
   - derive the candidate-tree input from the campaign directory
   - process all yscol values present in the candidate tree
   - remove columns with N < min_events
-  - choose GMM component count by BIC, bounded by max_components <= 9
+  - choose GMM component count by BIC, bounded by max_components bounded by the campaign sieve dimension
   - reject lowest-density events using keep_frac
   - write ROOT/CSV/TSV/PDF outputs into 05a_gmm_cleanup_y subdirectories
 
@@ -32,6 +32,7 @@ import csv
 import math
 from dataclasses import dataclass
 from pathlib import Path
+from spectrometer_config import configure_gmm
 from typing import Dict, Iterable, List, Tuple
 
 import numpy as np
@@ -114,19 +115,19 @@ def read_candidate_tree(args) -> List[EventRecord]:
     br_ndel  = find_branch(tree, ["ndel", "ndel_out"], required=True)
     br_yscol = find_branch(tree, ["yscol", "assigned_yscol", "yscol_out"], required=True)
 
-    br_xfp   = find_branch(tree, ["xfp", "H.dc.x_fp"], required=True)
-    br_xpfp  = find_branch(tree, ["xpfp", "H.dc.xp_fp"], required=True)
-    br_yfp   = find_branch(tree, ["yfp", "H.dc.y_fp"], required=True)
-    br_ypfp  = find_branch(tree, ["ypfp", "H.dc.yp_fp"], required=True)
-    br_xs    = find_branch(tree, ["xsieve", "xs", "H.extcor.xsieve"], required=True)
-    br_ys    = find_branch(tree, ["ysieve", "ys", "H.extcor.ysieve"], required=True)
+    br_xfp   = find_branch(tree, ["xfp", args.spectrometer.branch("dc.x_fp")], required=True)
+    br_xpfp  = find_branch(tree, ["xpfp", args.spectrometer.branch("dc.xp_fp")], required=True)
+    br_yfp   = find_branch(tree, ["yfp", args.spectrometer.branch("dc.y_fp")], required=True)
+    br_ypfp  = find_branch(tree, ["ypfp", args.spectrometer.branch("dc.yp_fp")], required=True)
+    br_xs    = find_branch(tree, ["xsieve", "xs", args.spectrometer.branch("extcor.xsieve")], required=True)
+    br_ys    = find_branch(tree, ["ysieve", "ys", args.spectrometer.branch("extcor.ysieve")], required=True)
 
-    br_delta      = find_branch(tree, ["delta", "H.gtr.dp"], required=False)
+    br_delta      = find_branch(tree, ["delta", args.spectrometer.branch("gtr.dp")], required=False)
     br_delta_low  = find_branch(tree, ["delta_low"], required=True)
     br_delta_high = find_branch(tree, ["delta_high"], required=True)
-    br_ytar       = find_branch(tree, ["ytar", "H.gtr.y"], required=False)
-    br_xptar = find_branch(tree, ["xptar", "H.gtr.th"], required=False)
-    br_yptar = find_branch(tree, ["yptar", "H.gtr.ph"], required=False)
+    br_ytar       = find_branch(tree, ["ytar", args.spectrometer.branch("gtr.y")], required=False)
+    br_xptar = find_branch(tree, ["xptar", args.spectrometer.branch("gtr.th")], required=False)
+    br_yptar = find_branch(tree, ["yptar", args.spectrometer.branch("gtr.ph")], required=False)
 
     records: List[EventRecord] = []
     nentries = tree.GetEntries()
@@ -208,7 +209,7 @@ def fit_one_yscol(records: List[EventRecord], args) -> Dict[str, float | int | s
         summary.update(action="removed_low_stat_after_finite")
         return summary
 
-    # Upper bound: physically no more than 9 xsieve hole groups in one yscol projection.
+    # Upper bound: the selected sieve dimension limits hole groups in one yscol projection.
     # Require several points per component to avoid one/two-point nuisance blobs.
     max_k = min(args.max_components, max(1, len(fit_records) // args.min_points_per_component))
 
@@ -348,6 +349,8 @@ def write_root(records: List[EventRecord], summaries: List[Dict[str, float | int
         s_keep_frac[0] = float(s["keep_frac_actual"])
         ts.Fill()
 
+    ROOT.TNamed("hallc_spectrometer", args.spectrometer.name).Write()
+    ROOT.TNamed("hallc_geometry_profile", args.spectrometer.name+"_centered_v1").Write()
     fout.Write()
     fout.Close()
 
@@ -427,15 +430,15 @@ def draw_ysieve_guides(ax, args) -> None:
     """Draw ROOT/manual-optics ysieve guide lines.
 
     This must match plot_yfp_cuts.C / fit_opt_matrix.C:
-        pos = (nys - 4) * 0.6 * 2.54
+        pos = args.spectrometer.ys(nys)
     Do not make this runtime-relative.
     """
     y_bottom = float(args.xsieve_min)
     y_top = float(args.xsieve_max)
     label_y = y_bottom - 0.035 * (y_top - y_bottom)
 
-    for nys in range(9):
-        ypos = (nys - 4) * 0.6 * 2.54
+    for nys in range(args.spectrometer.ny):
+        ypos = args.spectrometer.ys(nys)
         ax.axvline(ypos, linewidth=0.8, alpha=0.85, color="red")
         ax.text(
             ypos, label_y, str(nys),
@@ -571,7 +574,7 @@ def main() -> None:
     p.add_argument("--outdir", type=Path, default=None, help="Override 05a_gmm_cleanup_y output directory.")
 
     p.add_argument("--min-events", type=int, default=30, help="Remove candidate columns with fewer than this many events.")
-    p.add_argument("--max-components", type=int, default=9, help="Upper bound on GMM components per yscol; must be <= 9.")
+    p.add_argument("--max-components", type=int, default=None, help="Upper bound on GMM components per yscol; defaults to the campaign sieve dimension.")
     p.add_argument("--keep-frac", type=float, default=0.95, help="Fraction retained after GMM log-density cut.")
     p.add_argument("--min-points-per-component", type=int, default=5, help="Guard against tiny nuisance components.")
 
@@ -580,10 +583,10 @@ def main() -> None:
     p.add_argument("--random-state", type=int, default=13)
 
     # ROOT-style sieve diagnostic view. These are plotting-only; they do not affect GMM.
-    p.add_argument("--ysieve-min", type=float, default=-6.8)
-    p.add_argument("--ysieve-max", type=float, default=6.8)
-    p.add_argument("--xsieve-min", type=float, default=-12.5)
-    p.add_argument("--xsieve-max", type=float, default=12.5)
+    p.add_argument("--ysieve-min", type=float, default=None)
+    p.add_argument("--ysieve-max", type=float, default=None)
+    p.add_argument("--xsieve-min", type=float, default=None)
+    p.add_argument("--xsieve-max", type=float, default=None)
     p.add_argument("--guide-spacing", type=float, default=1.524, help="ysieve column-guide spacing in cm")
     p.add_argument("--guide-origin", type=float, default=0.0, help="ysieve position of the center guide column")
     p.add_argument("--guide-center-index", type=int, default=4, help="column index located at guide-origin")
@@ -593,6 +596,7 @@ def main() -> None:
     p.set_defaults(show_guide_labels=True)
 
     args = p.parse_args()
+    spec=configure_gmm(args)
 
     project_root = Path.cwd().resolve()
     args.campaign_dir = (project_root / args.campaign).resolve()
@@ -615,8 +619,8 @@ def main() -> None:
 
     if not (0.0 < args.keep_frac <= 1.0):
         raise ValueError("--keep-frac must be in (0, 1].")
-    if args.max_components > 9:
-        raise ValueError("--max-components should not exceed 9.")
+    if not 1 <= args.max_components <= spec.nx:
+        raise ValueError("--max-components exceeds the selected sieve dimension or is below 1.")
     if args.min_points_per_component < 2:
         raise ValueError("--min-points-per-component should be at least 2.")
 

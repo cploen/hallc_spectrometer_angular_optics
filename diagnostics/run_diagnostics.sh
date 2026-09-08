@@ -37,6 +37,10 @@ else
   exit 1
 fi
 
+# Select the arm from the campaign path; target metadata remains independent.
+source "$REPO_DIR/spectrometer_config.sh"
+hallc_campaign "$CAMPAIGN_DIR"
+
 FILEID=${FILEID:--1}
 MAX_PER_Y_BIN=${MAX_PER_Y_BIN:-1000}
 MAX_PER_FOIL=${MAX_PER_FOIL:-15000}

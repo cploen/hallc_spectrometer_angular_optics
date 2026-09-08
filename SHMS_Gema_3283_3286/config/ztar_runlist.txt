@@ -1,0 +1,5 @@
+# run opticsID nominal_foil_positions_cm exact_replay_path
+3283 3283 -10,0,10 /volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3283_-1.root
+3284 3284 -10,0,10 /volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3284_-1.root
+3285 3285 -10,0,10 /volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3285_-1.root
+3286 3286 -10,0,10 /volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/deut_replay_prod_3286_-1.root

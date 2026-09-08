@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "spectrometer_root.h"
 // relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch.C
 //
 // XFP/XPFP companion to relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch.C.
@@ -95,6 +97,7 @@ const TString XRELABEL_TREE_ROOT_DIR =
 
 // Optional internal overrides used by batch mode so each delta slice can build
 // on the relabeled output from the previous slice. Leave empty in normal use.
+static hallc::Spectrometer XRELABEL_SPEC;
 static TString XRELABEL_INPUT_CUT_OVERRIDE = "";
 static TString XRELABEL_OUTPUT_CUT_OVERRIDE = "";
 
@@ -287,19 +290,19 @@ static TString DiagnosticRoot_xrelabel(int nrun, int foilIndex, int ndelIndex)
 
 static double XsGuide_xrelabel(int xscol)
 {
-  return (xscol - 4) * 2.54; // cm, from set_xpfp_xfp_cuts.C / plot_xfp_cuts.C
+  return XRELABEL_SPEC.xs(xscol); // cm, from set_xpfp_xfp_cuts.C / plot_xfp_cuts.C
 }
 
 static double YsGuide_xrelabel(int yscol)
 {
-  return (yscol - 4) * 0.6 * 2.54; // cm, shown faintly for orientation only
+  return XRELABEL_SPEC.ys(yscol); // cm, shown faintly for orientation only
 }
 
 static int NearestXscol_xrelabel(double xs)
 {
   int best = 0;
   double bestDist = 1.0e99;
-  for (int i = 0; i < 9; ++i) {
+  for (int i = 0; i < XRELABEL_SPEC.nx; ++i) {
     double d = std::fabs(xs - XsGuide_xrelabel(i));
     if (d < bestDist) {
       bestDist = d;
@@ -329,9 +332,9 @@ static int DominantXscolFromCounts_xrelabel(const std::vector<Long64_t>& counts,
   return best;
 }
 
-static void DrawXsGuides_xrelabel(double ySieveMin=-7.0, double ySieveMax=7.0)
+static void DrawXsGuides_xrelabel(double ySieveMin=-XRELABEL_SPEC.yPlotMax(), double ySieveMax=XRELABEL_SPEC.yPlotMax())
 {
-  for (int nxs = 0; nxs < 9; ++nxs) {
+  for (int nxs = 0; nxs < XRELABEL_SPEC.nx; ++nxs) {
     double pos = XsGuide_xrelabel(nxs);
     TLine* line = new TLine(ySieveMin, pos, ySieveMax, pos);
     line->SetLineColor(kRed+1);
@@ -346,9 +349,9 @@ static void DrawXsGuides_xrelabel(double ySieveMin=-7.0, double ySieveMax=7.0)
   }
 }
 
-static void DrawYsOrientationGuides_xrelabel(double xSieveMin=-12.5, double xSieveMax=12.5)
+static void DrawYsOrientationGuides_xrelabel(double xSieveMin=-XRELABEL_SPEC.xPlotMax(), double xSieveMax=XRELABEL_SPEC.xPlotMax())
 {
-  for (int nys = 0; nys < 9; ++nys) {
+  for (int nys = 0; nys < XRELABEL_SPEC.ny; ++nys) {
     double pos = YsGuide_xrelabel(nys);
     TLine* line = new TLine(pos, xSieveMin, pos, xSieveMax);
     line->SetLineColor(kGray+1);
@@ -361,7 +364,7 @@ static void DrawYsOrientationGuides_xrelabel(double xSieveMin=-12.5, double xSie
 static void DrawFrame_xrelabel(const TString& title)
 {
   TH2D* frame = new TH2D("frame_xrelabel_tmp", title + ";ysieve (cm);xsieve (cm)",
-                         10, -7.0, 7.0, 10, -12.5, 12.5);
+                         10, -XRELABEL_SPEC.yPlotMax(), XRELABEL_SPEC.yPlotMax(), 10, -XRELABEL_SPEC.xPlotMax(), XRELABEL_SPEC.xPlotMax());
   frame->SetDirectory(nullptr);
   frame->SetStats(0);
   frame->Draw("AXIS");
@@ -636,6 +639,11 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
                                                         Bool_t writeSingletonAliases=false,
                                                         Double_t xpfpZoneSplit=-999.0)
 {
+  if (!hallc::loadSpectrometer((XRELABEL_CAMPAIGN_DIR.IsNull() ? TString("HMS_legacy") : XRELABEL_CAMPAIGN_DIR),XRELABEL_SPEC)) return;
+  if (XRELABEL_SPEC.shms() && XRELABEL_INPUT_TREE_OVERRIDE.IsNull()) {
+    std::cerr << "ERROR: SHMS requires the replay path from campaign inputs." << std::endl; return;
+  }
+
   gROOT->SetBatch(kTRUE);
   gStyle->SetOptStat(0);
 
@@ -653,6 +661,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
                    ? "DATfiles/list_of_optics_run.dat"
                    : XRELABEL_DAT_DIR + "/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_xrelabel(nrun, info, metaFile.Data())) return;
+  if (!hallc::centeredSieveOnly(XRELABEL_SPEC,info.sieveFlag)) return;
 
   if (foilIndex < 0 || foilIndex >= info.numFoil) {
     cout << "ERROR: foilIndex out of range: " << foilIndex << endl;
@@ -771,7 +780,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
     b.hYsXs = new TH2D(Form("hYsXs_%s_%d_zone_%s", sourceKind.Data(), oldIndex, zone.Data()),
                        Form("%s old %d zone %s;ysieve (cm);xsieve (cm)",
                             sourceKind.Data(), oldIndex, zone.Data()),
-                       100, -7.0, 7.0, 100, -12.5, 12.5);
+                       100, -XRELABEL_SPEC.yPlotMax(), XRELABEL_SPEC.yPlotMax(), 100, -XRELABEL_SPEC.xPlotMax(), XRELABEL_SPEC.xPlotMax());
     b.hYsXs->SetDirectory(nullptr);
     b.hXpX = new TH2D(Form("hXpFpXFp_%s_%d_zone_%s", sourceKind.Data(), oldIndex, zone.Data()),
                       Form("%s old %d zone %s;xpfp;xfp", sourceKind.Data(), oldIndex, zone.Data()),
@@ -821,24 +830,25 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
   Double_t xfp=0, xpfp=0;
   Double_t ysieve=0, xsieve=0;
 
+  if (!hallc::requireBranches(T, {XRELABEL_SPEC.cherenkovBranch(), XRELABEL_SPEC.branch("cal.etottracknorm"), XRELABEL_SPEC.branch("gtr.y"), XRELABEL_SPEC.branch("gtr.dp"), XRELABEL_SPEC.branch("dc.x_fp"), XRELABEL_SPEC.branch("dc.xp_fp"), XRELABEL_SPEC.branch("extcor.ysieve"), XRELABEL_SPEC.branch("extcor.xsieve")})) return;
   T->SetBranchStatus("*",0);
-  T->SetBranchStatus("H.cer.npeSum",1);
-  T->SetBranchStatus("H.cal.etottracknorm",1);
-  T->SetBranchStatus("H.gtr.y",1);
-  T->SetBranchStatus("H.gtr.dp",1);
-  T->SetBranchStatus("H.dc.x_fp",1);
-  T->SetBranchStatus("H.dc.xp_fp",1);
-  T->SetBranchStatus("H.extcor.ysieve",1);
-  T->SetBranchStatus("H.extcor.xsieve",1);
+  T->SetBranchStatus(XRELABEL_SPEC.cherenkovBranch().c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("cal.etottracknorm").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("gtr.y").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("gtr.dp").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("dc.x_fp").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("dc.xp_fp").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("extcor.ysieve").c_str(),1);
+  T->SetBranchStatus(XRELABEL_SPEC.branch("extcor.xsieve").c_str(),1);
 
-  T->SetBranchAddress("H.cer.npeSum", &sumnpe);
-  T->SetBranchAddress("H.cal.etottracknorm", &etracknorm);
-  T->SetBranchAddress("H.gtr.y", &ytar);
-  T->SetBranchAddress("H.gtr.dp", &delta);
-  T->SetBranchAddress("H.dc.x_fp", &xfp);
-  T->SetBranchAddress("H.dc.xp_fp", &xpfp);
-  T->SetBranchAddress("H.extcor.ysieve", &ysieve);
-  T->SetBranchAddress("H.extcor.xsieve", &xsieve);
+  T->SetBranchAddress(XRELABEL_SPEC.cherenkovBranch().c_str(), &sumnpe);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("cal.etottracknorm").c_str(), &etracknorm);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("gtr.y").c_str(), &ytar);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("gtr.dp").c_str(), &delta);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("dc.x_fp").c_str(), &xfp);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("dc.xp_fp").c_str(), &xpfp);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("extcor.ysieve").c_str(), &ysieve);
+  T->SetBranchAddress(XRELABEL_SPEC.branch("extcor.xsieve").c_str(), &xsieve);
 
   TCutG* ytarCut = nullptr;
   if (useYtarCut) ytarCut = LoadYtarCut_xrelabel(nrun, ytarTag, foilIndex);
@@ -850,7 +860,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
   // The mean can be pulled across an adjacent row by tails/overlap, which is
   // exactly the failure mode in low/high zone combinations.
   std::vector< std::vector<Long64_t> > xscolCountsByBand(
-    bands.size(), std::vector<Long64_t>(9, 0));
+    bands.size(), std::vector<Long64_t>(XRELABEL_SPEC.nx, 0));
 
   Long64_t nentries = T->GetEntries();
   if (maxEvents > 0 && maxEvents < nentries) nentries = maxEvents;
@@ -890,7 +900,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
       sumYs2[ib] += ysieve * ysieve;
 
       int nearestPhysicalXscol = NearestXscol_xrelabel(xsieve);
-      if (nearestPhysicalXscol >= 0 && nearestPhysicalXscol < 9) {
+      if (nearestPhysicalXscol >= 0 && nearestPhysicalXscol < XRELABEL_SPEC.nx) {
         xscolCountsByBand[ib][nearestPhysicalXscol]++;
       }
     }
@@ -923,7 +933,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
     } else {
       b.newXscol = -1;
       b.distToGuide = 1.0e99;
-      b.xscolCounts.assign(9, 0);
+      b.xscolCounts.assign(XRELABEL_SPEC.nx, 0);
       b.modalXscol = -1;
       b.modalCount = 0;
       b.modalFrac = 0.0;
@@ -942,7 +952,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
         b.write = true;
       }
     } else {
-      b.write = (b.n >= minEvents && b.newXscol >= 0 && b.newXscol <= 8);
+      b.write = (b.n >= minEvents && b.newXscol >= 0 && b.newXscol < XRELABEL_SPEC.nx);
     }
   }
 
@@ -999,16 +1009,16 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
                                  kAzure+7, kTeal+3, kOrange+1, kViolet+3,
                                  kRed-4, kBlue-4, kGreen-3, kMagenta-4};
 
-  std::vector<TH2D*> hCombinedXscol(9, nullptr);
-  std::vector<Long64_t> nCombinedXscol(9, 0);
-  for (int xs = 0; xs < 9; ++xs) {
+  std::vector<TH2D*> hCombinedXscol(XRELABEL_SPEC.nx, nullptr);
+  std::vector<Long64_t> nCombinedXscol(XRELABEL_SPEC.nx, 0);
+  for (int xs = 0; xs < XRELABEL_SPEC.nx; ++xs) {
     hCombinedXscol[xs] = new TH2D(Form("hCombinedXscol_%d", xs),
                                   Form("combined xscol %d;ysieve (cm);xsieve (cm)", xs),
-                                  100, -7.0, 7.0, 100, -12.5, 12.5);
+                                  100, -XRELABEL_SPEC.yPlotMax(), XRELABEL_SPEC.yPlotMax(), 100, -XRELABEL_SPEC.xPlotMax(), XRELABEL_SPEC.xPlotMax());
     hCombinedXscol[xs]->SetDirectory(nullptr);
   }
   for (const auto& b : bands) {
-    if (!b.write || b.newXscol < 0 || b.newXscol > 8) continue;
+    if (!b.write || b.newXscol < 0 || b.newXscol >= XRELABEL_SPEC.nx) continue;
     AddBandToCombined_xrelabel(hCombinedXscol[b.newXscol], b.hYsXs);
     nCombinedXscol[b.newXscol] += b.n;
   }
@@ -1052,7 +1062,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
 
   c->Clear();
   DrawFrame_xrelabel(Form("Run %d foil %d ndel %d: FINAL combined-by-xscol density", nrun, foilIndex, ndelIndex));
-  for (int xs = 0; xs < 9; ++xs) {
+  for (int xs = 0; xs < XRELABEL_SPEC.nx; ++xs) {
     if (nCombinedXscol[xs] <= 0) continue;
     DrawDensityBoxes_xrelabel(hCombinedXscol[xs], baseColors[xs % baseColors.size()], true);
   }
@@ -1063,7 +1073,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
   double ytxtC = 0.92;
   latC.DrawLatex(0.12, ytxtC, "Final combination: components with the same xscol are added/overlaid together");
   ytxtC -= 0.035;
-  for (int xs = 0; xs < 9 && ytxtC > 0.12; ++xs) {
+  for (int xs = 0; xs < XRELABEL_SPEC.nx && ytxtC > 0.12; ++xs) {
     if (nCombinedXscol[xs] <= 0) continue;
     latC.SetTextColor(baseColors[xs % baseColors.size()]);
     latC.DrawLatex(0.12, ytxtC,
@@ -1074,7 +1084,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
   latC.SetTextColor(kBlack);
   c->SaveAs(outpdf);
 
-  for (int xs = 0; xs < 9; ++xs) {
+  for (int xs = 0; xs < XRELABEL_SPEC.nx; ++xs) {
     if (nCombinedXscol[xs] <= 0) continue;
     c->Clear();
     c->Divide(2,2);
@@ -1181,7 +1191,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
     if (b.hXpX) b.hXpX->Write();
     if (b.cut) b.cut->Write(Form("source_%s", b.oldName.Data()));
   }
-  for (int xs = 0; xs < 9; ++xs) {
+  for (int xs = 0; xs < XRELABEL_SPEC.nx; ++xs) {
     if (hCombinedXscol[xs]) hCombinedXscol[xs]->Write();
   }
   foutDiag.Close();
@@ -1304,6 +1314,7 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch(Int_t nrun=1544,
   XRelabelRunInfo info;
   TString metaFile = XRELABEL_DAT_DIR + "/list_of_optics_run.dat";
   if (!ReadOpticsRunInfo_xrelabel(nrun, info, metaFile.Data())) return;
+  if (!hallc::centeredSieveOnly(XRELABEL_SPEC,info.sieveFlag)) return;
 
   if (foilIndex < 0 || foilIndex >= info.numFoil) {
     cout << "ERROR: foilIndex out of range: " << foilIndex << endl;

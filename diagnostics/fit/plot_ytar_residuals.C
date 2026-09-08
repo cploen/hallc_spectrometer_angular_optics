@@ -1,3 +1,5 @@
+// HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
+#include "../../spectrometer_root.h"
 #include <TSystem.h>
 #include <TString.h>
 #include "TFile.h"
@@ -34,6 +36,9 @@ void plot_ytar_residuals(
   const char *outputDir,
   const char *tag
 ){
+  hallc::Spectrometer spec;
+  if (!hallc::loadSpectrometer(inputTreeFile, spec)) return;
+
 gStyle->SetPalette(1,0);
  gStyle->SetOptStat(1000011);
  gStyle->SetOptFit(11);
@@ -54,69 +59,22 @@ gStyle->SetPalette(1,0);
  //  
  TString  tnrun=Form("%d",nrun);
   //  Get info for that optics run
- TString OpticsFile = opticsMetadataFile;
-   ifstream file_optics(OpticsFile.Data());
- TString opticsline;
-  TString OpticsID="";
-  Int_t RunNum=0.;
-  Double_t CentAngle=0.;
-  Int_t SieveFlag=1;
-  Double_t ymis =0.0;
-  Int_t NumFoil=0;
-  TString temp;
- //
-  vector <Double_t> ztar_foil;
-  Int_t ndelcut;
-  vector<Double_t > delcut;
-  if (file_optics.is_open()) {
-    //
-    cout << " Open file = " << OpticsFile << endl;
-    while (RunNum != nrun && file_optics.good()) {
-      temp.ReadToDelim(file_optics,',');
-      cout << temp << endl;
-      if (temp.Atoi() == nrun) {
-	RunNum = temp.Atoi();
-      } else {
-	temp.ReadLine(file_optics);
-      }
-    }
-    if (RunNum==nrun) {
-      temp.ReadToDelim(file_optics,',');
-      OpticsID = temp;
-      temp.ReadToDelim(file_optics,',');
-      CentAngle = temp.Atof();
-      temp.ReadToDelim(file_optics,',');
-      NumFoil = temp.Atoi();
-      temp.ReadToDelim(file_optics,',');
-      SieveFlag = temp.Atoi();
-      temp.ReadToDelim(file_optics,',');
-      ndelcut = temp.Atoi();
-      temp.ReadToDelim(file_optics);
-      ymis = temp.Atof();
-      for (Int_t nf=0;nf<NumFoil-1;nf++) {
-        temp.ReadToDelim(file_optics,',');
-	ztar_foil.push_back(temp.Atof());
-      }
-        temp.ReadToDelim(file_optics);
-	ztar_foil.push_back(temp.Atof());
-      for (Int_t nd=0;nd<ndelcut;nd++) {
-        temp.ReadToDelim(file_optics,',');
-	delcut.push_back(temp.Atof());
-      }
-        temp.ReadToDelim(file_optics);
-	delcut.push_back(temp.Atof());
-    }
-  } else {
-    cout << "ERROR: cannot open optics metadata: " << OpticsFile << endl;
-    return;
-  }
-  if (RunNum != nrun) {
-    cout << "ERROR: run " << nrun << " not found in optics metadata: "
-         << OpticsFile << endl;
-    return;
-  }
-  cout << RunNum << " " << OpticsID << " " << CentAngle << " " << NumFoil << " " << SieveFlag << endl;
-  if (NumFoil==0) return;
+ // Separately approved existing-bug correction: ndelcut is the interval
+ // count here, while the metadata field counts boundaries. Read exactly the
+ // foil line and edge line so the next run cannot become a spurious edge.
+ hallc::RunMetadata metadata;
+ if (!hallc::loadRunMetadata(nrun,metadata,opticsMetadataFile)) return;
+ if (!hallc::centeredSieveOnly(spec,metadata.sieveFlag)) return;
+ const TString OpticsID=metadata.opticsId.c_str();
+ const Int_t RunNum=nrun, NumFoil=metadata.foils.size();
+ const Int_t SieveFlag=metadata.sieveFlag;
+ const Double_t CentAngle=metadata.angle;
+ const vector<Double_t> ztar_foil=metadata.foils;
+ const vector<Double_t> delcut=metadata.edges;
+ const Int_t ndelcut=delcut.size()-1;
+ cout << "Metadata: " << NumFoil << " foils; " << delcut.size()
+      << " delta boundaries; " << ndelcut << " intervals" << endl;
+
  //
    TString inputroot = inputTreeFile;
    TString outdir = outputDir;
@@ -166,10 +124,10 @@ gStyle->SetPalette(1,0);
  //
   vector <Double_t> ys_cent;
   vector <Double_t> xs_cent;
-  for (Int_t nys=0;nys<9;nys++) {
-    Double_t ypos=(nys-4)*0.6*2.54;
+  for (Int_t nys=0;nys<spec.ny;nys++) {
+    Double_t ypos=spec.ys(nys);
     ys_cent.push_back(ypos);
-    Double_t xpos=(nys-4)*2.54;
+    Double_t xpos=spec.xs(nys);
     xs_cent.push_back(xpos);
   }
  //
@@ -219,11 +177,11 @@ gStyle->SetPalette(1,0);
   hYDiff_ztar_cent[nf].resize(ndelcut);
   hYDiff_ztar_centerr[nf].resize(ndelcut);
    for (Int_t nd=0;nd<ndelcut;nd++) {
-      hYDiff[nf][nd].resize(9);
-      hYDiff_mean[nf][nd].resize(9);
-      hYDiff_sigma[nf][nd].resize(9);
-      hYDiff_cent[nf][nd].resize(9);
-      hYDiff_centerr[nf][nd].resize(9);
+      hYDiff[nf][nd].resize(spec.ny);
+      hYDiff_mean[nf][nd].resize(spec.ny);
+      hYDiff_sigma[nf][nd].resize(spec.ny);
+      hYDiff_cent[nf][nd].resize(spec.ny);
+      hYDiff_centerr[nf][nd].resize(spec.ny);
    }}
    //
    /*  
@@ -238,7 +196,7 @@ gStyle->SetPalette(1,0);
         HList.Add(hYDiff_YpTrue[nf][nd]);
       hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],DelCent),50,-5.,5.);
         HList.Add(hYDiff_ztar[nf][nd]);
-    for (Int_t ns=0;ns<9;ns++) {
+    for (Int_t ns=0;ns<spec.ny;ns++) {
       hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-5.,5.);
         HList.Add(hYDiff[nf][nd][ns]);
 */
@@ -253,7 +211,7 @@ gStyle->SetPalette(1,0);
         HList.Add(hYDiff_YpTrue[nf][nd]);
       hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],DelCent),100,-1.,1.);
         HList.Add(hYDiff_ztar[nf][nd]);
-    for (Int_t ns=0;ns<9;ns++) {
+    for (Int_t ns=0;ns<spec.ny;ns++) {
       hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-1.,1.);
         HList.Add(hYDiff[nf][nd][ns]);
 
@@ -273,7 +231,7 @@ Long64_t nentries = FitTree->GetEntries();
 	hZtar[nf]->Fill(ztar);
 	   hYDiff_YpTrue[nf][nd]->Fill(yptarT,(ytar-ytarT-.035));
             hYDiff_ztar[nf][nd]->Fill((ytar-ytarT+.035));
-           for (Int_t ns=0;ns<9;ns++) {
+           for (Int_t ns=0;ns<spec.ny;ns++) {
 	     if ( abs(ysieveT-ys_cent[ns])<.5) hYDiff[nf][nd][ns]->Fill((ytar-ytarT));
 	   }
 	 }
@@ -321,7 +279,7 @@ Long64_t nentries = FitTree->GetEntries();
 	  mgrdelta->Add(gYDiff_ztar_delta[nf]);
       legdelta->AddEntry(gYDiff_ztar_delta[nf],Form("Ztar = %3.1f",ztar_foil[nf]),"p");
 	    }
-	mgrdelta->SetTitle(Form("HMS Angle = %4.2f; Delta ; Ytar -Y_true (cm)",CentAngle));
+	mgrdelta->SetTitle(Form("Spectrometer Angle = %4.2f; Delta ; Ytar -Y_true (cm)",CentAngle));
 	mgrdelta->SetMinimum(-2);
 	mgrdelta->SetMaximum(+2);
 	mgrdelta->Draw("AP");
@@ -336,7 +294,7 @@ Long64_t nentries = FitTree->GetEntries();
 	for  (Int_t nd=0;nd<ndelcut;nd++) {
 	  //	  candel[nf][nd] = new TCanvas(Form("Candel_%d_%d",nf,nd),Form("Candel_%d_%d",nf,nd), 700,700);
 	  //	  candel[nf][nd]->Divide(2,5);
-           for (Int_t ns=0;ns<9;ns++) {
+           for (Int_t ns=0;ns<spec.ny;ns++) {
 	     //   candel[nf][nd]->cd(ns+1);
 	     //  hYDiff[nf][nd][ns]->Draw();
 	     hYDiff_mean[nf][nd][ns]= hYDiff[nf][nd][ns]->GetMean()-Y_offset;
@@ -344,7 +302,7 @@ Long64_t nentries = FitTree->GetEntries();
 	     hYDiff_cent[nf][nd][ns]= ys_cent[ns];
 	     hYDiff_centerr[nf][nd][ns]= 0.0001;
 	   }
-	   gYDiff_YpTrue[nf][nd] = new TGraphErrors(9,&hYDiff_cent[nf][nd][0],&hYDiff_mean[nf][nd][0],&hYDiff_centerr[nf][nd][0],&hYDiff_sigma[nf][nd][0]);
+	   gYDiff_YpTrue[nf][nd] = new TGraphErrors(spec.ny,&hYDiff_cent[nf][nd][0],&hYDiff_mean[nf][nd][0],&hYDiff_centerr[nf][nd][0],&hYDiff_sigma[nf][nd][0]);
 	   colind++;
 	   if (colind==5) colind++;
 	   if (colind==8) colind=1;
@@ -368,7 +326,7 @@ Long64_t nentries = FitTree->GetEntries();
       leg[nf]->AddEntry(gYDiff_YpTrue[nf][nd],Form("Delta = %3.1f",DelCent),"p");
 	    }
 	candel[nf]->cd(1);
-	mgr[nf]->SetTitle(Form("Ztar = %4.1f HMS Angle = %4.2f; Y_sieve (cm); Ytar -Y_true (cm)",ztar_foil[nf],CentAngle));
+	mgr[nf]->SetTitle(Form("Ztar = %4.1f Spectrometer Angle = %4.2f; Y_sieve (cm); Ytar -Y_true (cm)",ztar_foil[nf],CentAngle));
 	mgr[nf]->SetMinimum(-5);
 	mgr[nf]->SetMaximum(+5);
 	mgr[nf]->Draw("AP");
