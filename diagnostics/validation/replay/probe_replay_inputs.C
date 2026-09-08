@@ -84,9 +84,15 @@ int probe_replay_inputs(TString campaign, TString inputRoot, Long64_t maxEvents=
   for (const auto* suffix : {"gtr.x", "gtr.y", "gtr.th", "gtr.ph",
                             "dc.x_fp", "dc.xp_fp", "dc.y_fp", "dc.yp_fp",
                             "react.x", "react.y", "react.z",
-                            "extcor.xsieve", "extcor.ysieve",
-                            "rb.raster.fr_xbpm_tar", "rb.raster.fr_ybpm_tar"})
+                            "extcor.xsieve", "extcor.ysieve"})
     add(spec.branch(suffix), true);
+  // Replay compatibility: supplied SHMS files provide react.x/y, as Holly uses.
+  // add("P.rb.raster.fr_xbpm_tar", true);
+  // add("P.rb.raster.fr_ybpm_tar", true);
+  if (!spec.shms()) {
+    add(spec.branch("rb.raster.fr_xbpm_tar"), true);
+    add(spec.branch("rb.raster.fr_ybpm_tar"), true);
+  }
   add(spec.branch("cal.etracknorm"), false);  // Different observable in older configs.
   if (spec.name == "SHMS") add(spec.branch("hgcer.npeSum"), false);
   const Long64_t requested = std::min(maxEvents, tree->GetEntries());

@@ -48,6 +48,9 @@ void fixture(const char* path, int mode) {
     if (!(mode==1 && prefix=="P."))
       values[prefix+(prefix=="P." ? "ngcer.npeSum" : "cer.npeSum")]=0;
   }
+  // Supplied replay schema: react branches present, P BPM absent.
+  values.erase("P.rb.raster.fr_xbpm_tar");
+  values.erase("P.rb.raster.fr_ybpm_tar");
   for (auto& item : values)
     tree.Branch(item.first.c_str(), &item.second, (item.first+"/D").c_str());
   double dp[] = {-12,-5,0,8,15,0};

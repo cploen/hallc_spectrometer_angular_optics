@@ -400,7 +400,9 @@ void make_fit_ntuple_from_gmm(
   Double_t yfp=0, ypfp=0, xfp=0, xpfp=0;
   Double_t ysieve=0, xsieve=0, xbpm_tar=0, ybpm_tar=0;
 
-  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve"), spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve")})) return;
+  // Existing HMS calculation still uses BPM; supplied SHMS replay uses react.x/y.
+  if (!spec.shms() && !hallc::requireBranches(T, {spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
   T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
   T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
   T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
@@ -417,8 +419,13 @@ void make_fit_ntuple_from_gmm(
   T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
   T->SetBranchAddress(spec.branch("extcor.ysieve").c_str(), &ysieve);
   T->SetBranchAddress(spec.branch("extcor.xsieve").c_str(), &xsieve);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
+  // Replay-dependent fields, absent in supplied SHMS files. Holly uses react.x/y above.
+  // T->SetBranchAddress("P.rb.raster.fr_xbpm_tar", &xbpm_tar);
+  // T->SetBranchAddress("P.rb.raster.fr_ybpm_tar", &ybpm_tar);
+  if (!spec.shms()) {
+    T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
+    T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
+  }
 
   TFile fout(outputroot.Data(), "RECREATE");
   TTree *otree = new TTree("TFit", "FitTree from GMM-cleaned yscol/xscol intersection");

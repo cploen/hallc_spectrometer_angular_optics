@@ -385,7 +385,9 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   Double_t ysieve=0, xsieve=0;
   Double_t xbpm_tar=0, ybpm_tar=0, frx=0, fry=0;
 
-  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve"), spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
+  if (!hallc::requireBranches(T, {spec.cherenkovBranch(), spec.branch("cal.etottracknorm"), spec.branch("gtr.y"), spec.branch("gtr.x"), spec.branch("react.x"), spec.branch("react.y"), spec.branch("react.z"), spec.branch("gtr.dp"), spec.branch("gtr.ph"), spec.branch("gtr.th"), spec.branch("dc.y_fp"), spec.branch("dc.yp_fp"), spec.branch("dc.x_fp"), spec.branch("dc.xp_fp"), spec.branch("extcor.ysieve"), spec.branch("extcor.xsieve")})) return;
+  // Existing HMS calculation still uses BPM; supplied SHMS replay uses react.x/y.
+  if (!spec.shms() && !hallc::requireBranches(T, {spec.branch("rb.raster.fr_xbpm_tar"), spec.branch("rb.raster.fr_ybpm_tar")})) return;
   T->SetBranchAddress(spec.cherenkovBranch().c_str(), &sumnpe);
   T->SetBranchAddress(spec.branch("cal.etottracknorm").c_str(), &etracknorm);
   T->SetBranchAddress(spec.branch("gtr.y").c_str(), &ytar);
@@ -402,10 +404,17 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   T->SetBranchAddress(spec.branch("dc.xp_fp").c_str(), &xpfp);
   T->SetBranchAddress(spec.branch("extcor.ysieve").c_str(), &ysieve);
   T->SetBranchAddress(spec.branch("extcor.xsieve").c_str(), &xsieve);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_xa").c_str(), &frx);
-  T->SetBranchAddress(spec.branch("rb.raster.fr_ya").c_str(), &fry);
+  // Replay-dependent fields, absent in supplied SHMS files. Holly uses react.x/y above.
+  // T->SetBranchAddress("P.rb.raster.fr_xbpm_tar", &xbpm_tar);
+  // T->SetBranchAddress("P.rb.raster.fr_ybpm_tar", &ybpm_tar);
+  if (!spec.shms()) {
+    T->SetBranchAddress(spec.branch("rb.raster.fr_xbpm_tar").c_str(), &xbpm_tar);
+    T->SetBranchAddress(spec.branch("rb.raster.fr_ybpm_tar").c_str(), &ybpm_tar);
+  }
+  if (T->GetBranch(spec.branch("rb.raster.fr_xa").c_str()))
+    T->SetBranchAddress(spec.branch("rb.raster.fr_xa").c_str(), &frx);
+  if (T->GetBranch(spec.branch("rb.raster.fr_ya").c_str()))
+    T->SetBranchAddress(spec.branch("rb.raster.fr_ya").c_str(), &fry);
 
   // ------------------------------------------------------------------
   // Output tree.
@@ -456,8 +465,11 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   out->Branch("reactx", &reactx, "reactx/D");
   out->Branch("reacty", &reacty, "reacty/D");
   out->Branch("reactz", &reactz, "reactz/D");
-  out->Branch("xbpm_tar", &xbpm_tar, "xbpm_tar/D");
-  out->Branch("ybpm_tar", &ybpm_tar, "ybpm_tar/D");
+  // Do not label unfilled SHMS placeholders as measured BPM positions.
+  if (!spec.shms()) {
+    out->Branch("xbpm_tar", &xbpm_tar, "xbpm_tar/D");
+    out->Branch("ybpm_tar", &ybpm_tar, "ybpm_tar/D");
+  }
   out->Branch("frx", &frx, "frx/D");
   out->Branch("fry", &fry, "fry/D");
 
@@ -598,4 +610,3 @@ void make_yscol_candidate_tree(Int_t nrun=1814,
   cout << "Wrote " << outputroot << endl;
   cout << "Wrote " << outputtsv << endl;
 }
-
