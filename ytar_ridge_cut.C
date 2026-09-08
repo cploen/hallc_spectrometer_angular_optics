@@ -1317,7 +1317,8 @@ void ytar_ridge_cut(Int_t nrun=1544,
     r.gCenterRaw->SetLineStyle(3);
 
     r.gLeft->Draw("AL");
-    r.gLeft->GetXaxis()->SetLimits(-10.0, 10.0);
+    // Display range only; spectrometer acceptance and cut support are unchanged.
+    r.gLeft->GetXaxis()->SetLimits(-10.0, 15.0);
     r.gLeft->GetYaxis()->SetRangeUser(-3.0, 3.0);
     r.gRight->Draw("L same");
     r.gCenter->Draw("L same");
