@@ -773,6 +773,85 @@ RidgeCutResult BuildCutForRidge(const vector<EventLite> &events,
   return result;
 }
 
+// Align piecewise-linear envelopes on the union of their delta knots.
+// Added knots interpolate diagnostics; nrow=-1 identifies a non-measured row.
+// Never extrapolate a foil beyond its own measured delta support.
+bool ProtectRidgeEnvelopes(vector<RidgeCutResult>& results, double gap=0.04)
+{
+  vector<double> knots;
+  for (const auto& r : results)
+    knots.insert(knots.end(), r.deltaCenters.begin(), r.deltaCenters.end());
+  sort(knots.begin(), knots.end());
+  knots.erase(unique(knots.begin(), knots.end()), knots.end());
+  for (auto& r : results) {
+    const auto original = r.deltaCenters;
+    if (original.size()<2) return false;
+    vector<double> grid;
+    for (double d : knots)
+      if (d>=original.front() && d<=original.back()) grid.push_back(d);
+    auto interpolate = [&](vector<double>& values) {
+      vector<double> next;
+      for (double d : grid) {
+        auto hi=lower_bound(original.begin(), original.end(), d);
+        size_t j=hi-original.begin();
+        if (*hi==d) next.push_back(values[j]);
+        else {
+          double f=(d-original[j-1])/(original[j]-original[j-1]);
+          next.push_back(values[j-1]+f*(values[j]-values[j-1]));
+        }
+      }
+      values.swap(next);
+    };
+    vector<int> counts;
+    for (double d : grid) {
+      auto it=lower_bound(original.begin(), original.end(), d);
+      counts.push_back(*it==d ? r.rowNVec[it-original.begin()] : -1);
+    }
+    for (auto* v : {&r.ridgeCenterRaw, &r.ridgeCenter, &r.peakValVec,
+                    &r.widthLeftRaw, &r.widthRightRaw, &r.widthLeftFinal,
+                    &r.widthRightFinal, &r.leftBoundary, &r.rightBoundary})
+      interpolate(*v);
+    r.rowNVec.swap(counts);
+    r.deltaCenters.swap(grid);
+  }
+  sort(results.begin(), results.end(), [](const RidgeCutResult& a, const RidgeCutResult& b) {
+    return a.peak.ytar < b.peak.ytar;
+  });
+  // Check every pair: an intervening foil can have shorter delta support.
+  for (size_t a=0; a<results.size(); ++a) {
+    for (size_t b=a+1; b<results.size(); ++b) {
+      auto& left=results[a]; auto& right=results[b];
+      size_t i=0,j=0;
+      while (i<left.deltaCenters.size() && j<right.deltaCenters.size()) {
+        if (left.deltaCenters[i]<right.deltaCenters[j]) { ++i; continue; }
+        if (right.deltaCenters[j]<left.deltaCenters[i]) { ++j; continue; }
+        if (right.ridgeCenter[j]-left.ridgeCenter[i]<gap) {
+          cerr << "ERROR: ridge centers cross or are too close at delta "
+               << left.deltaCenters[i] << "; inspect foil identity." << endl;
+          return false;
+        }
+        double mid=0.5*(left.ridgeCenter[i]+right.ridgeCenter[j]);
+        left.rightBoundary[i]=min(left.rightBoundary[i],mid-gap/2);
+        right.leftBoundary[j]=max(right.leftBoundary[j],mid+gap/2);
+        ++i; ++j;
+      }
+    }
+  }
+  for (auto& r : results) {
+    for (size_t i=0;i<r.deltaCenters.size();++i) {
+      if (r.leftBoundary[i]>=r.rightBoundary[i] ||
+          r.leftBoundary[i]>r.ridgeCenter[i] ||
+          r.rightBoundary[i]<r.ridgeCenter[i]) {
+        cerr << "ERROR: overlap protection would invert a foil envelope." << endl;
+        return false;
+      }
+      r.widthLeftFinal[i]=r.ridgeCenter[i]-r.leftBoundary[i];
+      r.widthRightFinal[i]=r.rightBoundary[i]-r.ridgeCenter[i];
+    }
+  }
+  return true;
+}
+
 void ytar_ridge_cut(Int_t nrun=1544,
                                              const char *tag="",
                                              const char *inputFileID="-1",
@@ -1019,6 +1098,55 @@ void ytar_ridge_cut(Int_t nrun=1544,
     return;
   }
 
+  // Finalize before any tables, plots, or ROOT objects are written.
+  if (!ProtectRidgeEnvelopes(results)) return;
+  // Rebuild TCutG objects after overlap protection.
+  for (auto &r : results) {
+    if (!r.cut) continue;
+    delete r.cut;
+    int npts = 2 * r.deltaCenters.size() + 1;
+    r.cut = new TCutG(Form("delta_vs_ytar_cut_foil%d", r.foilIndex), npts);
+    r.cut->SetTitle(Form("auto cut foil %d;ytar;delta", r.foilIndex));
+    int ip = 0;
+    for (size_t i = 0; i < r.deltaCenters.size(); i++) r.cut->SetPoint(ip++, r.leftBoundary[i], r.deltaCenters[i]);
+    for (int i = (int)r.deltaCenters.size() - 1; i >= 0; i--) r.cut->SetPoint(ip++, r.rightBoundary[i], r.deltaCenters[i]);
+    r.cut->SetPoint(ip++, r.leftBoundary[0], r.deltaCenters[0]);
+
+    int color = kBlue + r.foilIndex;
+    if (r.foilIndex == 0) color = kBlue;
+    if (r.foilIndex == 1) color = kGreen+2;
+    if (r.foilIndex == 2) color = kMagenta+2;
+    r.cut->SetLineColor(color);
+    r.cut->SetLineWidth(3);
+  }
+
+
+  // Refresh diagnostic graphs from the same final boundaries as the polygons.
+  for (auto& r : results) {
+    for (auto* g : {r.gLeft,r.gRight,r.gCenter,r.gCenterRaw,r.gWidthLeft,r.gWidthRight})
+      g->Set(0);
+    for (size_t i=0;i<r.deltaCenters.size();++i) {
+      double d=r.deltaCenters[i];
+      r.gLeft->SetPoint(i,d,r.leftBoundary[i]);
+      r.gRight->SetPoint(i,d,r.rightBoundary[i]);
+      r.gCenter->SetPoint(i,d,r.ridgeCenter[i]);
+      r.gCenterRaw->SetPoint(i,d,r.ridgeCenterRaw[i]);
+      r.gWidthLeft->SetPoint(i,d,r.widthLeftFinal[i]);
+      r.gWidthRight->SetPoint(i,d,r.widthRightFinal[i]);
+    }
+    r.nAuto=r.nHand=r.nBoth=0;
+    TCutG* expert=nullptr;
+    if (r.foilIndex>=0 && r.foilIndex<(int)expertCuts.size())
+      expert=expertCuts[r.foilIndex];
+    for (const auto& ev : events) {
+      bool inAuto=r.cut->IsInside(ev.ytar,ev.delta);
+      bool inHand=expert && expert->IsInside(ev.ytar,ev.delta);
+      if (inAuto) ++r.nAuto;
+      if (inHand) ++r.nHand;
+      if (inAuto && inHand) ++r.nBoth;
+    }
+  }
+
   // ----------------------------
   // CSV output
   // ----------------------------
@@ -1139,117 +1267,6 @@ void ytar_ridge_cut(Int_t nrun=1544,
 
   c->Print(outPdf);
   gPad->SetLogz(0);
-
-  // Prevent neighboring ridge cuts from overlapping after width padding/smoothing.
-  // Boundary convention: x-axis is ytar. Results are sorted by foilIndex/ytar.
-  const double minInterFoilGap = 0.04;
-  sort(results.begin(), results.end(), [](const RidgeCutResult &a, const RidgeCutResult &b) { return a.peak.ytar < b.peak.ytar; });
-
-  for (size_t ir = 0; ir + 1 < results.size(); ir++) {
-    RidgeCutResult &leftR = results[ir];
-    RidgeCutResult &rightR = results[ir+1];
-
-    size_t n = std::min(leftR.deltaCenters.size(), rightR.deltaCenters.size());
-    for (size_t i = 0; i < n; i++) {
-      double mid = 0.5 * (leftR.ridgeCenter[i] + rightR.ridgeCenter[i]);
-      double leftMax = mid - 0.5 * minInterFoilGap;
-      double rightMin = mid + 0.5 * minInterFoilGap;
-
-      if (leftR.rightBoundary[i] > leftMax) leftR.rightBoundary[i] = leftMax;
-      if (rightR.leftBoundary[i] < rightMin) rightR.leftBoundary[i] = rightMin;
-    }
-  }
-
-  // Rebuild TCutG objects after overlap protection.
-  for (auto &r : results) {
-    if (!r.cut) continue;
-    delete r.cut;
-    int npts = 2 * r.deltaCenters.size() + 1;
-    r.cut = new TCutG(Form("delta_vs_ytar_cut_foil%d", r.foilIndex), npts);
-    r.cut->SetTitle(Form("auto cut foil %d;ytar;delta", r.foilIndex));
-    int ip = 0;
-    for (size_t i = 0; i < r.deltaCenters.size(); i++) r.cut->SetPoint(ip++, r.leftBoundary[i], r.deltaCenters[i]);
-    for (int i = (int)r.deltaCenters.size() - 1; i >= 0; i--) r.cut->SetPoint(ip++, r.rightBoundary[i], r.deltaCenters[i]);
-    r.cut->SetPoint(ip++, r.leftBoundary[0], r.deltaCenters[0]);
-
-    int color = kBlue + r.foilIndex;
-    if (r.foilIndex == 0) color = kBlue;
-    if (r.foilIndex == 1) color = kGreen+2;
-    if (r.foilIndex == 2) color = kMagenta+2;
-    r.cut->SetLineColor(color);
-    r.cut->SetLineWidth(3);
-  }
-
-
-  // Recompute auto/hand/both counts after overlap protection, then rewrite TSV
-  // so the table reflects the final boundaries.
-  for (auto &r : results) {
-    r.nAuto = 0;
-    r.nHand = 0;
-    r.nBoth = 0;
-
-    TCutG *expert = nullptr;
-    if (r.foilIndex >= 0 && r.foilIndex < (int)expertCuts.size()) {
-      expert = expertCuts[r.foilIndex];
-    }
-
-    for (const auto &ev : events) {
-      bool inAuto = r.cut ? r.cut->IsInside(ev.ytar, ev.delta) : false;
-      bool inHand = expert ? expert->IsInside(ev.ytar, ev.delta) : false;
-
-      if (inAuto) r.nAuto++;
-      if (inHand) r.nHand++;
-      if (inAuto && inHand) r.nBoth++;
-    }
-  }
-
-  ofstream csvFinal(outCsv.Data());
-
-  csvFinal << "run,tag,inputFileID,foil_index,peak_ytar,peak_height,peak_frac_of_max,"
-           << "searchHalfWidth,delta_center,nrow,"
-           << "ridge_center_raw,peak_density,width_left_raw,width_right_raw,"
-           << "ridge_center_smooth,width_left_final,width_right_final,"
-           << "left_ytar,right_ytar,width_final,"
-           << "refWidthLeft,refWidthRight,maxWidthLeft,maxWidthRight,centralWidthRows,"
-           << "nAuto,nHand,nBoth\n";
-
-  for (auto &r : results) {
-    for (size_t i = 0; i < r.deltaCenters.size(); i++) {
-      csvFinal << nrun << ","
-               << outTag << ","
-               << inputID << ","
-               << r.foilIndex << ","
-               << r.peak.ytar << ","
-               << r.peak.height << ","
-               << r.peak.fracOfMax << ","
-               << r.peak.searchHalfWidth << ","
-               << r.deltaCenters[i] << ","
-               << r.rowNVec[i] << ","
-               << r.ridgeCenterRaw[i] << ","
-               << r.peakValVec[i] << ","
-               << r.widthLeftRaw[i] << ","
-               << r.widthRightRaw[i] << ","
-               << r.ridgeCenter[i] << ","
-               << r.widthLeftFinal[i] << ","
-               << r.widthRightFinal[i] << ","
-               << r.leftBoundary[i] << ","
-               << r.rightBoundary[i] << ","
-               << r.rightBoundary[i] - r.leftBoundary[i] << ","
-               << r.calib.refLeft << ","
-               << r.calib.refRight << ","
-               << r.calib.maxLeft << ","
-               << r.calib.maxRight << ","
-               << r.calib.nUsed << ","
-               << r.nAuto << ","
-               << r.nHand << ","
-               << r.nBoth
-               << "\n";
-    }
-  }
-
-  csvFinal.close();
-
-  cout << "Rewrote final TSV after overlap protection: " << outCsv << endl;
 
   // One detail page per foil.
   for (auto &r : results) {
