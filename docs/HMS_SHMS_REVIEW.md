@@ -1,6 +1,6 @@
 # HMS/SHMS campaign switch: reference review and implementation record
 
-Review date: 2026-09-08. **Status: centered-sieve implementation and initial Gema campaign inputs; software validation recorded below. Real SHMS replay validation remains pending.**
+Review date: 2026-09-08. **Status: centered-sieve implementation and initial SHMS campaign inputs; software validation recorded below. Real SHMS replay validation remains pending.**
 
 ## Checkout and inherited matrix-reader fix
 
@@ -159,14 +159,14 @@ run. SHMS ridge IDs account for the reversed ytar ordering at a positive
 spectrometer angle, without changing those foil coordinates.
 
 Historical campaign outputs, matrices and cuts are untouched. New
-`SHMS_Gema_3283_3286` inputs and four appended optics metadata entries are
-documented in that campaign's [README](../SHMS_Gema_3283_3286/README.md). Copied source
+`SHMS_8p5695GeV` inputs and four appended optics metadata entries are
+documented in that campaign's [README](../SHMS_8p5695GeV/README.md). Copied source
 snapshots in `assistant/` are identified as historical; executable files and
 this change record take precedence. The older Mac checkout's untracked
 `angular_term_column_correlations.py` is not in the new checkout's GitHub
 baseline and has not been silently imported.
 
-## Gema replay check and remaining run conditions
+## SHMS replay check and remaining run conditions
 
 The four user-supplied paths are under
 `/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod/`:
@@ -178,8 +178,8 @@ deut_replay_prod_3285_-1.root
 deut_replay_prod_3286_-1.root
 ```
 
-Gema's message, relayed by the user, describes 2017 sieve data on a +/-10 cm
-three-foil target and says she will replay it and announce availability.
+The supplied run description identifies 2017 sieve data on the −10, 0, +10 cm
+three-foil target.
 The user clarified that the target positions are −10, 0, +10 cm and that
 this target is available for either spectrometer. The user subsequently
 authorized assuming these coordinates for all four runs; initial processing
@@ -231,13 +231,13 @@ Once the new probe files have been transferred with their directory layout,
 run from the repository on ifarm:
 
 ```sh
-bash diagnostics/run_gema_replay_probe.sh > gema_replay_probe.txt 2>&1
+bash diagnostics/run_replay_probe.sh > replay_probe.txt 2>&1
 ```
 
 The report includes both schema status and threshold counts. A successful
 schema check is not successful optics validation. The first 50,000 events can
 include startup conditions; this is a bounded smoke test, not a full-run
-efficiency estimate. The optional `GEMA_REPLAY_DIR` and `PROBE_MAX_EVENTS`
+efficiency estimate. The optional `REPLAY_INPUT_DIR` and `PROBE_MAX_EVENTS`
 environment variables are for changed locations/sample sizes and local tests;
 the default command requires no extra input.
 
@@ -262,14 +262,14 @@ the default command requires no extra input.
   dry runs verified automatic routing and 24 commands (three foils × eight
   intervals) for the same target on each arm.
 
-The four new Gema campaign rows were also checked against both the Python
+The four new SHMS campaign rows were also checked against both the Python
 and C++ metadata readers: matching run IDs, +8.915° angle, −10/0/+10 cm
 foils, centered flag, delta boundaries and exact replay paths. All pre-existing
 shared metadata bytes remain unchanged.
 
 These are software checks using synthetic events. They do not establish
 SHMS optics accuracy, PID purity, peak/band choices, or replay conventions.
-No real Gema replay was read and no usable SHMS calibration matrix was made.
+No real SHMS replay was read and no usable SHMS calibration matrix was made.
 The one-term matrices in the integration test are temporary software fixtures.
 The automated ridge/angle/relabel stages have been compiled, but their physics
 behavior still needs the minimal real-replay pass and review with Holly/Mark.

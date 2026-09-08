@@ -6,7 +6,7 @@ This is a software-tested implementation on the `hms-shms-campaign-switch` revie
 
 ## Selection and independent run properties
 
-The existing campaign argument is sufficient: a whole path component named `HMS_…` selects HMS; `SHMS_…` selects SHMS. Paths to files within that campaign also work. Unknown or conflicting names fail explicitly. The code does not infer the spectrometer from the target, replay filename, or available branches. There is no added spectrometer option or prompt.
+Campaign folders follow `<spectrometer>_<momentum>GeV`, using `p` for the decimal point, e.g. `HMS_6p117GeV` or `SHMS_8p5695GeV`. The existing campaign argument is sufficient: a whole path component named `HMS_…` selects HMS; `SHMS_…` selects SHMS. Paths to files within that campaign also work. Unknown or conflicting names fail explicitly. The code does not infer the spectrometer from the target, replay filename, or available branches. There is no added spectrometer option or prompt.
 
 **The foil target is independent of the spectrometer.** The −10, 0, +10 cm three-foil target is available for both arms; NPS simply used other targets. No arm profile contains foil positions or a foil count. These come from each run's existing `DATfiles/list_of_optics_run.dat` entry. Momentum slice boundaries are also run metadata; the nominal acceptance limits belong to the arm profile. The campaign's existing rungroup TSV supplies the replay path and run grouping.
 
@@ -24,9 +24,9 @@ Centered SHMS sieve is the user-approved assumption. Geometry stages reject an e
 | Mispointing | Existing angle-dependent equations | xMP = −0.126 cm, yMP = −0.05 cm |
 | HB correction to truth projection | None | `−0.0398 δ + 0.000398 δ² cm` |
 
-δ is expressed in percentage points. The SHMS survey constants are fixed defaults, not something requested for each campaign. Hardware acceptance and narrower analysis slices are distinct. Existing PID thresholds are retained (ridge Cherenkov >2; most subsequent stages Cherenkov >6 and calorimeter >0.65); the switch does not claim those cuts are validated for Gema's data.
+δ is expressed in percentage points. The SHMS survey constants are fixed defaults, not something requested for each campaign. Hardware acceptance and narrower analysis slices are distinct. Existing PID thresholds are retained (ridge Cherenkov >2; most subsequent stages Cherenkov >6 and calorimeter >0.65); the switch does not claim those cuts are validated for the replay data.
 
-The SHMS truth geometry changes the foil-z sign, beam/vertex treatment, offsets and HB projection as well as the sieve distance. See [the reference review and equations](HMS_SHMS_REVIEW.md#shms-truth-equations-to-review-with-holly-and-mark). `P.extcor.ysieve` is read without adding another HB correction. Its actual replay convention still needs checking with Gema's configuration.
+The SHMS truth geometry changes the foil-z sign, beam/vertex treatment, offsets and HB projection as well as the sieve distance. See [the reference review and equations](HMS_SHMS_REVIEW.md#shms-truth-equations-to-review-with-holly-and-mark). `P.extcor.ysieve` is read without adding another HB correction. Its actual replay convention still needs checking with the replay configuration.
 
 ## File-by-file changes
 
@@ -34,11 +34,11 @@ Each changed executable also has a local comment or import identifying its use o
 
 | File(s) | Change |
 |---|---|
-| `.gitignore` | Exposes only the new Gema campaign input metadata and README; generated outputs remain ignored. |
+| `.gitignore` | Exposes only the new SHMS campaign input metadata and README; generated outputs remain ignored. |
 | `DATfiles/list_of_optics_run.dat` | Appends runs 3283–3286 with reported +8.915° angle and approved −10/0/+10 cm, centered-sieve assumptions. Existing rows remain unchanged. |
-| `SHMS_Gema_3283_3286/README.md` | Records reported settings, approved assumptions, file-listing evidence, initial delta bins and pending seed/real-data checks. |
-| `SHMS_Gema_3283_3286/config/rungroups_gema_inputs.tsv` | Four initial single-run groups using the confirmed replay paths. |
-| `SHMS_Gema_3283_3286/config/ztar_runlist.txt` | Three-foil run list with exact replay paths for standalone ztar checks. |
+| `SHMS_8p5695GeV/README.md` | Records reported settings, approved assumptions, file-listing evidence, initial delta bins and pending seed/real-data checks. |
+| `SHMS_8p5695GeV/config/rungroups_8p5695_inputs.tsv` | Four initial single-run groups using the confirmed replay paths. |
+| `SHMS_8p5695GeV/config/ztar_runlist.txt` | Three-foil run list with exact replay paths for standalone ztar checks. |
 | `spectrometer_profiles.def` | Single constants table used by C++ and Python; no foil target settings. |
 | `spectrometer_config.h` | Campaign resolver, centered hole coordinates, acceptance, survey/mispointing and truth equations; run metadata reader independent of arm. |
 | `spectrometer_config.py` | Same profile table, campaign routing, run metadata, interval/tag matching and GMM defaults. CLI is used internally by shell runners. |
@@ -77,7 +77,7 @@ Each changed executable also has a local comment or import identifying its use o
 | `diagnostics/conditioning/angular_per_foil_residual_ladder.py` | Same profile propagation; foil residual comparisons stay run-specific. |
 | `diagnostics/conditioning/angular_solver_comparison.py` | Selected physical Y grid plus the SHMS beam recovery/inverse-vertex identity. Numerical comparison methods retained. |
 | `diagnostics/validation/replay/probe_replay_inputs.C` | Read-only schema/finite-sample/cut-count probe for the campaign-selected arm. |
-| `diagnostics/run_gema_replay_probe.sh` | Bounded probe of the four provided replay paths; default campaign selects SHMS, with no additional input needed. |
+| `diagnostics/run_replay_probe.sh` | Bounded probe of the four provided replay paths; default campaign selects SHMS, with no additional input needed. |
 | `tests/check_workflow_syntax.py` | Reproducible fresh-interpreter ROOT loads plus Python/shell syntax checks. |
 | `tests/test_replay_probe.py` | Probe routing, cut counts, invalid/missing/empty/nonfinite inputs, wrapper and read-only regression. |
 | `tests/test_spectrometer_switch.py` | Profile/geometry, both-arm triple-target, mask→TFit, baseline HMS comparison, toy SVD, shifted rejection and residual interval tests. |
@@ -101,7 +101,7 @@ The inherited matrix-reader guard is a different issue: it checks nine successfu
 
 Continue using the existing commands with an `HMS_…` or `SHMS_…` campaign name. Existing explicit replay paths are required for SHMS; the legacy NPS filename fallback is not used to guess a SHMS replay. Supply an appropriate seed matrix in the campaign's existing configuration, as before.
 
-A metadata entry uses the existing format (this is a synthetic format example, not a Gema run assignment):
+A metadata entry uses the existing format (this is a synthetic format example, not a SHMS run assignment):
 
 ```text
 99001,example,12.5,3,1,9,0.0
@@ -111,7 +111,7 @@ A metadata entry uses the existing format (this is a synthetic format example, n
 
 That target line works identically in either arm's campaign. The final header field is legacy metadata; it does not replace the shared survey/mispointing profile.
 
-For standalone ztar validation, place the run list and result TSV inside the named campaign. The run list retains its existing first three fields (`run opticsID comma-separated-foils`) and may append the exact replay pathname as a fourth field. SHMS needs that pathname. Do not populate actual Gema run angles, seed settings or grouping from the synthetic examples.
+For standalone ztar validation, place the run list and result TSV inside the named campaign. The run list retains its existing first three fields (`run opticsID comma-separated-foils`) and may append the exact replay pathname as a fourth field. SHMS needs that pathname. Do not populate actual SHMS run angles, seed settings or grouping from the synthetic examples.
 
 Local checks (ROOT/PyROOT, NumPy and the usual plotting/GMM dependencies required):
 
@@ -127,9 +127,9 @@ All listed checks passed locally. All 17 ROOT macros loaded in fresh interpreter
 Once the files are installed on ifarm, the bounded real-data check is:
 
 ```sh
-bash diagnostics/run_gema_replay_probe.sh > gema_replay_probe.txt 2>&1
+bash diagnostics/run_replay_probe.sh > replay_probe.txt 2>&1
 ```
 
-The user has approved assuming −10, 0, +10 cm for all four Gema runs, and the
+The user has approved assuming −10, 0, +10 cm for all four SHMS runs, and the
 initial campaign is now included. Their existence and common reported
-kinematics are established from user terminal output. The Mac has no direct ifarm access. Real-data checks of branches, conventions, PID, ridge/band selection and physics residuals remain outstanding. Check Gema's replay matrix/offset configuration and review the documented SHMS geometry with Holly and Mark before relying on fitted optics. Shifted-sieve support remains a later change.
+kinematics are established from user terminal output. The Mac has no direct ifarm access. Real-data checks of branches, conventions, PID, ridge/band selection and physics residuals remain outstanding. Check the replay matrix/offset configuration and review the documented SHMS geometry with Holly and Mark before relying on fitted optics. Shifted-sieve support remains a later change.

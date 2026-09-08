@@ -404,8 +404,8 @@ RUN: 666707, p=-6.667 GeV/c, Sieve, Mag ON, HMS_Angle = 12.495, Carbon +/- 8cm, 
 -8.0,8.0
 -10,-8.,-5.,0.,5.,10.
 
-# Gema 2017 SHMS sample: report settings supplied by user.
-# Foils -10,0,+10 cm from Gema, assumed for all four runs by user instruction.
+# 2017 SHMS sample: report settings supplied by user.
+# Foils -10,0,+10 cm from the supplied target description, assumed for all four runs by user instruction.
 # Centered sieve assumed; eight delta intervals are initial analysis bins.
 # Legacy ymis field below does not override the shared SHMS survey profile.
 3283,rg01_theta8p915_foilpm10z0_run3283,8.915,3,1,9,0.0

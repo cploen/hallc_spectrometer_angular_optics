@@ -3,12 +3,12 @@
 # The optional campaign name selects H/P branches; no spectrometer flag.
 set -uo pipefail
 if [[ $# -gt 1 ]]; then
-  echo "Usage: bash diagnostics/run_gema_replay_probe.sh [CAMPAIGN]" >&2
+  echo "Usage: bash diagnostics/run_replay_probe.sh [CAMPAIGN]" >&2
   exit 2
 fi
 REPO_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd) || exit 2
-CAMPAIGN=${1:-SHMS_Gema_3283_3286}
-REPLAY_DIR=${GEMA_REPLAY_DIR:-/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod}
+CAMPAIGN=${1:-SHMS_8p5695GeV}
+REPLAY_DIR=${REPLAY_INPUT_DIR:-/volatile/hallc/c-deuteron/gvill/ROOTfiles/prod}
 PROBE_MAX_EVENTS=${PROBE_MAX_EVENTS:-50000}
 if [[ ! "$PROBE_MAX_EVENTS" =~ ^[1-9][0-9]*$ ]]; then
   echo "ERROR: PROBE_MAX_EVENTS must be a positive integer" >&2

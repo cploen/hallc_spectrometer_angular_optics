@@ -44,11 +44,11 @@ HMS_6p667GeV/08_preliminary_conditioning/deck_build/
 HMS_6p667GeV/08_preliminary_conditioning/*.inspect.ndjson
 HMS_6p667GeV/08_preliminary_conditioning/~$*.pptx
 
-# Gema campaign: retain only reviewed input metadata and notes, never outputs.
-!SHMS_Gema_3283_3286/
-SHMS_Gema_3283_3286/*
-!SHMS_Gema_3283_3286/README.md
-!SHMS_Gema_3283_3286/config/
-SHMS_Gema_3283_3286/config/*
-!SHMS_Gema_3283_3286/config/rungroups_gema_inputs.tsv
-!SHMS_Gema_3283_3286/config/ztar_runlist.txt
+# SHMS campaign: retain only reviewed input metadata and notes, never outputs.
+!SHMS_8p5695GeV/
+SHMS_8p5695GeV/*
+!SHMS_8p5695GeV/README.md
+!SHMS_8p5695GeV/config/
+SHMS_8p5695GeV/config/*
+!SHMS_8p5695GeV/config/rungroups_8p5695_inputs.tsv
+!SHMS_8p5695GeV/config/ztar_runlist.txt

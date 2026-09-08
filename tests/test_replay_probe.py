@@ -1,4 +1,4 @@
-"""Synthetic ROOT checks only; these do not validate Gema's data or optics."""
+"""Synthetic ROOT checks only; these do not validate the replay data or optics."""
 import hashlib
 import json
 import os
@@ -71,7 +71,7 @@ void fixture(const char* path, int mode) {
         result = root(*expressions)
         assert result.returncode == 0, result.stdout + result.stderr
         checksums = [hashlib.sha256(path.read_bytes()).hexdigest() for path in cases]
-        result = probe("/work/SHMS_Gema_3283_3286/06a_fit_ntuple/root/", cases[0])
+        result = probe("/work/SHMS_8p5695GeV/06a_fit_ntuple/root/", cases[0])
         assert result.returncode == 0, result.stdout + result.stderr
         expected = {"ridge_npe>2_-10<dp<10": 4,
                     "npe>6_cal>0.65_no_dp_window": 5,
@@ -100,8 +100,8 @@ void fixture(const char* path, int mode) {
         replay_dir.mkdir()
         for run in (3283, 3284, 3285, 3286):
             shutil.copy2(cases[0], replay_dir / f"deut_replay_prod_{run}_-1.root")
-        env = dict(os.environ, GEMA_REPLAY_DIR=str(replay_dir), PROBE_MAX_EVENTS="6")
-        result = subprocess.run(["bash", str(REPO / "diagnostics/run_gema_replay_probe.sh")],
+        env = dict(os.environ, REPLAY_INPUT_DIR=str(replay_dir), PROBE_MAX_EVENTS="6")
+        result = subprocess.run(["bash", str(REPO / "diagnostics/run_replay_probe.sh")],
                                 env=env, text=True, capture_output=True, timeout=120)
         assert result.returncode == 0, result.stdout + result.stderr
         assert result.stdout.count("STATUS\tSCHEMA_SAMPLE_OK") == 4
