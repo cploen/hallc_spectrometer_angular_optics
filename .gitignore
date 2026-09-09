@@ -60,3 +60,11 @@ HMS_6p667GeV/05c_core_sample/*
 HMS_6p667GeV/05c_core_sample/core/*
 !HMS_6p667GeV/05c_core_sample/core/plots/
 !HMS_6p667GeV/05c_core_sample/core/plots/*.png
+
+# TEMPORARY: additional core-sample diagnostics for GitHub/Astra
+!HMS_6p667GeV/05c_core_sample/core/config.json
+!HMS_6p667GeV/05c_core_sample/core/manifest.json
+!HMS_6p667GeV/05c_core_sample/core/tsv/
+HMS_6p667GeV/05c_core_sample/core/tsv/*
+!HMS_6p667GeV/05c_core_sample/core/tsv/regions.tsv
+!HMS_6p667GeV/05c_core_sample/core/tsv/counts.tsv
