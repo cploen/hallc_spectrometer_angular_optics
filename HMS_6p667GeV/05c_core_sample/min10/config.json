@@ -1,0 +1,14 @@
+{
+  "seed": 667,
+  "holdout": 0.2,
+  "core": 0.5,
+  "smooth": 0.12,
+  "min_events": 10,
+  "peak_ratio": 2.0,
+  "max_shift": 0.15,
+  "fit_cap": 400,
+  "fit_max": 200000,
+  "fit_fraction": 0.8,
+  "spacing": null,
+  "pools": {}
+}

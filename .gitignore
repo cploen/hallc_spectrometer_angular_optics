@@ -73,3 +73,29 @@ HMS_6p667GeV/05c_core_sample/core/*
 HMS_6p667GeV/05c_core_sample/core/tsv/*
 !HMS_6p667GeV/05c_core_sample/core/tsv/regions.tsv
 !HMS_6p667GeV/05c_core_sample/core/tsv/counts.tsv
+
+# TEMPORARY: expose min10 core-sample diagnostics to GitHub/Astra
+!HMS_6p667GeV/05c_core_sample/min10/
+HMS_6p667GeV/05c_core_sample/min10/*
+!HMS_6p667GeV/05c_core_sample/min10/plots/
+!HMS_6p667GeV/05c_core_sample/min10/plots/*.png
+!HMS_6p667GeV/05c_core_sample/min10/config.json
+!HMS_6p667GeV/05c_core_sample/min10/manifest.json
+!HMS_6p667GeV/05c_core_sample/min10/tsv/
+HMS_6p667GeV/05c_core_sample/min10/tsv/*
+!HMS_6p667GeV/05c_core_sample/min10/tsv/counts.tsv
+!HMS_6p667GeV/05c_core_sample/min10/tsv/regions.tsv
+!HMS_6p667GeV/05c_core_sample/min10/tsv/allocation.tsv
+
+# TEMPORARY: expose min10 core-sample diagnostics to GitHub/Astra
+!HMS_6p667GeV/05c_core_sample/min10/
+HMS_6p667GeV/05c_core_sample/min10/*
+!HMS_6p667GeV/05c_core_sample/min10/plots/
+!HMS_6p667GeV/05c_core_sample/min10/plots/*.png
+!HMS_6p667GeV/05c_core_sample/min10/config.json
+!HMS_6p667GeV/05c_core_sample/min10/manifest.json
+!HMS_6p667GeV/05c_core_sample/min10/tsv/
+HMS_6p667GeV/05c_core_sample/min10/tsv/*
+!HMS_6p667GeV/05c_core_sample/min10/tsv/counts.tsv
+!HMS_6p667GeV/05c_core_sample/min10/tsv/regions.tsv
+!HMS_6p667GeV/05c_core_sample/min10/tsv/allocation.tsv
