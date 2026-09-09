@@ -130,92 +130,122 @@ def quantile(values: list[float], q: float) -> float | None:
     return values[index]
 
 
-def compute_split(
+def compute_splits(
     rootfile: Path,
     ytar_cut_file: Path,
-    foil: int,
-    delta_min: float,
-    delta_max: float,
+    num_foils: int,
+    edges: list[float],
     spec,
     verbose: bool = False,
-) -> tuple[float | None, int]:
+) -> dict[tuple[int, int], tuple[float | None, int]]:
+    """Collect all foil/slice samples in one pass, preserving the split definition."""
     started = time.monotonic()
     if verbose:
-        print(f"SPLIT START foil={foil} delta=[{delta_min},{delta_max}) "
-              f"opening {rootfile}", flush=True)
+        print(f"SPLIT START all foils/slices opening {rootfile}", flush=True)
     input_file = ROOT.TFile.Open(str(rootfile), "READ")
-
     if not input_file or input_file.IsZombie():
         raise RuntimeError(f"cannot open {rootfile}")
 
-    tree = input_file.Get("T") or input_file.Get("Tout")
+    cut_file = None
+    try:
+        tree = input_file.Get("T") or input_file.Get("Tout")
+        if not tree:
+            raise RuntimeError(f"cannot find T or Tout in {rootfile}")
 
-    if not tree:
-        raise RuntimeError(f"cannot find T or Tout in {rootfile}")
+        cut_file = ROOT.TFile.Open(str(ytar_cut_file), "READ")
+        if not cut_file or cut_file.IsZombie():
+            raise RuntimeError(f"cannot open {ytar_cut_file}")
 
-    cut_file = ROOT.TFile.Open(str(ytar_cut_file), "READ")
+        cuts = []
+        for foil in range(num_foils):
+            name = f"delta_vs_ytar_cut_foil{foil}"
+            cut = cut_file.Get(name)
+            if not cut:
+                raise RuntimeError(f"cannot find {name} in {ytar_cut_file}")
+            cuts.append(cut)
 
-    if not cut_file or cut_file.IsZombie():
-        raise RuntimeError(f"cannot open {ytar_cut_file}")
-
-    ytar_cut = cut_file.Get(f"delta_vs_ytar_cut_foil{foil}")
-
-    if not ytar_cut:
-        raise RuntimeError(
-            f"cannot find delta_vs_ytar_cut_foil{foil} "
-            f"in {ytar_cut_file}"
+        branches = (
+            spec.cherenkov_branch,
+            spec.branch("cal.etottracknorm"),
+            spec.branch("gtr.dp"),
+            spec.branch("gtr.y"),
+            spec.branch("dc.xp_fp"),
         )
+        tree.SetBranchStatus("*", 0)
+        for name in branches:
+            if not tree.GetBranch(name):
+                raise RuntimeError(f"missing required branch {name} in {rootfile}")
+            tree.SetBranchStatus(name, 1)
 
-    values: list[float] = []
-
-    total = tree.GetEntries()
-    last_report = time.monotonic()
-    if verbose:
-        print(f"SPLIT READ total={total}", flush=True)
-    for entry in range(total):
-        if verbose and time.monotonic() - last_report >= 5.0:
-            elapsed = time.monotonic() - started
-            print(f"SPLIT PROGRESS foil={foil} delta=[{delta_min},{delta_max}) "
-                  f"read={entry}/{total} selected={len(values)} "
-                  f"elapsed={elapsed:.1f}s rate={entry / elapsed:.0f} events/s",
+        intervals = list(zip(edges[:-1], edges[1:]))
+        samples = {
+            (foil, ndel): []
+            for foil in range(num_foils)
+            for ndel in range(len(intervals))
+        }
+        total = tree.GetEntries()
+        selected = 0
+        last_report = time.monotonic()
+        if verbose:
+            print(f"SPLIT READ total={total} foils={num_foils} "
+                  f"slices={len(intervals)} branches={len(branches)} passes=1",
                   flush=True)
-            last_report = time.monotonic()
-        tree.GetEntry(entry)
+        for entry in range(total):
+            if verbose and time.monotonic() - last_report >= 5.0:
+                elapsed = time.monotonic() - started
+                print(f"SPLIT PROGRESS all foils/slices read={entry}/{total} "
+                      f"selected_assignments={selected} elapsed={elapsed:.1f}s "
+                      f"rate={entry / elapsed:.0f} events/s", flush=True)
+                last_report = time.monotonic()
+            if tree.GetEntry(entry) <= 0:
+                raise RuntimeError(f"cannot read entry {entry} in {rootfile}")
 
-        cer = float(getattr(tree, spec.cherenkov_branch))
-        cal = float(getattr(tree, spec.branch("cal.etottracknorm")))
-        delta = float(getattr(tree, spec.branch("gtr.dp")))
-        ytar = float(getattr(tree, spec.branch("gtr.y")))
-        xpfp = float(getattr(tree, spec.branch("dc.xp_fp")))
+            cer = float(getattr(tree, branches[0]))
+            cal = float(getattr(tree, branches[1]))
+            delta = float(getattr(tree, branches[2]))
+            ytar = float(getattr(tree, branches[3]))
+            xpfp = float(getattr(tree, branches[4]))
 
-        if spec.name=="SHMS" and not spec.delta_min < delta < spec.delta_max:
-            continue
+            if spec.name == "SHMS" and not spec.delta_min < delta < spec.delta_max:
+                continue
+            if cer <= 2.0 or cal <= 0.65:
+                continue
 
-        if cer <= 2.0 or cal <= 0.65:
-            continue
+            # Preserve half-open intervals and independent foil membership.
+            # Do not assign an event to just one foil if supplied cuts overlap.
+            matching_slices = [
+                ndel for ndel, (lo, hi) in enumerate(intervals)
+                if lo <= delta < hi
+            ]
+            if not matching_slices:
+                continue
+            for foil, cut in enumerate(cuts):
+                if not cut.IsInside(ytar, delta):
+                    continue
+                for ndel in matching_slices:
+                    samples[(foil, ndel)].append(xpfp)
+                    selected += 1
 
-        if not ytar_cut.IsInside(ytar, delta):
-            continue
+        if verbose:
+            print(f"SPLIT DONE read={total}/{total} "
+                  f"selected_assignments={selected} "
+                  f"elapsed={time.monotonic() - started:.1f}s", flush=True)
+    finally:
+        if cut_file:
+            cut_file.Close()
+        input_file.Close()
 
-        if delta_min <= delta < delta_max:
-            values.append(xpfp)
-
-    if verbose:
-        print(f"SPLIT DONE read={total}/{total} selected={len(values)} "
-              f"elapsed={time.monotonic() - started:.1f}s", flush=True)
-    input_file.Close()
-    cut_file.Close()
-
-    if len(values) < 1000:
-        return None, len(values)
-
-    q05 = quantile(values, 0.05)
-    q95 = quantile(values, 0.95)
-
-    if q05 is None or q95 is None:
-        return None, len(values)
-
-    return 0.5 * (q05 + q95), len(values)
+    splits = {}
+    for key, values in samples.items():
+        count = len(values)
+        split = None
+        if count >= 1000:
+            q05 = quantile(values, 0.05)
+            q95 = quantile(values, 0.95)
+            if q05 is not None and q95 is not None:
+                split = 0.5 * (q05 + q95)
+        splits[key] = (split, count)
+    return splits
 
 
 def run_expression(expression: str, dry_run: bool) -> None:
@@ -303,20 +333,16 @@ def main() -> None:
     print(f"Theta table:       {theta_tsv}")
     print(f"Ytar cuts:         {ytar_cut_file}")
 
+    splits = compute_splits(
+        rootfile, ytar_cut_file, num_foils, edges, spec, verbose=args.verbose
+    )
+
     for foil in range(num_foils):
         for ndel in range(n_slices):
             delta_min = edges[ndel]
             delta_max = edges[ndel + 1]
 
-            split, event_count = compute_split(
-                rootfile,
-                ytar_cut_file,
-                foil,
-                delta_min,
-                delta_max,
-                spec,
-                verbose=args.verbose,
-            )
+            split, event_count = splits[(foil, ndel)]
 
             if split is None:
                 print(
