@@ -5,6 +5,9 @@ from __future__ import annotations
 import argparse
 import csv
 import subprocess
+import os
+import socket
+import time
 from pathlib import Path
 from spectrometer_config import from_campaign, run_metadata
 
@@ -26,6 +29,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("reference_rungroup")
     parser.add_argument("reference_foil", type=int)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--verbose", action="store_true",
+                        help="Report host/PID and split-reading progress every five seconds.")
     return parser.parse_args()
 
 
@@ -132,7 +137,12 @@ def compute_split(
     delta_min: float,
     delta_max: float,
     spec,
+    verbose: bool = False,
 ) -> tuple[float | None, int]:
+    started = time.monotonic()
+    if verbose:
+        print(f"SPLIT START foil={foil} delta=[{delta_min},{delta_max}) "
+              f"opening {rootfile}", flush=True)
     input_file = ROOT.TFile.Open(str(rootfile), "READ")
 
     if not input_file or input_file.IsZombie():
@@ -158,7 +168,18 @@ def compute_split(
 
     values: list[float] = []
 
-    for entry in range(tree.GetEntries()):
+    total = tree.GetEntries()
+    last_report = time.monotonic()
+    if verbose:
+        print(f"SPLIT READ total={total}", flush=True)
+    for entry in range(total):
+        if verbose and time.monotonic() - last_report >= 5.0:
+            elapsed = time.monotonic() - started
+            print(f"SPLIT PROGRESS foil={foil} delta=[{delta_min},{delta_max}) "
+                  f"read={entry}/{total} selected={len(values)} "
+                  f"elapsed={elapsed:.1f}s rate={entry / elapsed:.0f} events/s",
+                  flush=True)
+            last_report = time.monotonic()
         tree.GetEntry(entry)
 
         cer = float(getattr(tree, spec.cherenkov_branch))
@@ -179,6 +200,9 @@ def compute_split(
         if delta_min <= delta < delta_max:
             values.append(xpfp)
 
+    if verbose:
+        print(f"SPLIT DONE read={total}/{total} selected={len(values)} "
+              f"elapsed={time.monotonic() - started:.1f}s", flush=True)
     input_file.Close()
     cut_file.Close()
 
@@ -206,6 +230,8 @@ def run_expression(expression: str, dry_run: bool) -> None:
 
 def main() -> None:
     args = parse_args()
+    if args.verbose:
+        print(f"PROCESS host={socket.gethostname()} pid={os.getpid()}", flush=True)
 
     campaign = Path(args.campaign)
     spec = from_campaign(campaign)
@@ -289,6 +315,7 @@ def main() -> None:
                 delta_min,
                 delta_max,
                 spec,
+                verbose=args.verbose,
             )
 
             if split is None:
