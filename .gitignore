@@ -52,3 +52,11 @@ SHMS_8p5695GeV/*
 SHMS_8p5695GeV/config/*
 !SHMS_8p5695GeV/config/rungroups_8p5695_inputs.tsv
 !SHMS_8p5695GeV/config/ztar_runlist.txt
+
+# TEMPORARY: expose core-sample campaign diagnostics to GitHub/Astra
+!HMS_6p667GeV/05c_core_sample/
+HMS_6p667GeV/05c_core_sample/*
+!HMS_6p667GeV/05c_core_sample/core/
+HMS_6p667GeV/05c_core_sample/core/*
+!HMS_6p667GeV/05c_core_sample/core/plots/
+!HMS_6p667GeV/05c_core_sample/core/plots/*.png
