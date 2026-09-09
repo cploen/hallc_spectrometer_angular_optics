@@ -53,6 +53,11 @@ SHMS_8p5695GeV/config/*
 !SHMS_8p5695GeV/config/rungroups_8p5695_inputs.tsv
 !SHMS_8p5695GeV/config/ztar_runlist.txt
 
+# Campaign core-selection override
+!HMS_6p667GeV/config/
+HMS_6p667GeV/config/*
+!HMS_6p667GeV/config/core_sample.json
+
 # TEMPORARY: expose core-sample campaign diagnostics to GitHub/Astra
 !HMS_6p667GeV/05c_core_sample/
 HMS_6p667GeV/05c_core_sample/*

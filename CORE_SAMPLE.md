@@ -211,6 +211,13 @@ The main controls are `core` (higher is tighter), `smooth` (in hole spacings),
 for attempting a hole. Lowering it is not a guarantee of a credible sparse core.
 Leave `seed` and `holdout` fixed while comparing selectors.
 
+The current HMS 6.667 campaign override sets `min_events` to 10 development
+events for a sparse-edge recovery trial. All other settings retain their defaults.
+Run `./run_core_sample.sh HMS_6p667GeV min10` to preserve the existing `core`
+baseline. Compare whether previously omitted edge holes now contribute fit events;
+the boundary shapes are not a target of this trial. The holdout membership stays
+fixed for unchanged candidate inputs.
+
 `spacing` normally stays `null`. If there are too few rows/columns to infer spacing,
 or the inference is visibly wrong, set `[X spacing in cm, Y spacing in cm]`.
 For the current HMS geometry the nominal starting values are `[2.54, 1.524]`.
