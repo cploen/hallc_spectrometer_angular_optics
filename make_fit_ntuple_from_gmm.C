@@ -17,6 +17,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 using namespace std;
 
@@ -36,7 +37,61 @@ struct ColMaskInfo {
   Int_t ndel = -1;
   Int_t col = -1;          // yscol or xscol
   Double_t score = -1e99;  // use best score if duplicate entry appears
+  // Only populated by the optional core-sample reader; used to detect stale input.
+  Double_t sieveX = 0, sieveY = 0;
+  Double_t foilZ = 0, deltaLow = 0, deltaHigh = 0;
+  Int_t core = 0;
 };
+
+static void read_core_mask(TString filename, Int_t sample, Int_t run,
+                           map<Long64_t, ColMaskInfo>& ymask,
+                           map<Long64_t, ColMaskInfo>& xmask) {
+  if (sample < 1 || sample > 3) throw runtime_error("Invalid core sample code");
+  TFile file(filename, "READ");
+  TTree* tree = dynamic_cast<TTree*>(file.Get("CoreSample"));
+  if (file.IsZombie() || !tree) throw runtime_error("Missing CoreSample tree");
+  for (const char* name : {"entry", "run", "sample", "core_keep", "foil", "ndel",
+                           "xscol", "yscol", "xsieve", "ysieve", "zfoil", "delta_low", "delta_high"}) {
+    if (!tree->GetBranch(name)) throw runtime_error(string("Missing core branch: ") + name);
+  }
+  Long64_t entry = -1;
+  Int_t sourceRun = -1, assignment = 0, core = 0, foil = -1, ndel = -1, xscol = -1, yscol = -1;
+  Double_t xs = 0, ys = 0;
+  Double_t zfoil = 0, deltaLow = 0, deltaHigh = 0;
+  tree->SetBranchAddress("entry", &entry);
+  tree->SetBranchAddress("run", &sourceRun);
+  tree->SetBranchAddress("sample", &assignment);
+  tree->SetBranchAddress("core_keep", &core);
+  tree->SetBranchAddress("foil", &foil);
+  tree->SetBranchAddress("ndel", &ndel);
+  tree->SetBranchAddress("xscol", &xscol);
+  tree->SetBranchAddress("yscol", &yscol);
+  tree->SetBranchAddress("xsieve", &xs);
+  tree->SetBranchAddress("ysieve", &ys);
+  tree->SetBranchAddress("zfoil", &zfoil);
+  tree->SetBranchAddress("delta_low", &deltaLow);
+  tree->SetBranchAddress("delta_high", &deltaHigh);
+  for (Long64_t i = 0; i < tree->GetEntries(); ++i) {
+    tree->GetEntry(i);
+    if (assignment != sample) continue;
+    if (sourceRun != run || entry < 0 || (sample != 2 && core != 1))
+      throw runtime_error("Invalid identity or quality in core sample");
+    if (ymask.count(entry)) throw runtime_error("Duplicate entry in core sample");
+    ColMaskInfo y, x;
+    y.foil = x.foil = foil;
+    y.ndel = x.ndel = ndel;
+    y.col = yscol;
+    x.col = xscol;
+    y.sieveX = x.sieveX = xs;
+    y.sieveY = x.sieveY = ys;
+    y.core = x.core = core;
+    y.foilZ = x.foilZ = zfoil;
+    y.deltaLow = x.deltaLow = deltaLow;
+    y.deltaHigh = x.deltaHigh = deltaHigh;
+    ymask[entry] = y;
+    xmask[entry] = x;
+  }
+}
 
 static string trim_gmm(const string &s);
 
@@ -316,7 +371,9 @@ void make_fit_ntuple_from_gmm(
                               TString vetoFile="",
                               TString outputDir="HMS_6p117GeV/06a_fit_ntuple",
                               TString inputRootOverride="",
-                              TString rungroup="") {
+                              TString rungroup="",
+                              TString coreFile="",
+                              Int_t coreSample=1) {
   gStyle->SetOptStat(0);
 
   OpticsInfoGMM info;
@@ -335,10 +392,14 @@ void make_fit_ntuple_from_gmm(
   }
 
   map<Long64_t, ColMaskInfo> ymask, xmask;
-  read_gmm_masks_for_run(nrun, rungroup,
+  if (coreFile.Length() > 0) {
+    read_core_mask(coreFile, coreSample, nrun, ymask, xmask);
+  } else {
+    read_gmm_masks_for_run(nrun, rungroup,
                          info.numFoil, nDeltaIntervals,
                          yBaseDir, xBaseDir, xTag,
                          ymask, xmask, kFALSE);
+  }
 
   vector<VetoRuleGMM> vetoRules = read_veto_rules_gmm(vetoFile);
 
@@ -411,6 +472,11 @@ void make_fit_ntuple_from_gmm(
   Double_t xptarT=0, ytarT=0, yptarT=0, ysieveT=0, xsieveT=0, ztarT=0, ztar=0, xtarT=0;
   Int_t foilT=-1, ndelT=-1, yscolT=-1, xscolT=-1;
   Long64_t entryT=-1;
+  Int_t coreKeepT=0;
+  if (coreFile.Length() > 0) {
+    otree->Branch("core_keep", &coreKeepT, "core_keep/I");
+    otree->Branch("sample", &coreSample, "sample/I");
+  }
 
   otree->Branch("entry", &entryT, "entry/L");
   otree->Branch("foil", &foilT, "foil/I");
@@ -478,14 +544,28 @@ void make_fit_ntuple_from_gmm(
     }
     if (iy->second.col < 0 || iy->second.col >= 9 || ix->second.col < 0 || ix->second.col >= 9) continue;
     if (iy->second.foil < 0 || iy->second.foil >= (Int_t)info.zfoil.size()) continue;
+    if (coreFile.Length() > 0 &&
+        (iy->second.ndel < 0 || iy->second.ndel >= nDeltaIntervals ||
+         TMath::Abs(info.zfoil[iy->second.foil] - iy->second.foilZ) > 1e-8 ||
+         TMath::Abs(info.delcut[iy->second.ndel] - iy->second.deltaLow) > 1e-8 ||
+         TMath::Abs(info.delcut[iy->second.ndel + 1] - iy->second.deltaHigh) > 1e-8)) {
+      throw runtime_error("Core foil/delta metadata disagrees with optics DB");
+    }
 
     T->GetEntry(i);
+    if (coreFile.Length() > 0 &&
+        (!std::isfinite(xsieve) || !std::isfinite(ysieve) ||
+         TMath::Abs(xsieve - iy->second.sieveX) > 1e-8 ||
+         TMath::Abs(ysieve - iy->second.sieveY) > 1e-8)) {
+      throw runtime_error("Core coordinates disagree with source T; rebuild candidates and sample");
+    }
     if (!(sumnpe > cerCut && etracknorm > calCut && delta > -10.0 && delta < 10.0)) {
       nPIDFail++;
       continue;
     }
 
     entryT = i;
+    coreKeepT = iy->second.core;
     foilT = iy->second.foil;
     ndelT = iy->second.ndel;
     yscolT = iy->second.col;

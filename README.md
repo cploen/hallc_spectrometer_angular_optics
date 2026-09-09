@@ -2,6 +2,11 @@
 
 Semi-automated preparation of HMS and SHMS sieve data for optics-matrix fitting.
 
+For the optional label-seeded core sample and protected holdout prototype, see
+[Core samples](CORE_SAMPLE.md). After both candidate-tree stages, the short entry
+point is `./run_core_sample.sh HMS_6p667GeV`. It writes separate outputs and leaves
+the GMM workflow available for comparison.
+
 ## 1. Software requirements
 
 The workflow requires:
