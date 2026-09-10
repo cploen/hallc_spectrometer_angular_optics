@@ -16,6 +16,7 @@ __pycache__/
 # Generated ROOT and analysis outputs
 *.root
 *.pdf
+!docs/HMS-Sieve.pdf
 *.png
 *.jpg
 *.jpeg
@@ -57,6 +58,7 @@ SHMS_8p5695GeV/config/*
 !HMS_6p667GeV/config/
 HMS_6p667GeV/config/*
 !HMS_6p667GeV/config/core_sample.json
+!HMS_6p667GeV/config/sieve_mask.json
 
 # TEMPORARY: expose core-sample campaign diagnostics to GitHub/Astra
 !HMS_6p667GeV/05c_core_sample/
@@ -119,3 +121,11 @@ HMS_6p667GeV/04b_candidate_trees_x/*
 !HMS_6p667GeV/04b_candidate_trees_x/root/
 HMS_6p667GeV/04b_candidate_trees_x/root/*
 !HMS_6p667GeV/04b_candidate_trees_x/root/XscolCandidates_rg01_theta12p490_foil0.root
+
+# Reviewed historical SVD counts, event clouds, and reproduction inputs.
+!HMS_6p667GeV/06b_svd_fit/
+HMS_6p667GeV/06b_svd_fit/*
+!HMS_6p667GeV/06b_svd_fit/diagnostics/
+HMS_6p667GeV/06b_svd_fit/diagnostics/*
+!HMS_6p667GeV/06b_svd_fit/diagnostics/balance/
+!HMS_6p667GeV/06b_svd_fit/diagnostics/balance/**

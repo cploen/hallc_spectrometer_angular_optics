@@ -329,3 +329,64 @@ The fixture has eight populated holes, one missing hole, and a 24-to-1 occupancy
 ratio. It checks mechanics, not performance on real HMS or SHMS data. Real
 HMS 6.667 candidate trees were absent from the development workspace; the first
 campaign run and visual acceptance check remain to be done on the analysis host.
+
+## Hole-count histograms
+
+To compare available cores with the actual training allocation for rungroup 1:
+
+```bash
+python3 plot_core_counts.py HMS_6p667GeV/05c_core_sample/min10 rg01
+```
+
+This reads the saved `tsv/counts.tsv` and checks against `tsv/regions.tsv`; no
+event trees are needed. It writes `plots/counts_<rungroup>_foil<foil>.png`, one
+figure per foil with one panel per delta slice. Rerunning replaces only these
+diagnostic figures. Use another unique rungroup prefix to repeat the diagnostic.
+
+Available development cores are fit plus surplus, excluding protected holdout.
+Each histogram entry is one hole; bins span 100 events. The percentile, median,
+and mean use open holes with positive available counts. Open holes without cores
+and blocked positions with labels are reported separately; holes absent from the
+saved labels cannot be counted.
+
+The diagnostic reads `config/sieve_mask.json` in the campaign. Its `blocked` list
+contains zero-based `[xscol, yscol]` label pairs. HMS 6.667 positions `[2, 3]` and
+`[5, 5]` were confirmed blocked by the campaign owner on September 9, 2026. They
+are excluded even if they have selected cores. Other observed positions are
+treated as open; this is not a complete sieve-geometry inventory. Without a mask,
+the figure explicitly states that blocked geometry is unverified. Preserve this
+mask with the saved diagnostics to reproduce the figure. This mask currently
+affects the diagnostic and proposed-cap calculations, not the event selector.
+
+The original HMS sieve engineering schematic is preserved in
+[docs/HMS-Sieve.pdf](docs/HMS-Sieve.pdf), supplied by the campaign owner on
+September 9, 2026 (drawing 67232-C-56861). Use it as the physical-geometry
+reference; the label-pair mapping above follows the owner's confirmation, not
+an assumed drawing orientation.
+
+The proposed caps are 1.5 and 2 times the 25th percentile, rounded down. Their
+event totals sum the smaller of each hole's available count and the cap. These
+are standalone cap comparisons: they do not also apply the current 80% training
+fraction or campaign budget. The diagnostic does not change event allocation.
+
+For spatial comparisons at nominal sieve positions:
+
+```bash
+python3 plot_core_map.py HMS_6p667GeV/05c_core_sample/min10 rg01 --delta 0 1 --cap 2
+```
+
+This produces `plots/balance_<rungroup>_foil<foil>_ndel<slice>.png`, comparing
+available cores, current training counts, and the proposed percentile cap.
+`--cap` sets the P25 multiplier. All requested slices share a linear color scale.
+Counts use the same definitions and blocked mask as the histograms. Gray dots
+mean no saved label, hollow zeros mean labeled positions without eligible cores,
+and crosses mean confirmed blocked positions. Ratios exclude zero counts.
+Reconstructed event locations are not used: the maps use nominal positions from
+the shared spectrometer profile. Rerunning replaces only these diagnostic PNGs.
+Add `--log` for logarithmic colors, saved separately with an `_log.png` suffix.
+The log scale starts at one event; zero counts remain hollow and outside the
+color scale. For example, use `--delta 1 --log` to compare slice 1 with its
+existing linear-color figure. Event counts and proposed allocations are unchanged.
+For both slices at 1.5 times P25, use `--delta 0 1 --cap 1.5 --log`.
+Nondefault cap multipliers add a filename suffix such as `_cap1p5_log.png`,
+preserving the default 2-times-P25 figures.

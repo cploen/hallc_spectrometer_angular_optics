@@ -1,0 +1,22 @@
+{
+  "fit_log": "HMS_6p667GeV/06b_svd_fit/logs/fit_opt_matrix_6p667_gmm_clean_20260716_125023.log",
+  "log_sha256": "29d3af5e2200e063113d4b73953122cf33ea1a08fecec19009bd5a7fbb01754a",
+  "input_sha256": {
+    "HMS_6p667GeV/config/rungroups_6p667_inputs.tsv": "aea3dcae3e47735d7ea57ea0c7079a6d6f6ab6708fc58057bf7270d11444c500",
+    "DATfiles/list_of_optics_run.dat": "0199c6fed3faa0c567b6e3a0fd016662acdc3c5c46cd72c7d1ea9a93b4a769d4",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666701_-1_fit_tree_gmm.root": "655e27c897060c8d751bfcce64290d8192757eccf74277aab8d7473dbf7ed5ed",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666702_-1_fit_tree_gmm.root": "72e7e904256ef053433584a33d0e86cf55651ec49b71899a6a4b7bf578689cb3",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666703_-1_fit_tree_gmm.root": "545c61a62a1fd12d7d0487ac6f1dce5d92491ac187946ae4c4b7a62e74b4134f",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666704_-1_fit_tree_gmm.root": "3f4be0f90cd116c1b1606a6932d99277a0127b421d25107f58319f5dbf199d4d",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666705_-1_fit_tree_gmm.root": "3e3c3ae5e15de566637e57b02c2b4ee3dc072312ebd9f5ffffa0f5e8a5103b5c",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666706_-1_fit_tree_gmm.root": "c1fb88cd18c5a856b9c9e9dfcec23cd205b40f425a85fb83a1846ba50eb95824",
+    "HMS_6p667GeV/06a_fit_ntuple/root/Optics_666707_-1_fit_tree_gmm.root": "90e1fb240041f7bb418b1bf7eeab61af594e609ecf35e6a590c8fe50e3682538"
+  },
+  "script_sha256": "6be72792a963323ddff16f158175ba82b15f9cade7fc3b7cf9afaeafd9b0ba60",
+  "selector_sha256": "46e135cacb631b427d9598aae3bc315440e0bf3d5e033ccbfe035c34eff26a01",
+  "selected": 166013,
+  "available": 444697,
+  "matched_log_cells": 540,
+  "method": "Sequential TFit order; 1000 per foil/delta/Y column, 15000 per rungroup/foil, 200000 global",
+  "limitation": "Reconstructed membership from historical inputs and selection code; no original event-ID list was saved."
+}
