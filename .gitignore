@@ -99,3 +99,23 @@ HMS_6p667GeV/05c_core_sample/min10/tsv/*
 !HMS_6p667GeV/05c_core_sample/min10/tsv/counts.tsv
 !HMS_6p667GeV/05c_core_sample/min10/tsv/regions.tsv
 !HMS_6p667GeV/05c_core_sample/min10/tsv/allocation.tsv
+# Temporary: expose these root files to Github/Astra
+!HMS_6p667GeV/04a_candidate_trees_y/root/
+HMS_6p667GeV/04a_candidate_trees_y/root/YscolCandidates_rg01_theta12p490_foil0.root 
+!HMS_6p667GeV/04b_candidate_trees_x/root/
+HMS_6p667GeV/04b_candidate_trees_x/root/XscolCandidates_rg01_theta12p490_foil0.root
+
+
+# TEMPORARY: expose ONLY these two rg01 candidate ROOT files to GitHub/Astra
+
+!HMS_6p667GeV/04a_candidate_trees_y/
+HMS_6p667GeV/04a_candidate_trees_y/*
+!HMS_6p667GeV/04a_candidate_trees_y/root/
+HMS_6p667GeV/04a_candidate_trees_y/root/*
+!HMS_6p667GeV/04a_candidate_trees_y/root/YscolCandidates_rg01_theta12p490_foil0.root
+
+!HMS_6p667GeV/04b_candidate_trees_x/
+HMS_6p667GeV/04b_candidate_trees_x/*
+!HMS_6p667GeV/04b_candidate_trees_x/root/
+HMS_6p667GeV/04b_candidate_trees_x/root/*
+!HMS_6p667GeV/04b_candidate_trees_x/root/XscolCandidates_rg01_theta12p490_foil0.root
