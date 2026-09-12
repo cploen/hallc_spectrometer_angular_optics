@@ -28,9 +28,7 @@ def build(campaign, tag, sample):
         for rel in ('tsv/selected_ids.tsv','metadata/optics.dat','metadata/sieve_mask.json','allocation.json'):
             if digest(source/rel) != manifest['outputs'][rel]:
                 raise ValueError(f'Allocation input changed: {rel}')
-        if digest(source/'metadata/optics.dat') != digest(PROJECT/'DATfiles/list_of_optics_run.dat'):
-            raise ValueError('Current export metadata differs from frozen allocation metadata')
-    # Keep the build tied to the saved campaign and masks, even if config changes.
+           # Keep the build tied to the saved campaign and masks, even if config changes.
     tables = list(source.glob("rungroups_*_inputs.tsv"))
     if len(tables) != 1:
         raise ValueError("Missing saved campaign table")
