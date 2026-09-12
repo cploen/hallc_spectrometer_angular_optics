@@ -500,3 +500,13 @@ The first local preview gives 68,535 planned training events, exactly 13,707 per
 physical foil. The +3 cm foil is limiting after hole caps; delta caps cause no
 additional loss at the first factors. These are count-allocation results, not
 claims about leverage, conditioning or stability of a fitted optics matrix.
+
+## Elastic-net fit after balancing
+
+`./run_elastic.sh HMS_6p667GeV equal15 enet --check` verifies the balanced
+training and protected fit-tree exports. Omit `--check` to tune and fit using
+training events only. The separate `--evaluate` command evaluates the saved
+matrix on protected core/noncore pools after development is complete.
+See [Elastic-net angular optics](docs/ELASTIC_NET.md) for export prerequisites,
+configuration, diagnostics, and the beam-search handoff. Results use
+`06d_elastic_net/<name>/`; this step does not install a replay matrix.

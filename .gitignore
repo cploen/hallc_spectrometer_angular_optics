@@ -129,3 +129,6 @@ HMS_6p667GeV/06b_svd_fit/*
 HMS_6p667GeV/06b_svd_fit/diagnostics/*
 !HMS_6p667GeV/06b_svd_fit/diagnostics/balance/
 !HMS_6p667GeV/06b_svd_fit/diagnostics/balance/**
+
+# Campaign elastic-net policy; result directories remain local until reviewed.
+!HMS_6p667GeV/config/elastic.json

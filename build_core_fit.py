@@ -107,7 +107,8 @@ def build(campaign, tag, sample):
             shutil.copy2(tables[0],stage/tables[0].name)
             shutil.copy2(campaign/'config/oldfit.dat',stage/'oldfit.dat')
             membership_manifest(stage/'solver_input.tsv',read_tsv(stage/'selected_ids.tsv'),settings,build_manifest['sample_manifest'])
-            build_manifest['outputs']={str(p.relative_to(stage)):digest(p) for p in stage.rglob('*') if p.is_file()}
+        # Holdout exports need the same immutable file checks as training exports.
+        build_manifest['outputs']={str(p.relative_to(stage)):digest(p) for p in stage.rglob('*') if p.is_file()}
         (stage/'build.json').write_text(json.dumps(build_manifest,indent=2)+'\n')
         stage.rename(target)
         print(f"Core TFit build complete: {target}. SVD was not run.")

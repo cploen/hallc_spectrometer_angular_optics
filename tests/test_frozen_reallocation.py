@@ -52,6 +52,11 @@ class FrozenTests(unittest.TestCase):
             if shutil.which('root'):
                 with patch.dict(os.environ,HCANA='root'):
                     build(p,'balanced','fit')
+                    build(p,'balanced','holdout')
+                holdout=p/'06c_core_ntuple/balanced/holdout'
+                hm=json.loads((holdout/'build.json').read_text())
+                for path in (holdout/'root').glob('*.root'):
+                    self.assertEqual(hm['outputs'][str(path.relative_to(holdout))],cs.digest(path))
                 manifest,ids=verify_build(p/'06c_core_ntuple/balanced/fit')
                 self.assertEqual(len(ids),a['training_total'])
             # Zero-capacity report is retained, but exporter cannot accept it.
