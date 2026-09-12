@@ -1,5 +1,8 @@
 # Core samples for angular optics
 
+Design for the next allocator: [Strict foil balancing with delta and hole caps](docs/CORE_BALANCE_DESIGN.md).
+The strict frozen-tag mode is implemented separately below; the original selector remains the legacy mode.
+
 This prototype selects the central population of each labeled sieve hole, reserves
 events for independent evaluation, and limits how many cores enter the fit sample.
 It reads the existing X and Y candidate trees, before GMM cleanup. It writes to new
@@ -355,8 +358,7 @@ contains zero-based `[xscol, yscol]` label pairs. HMS 6.667 positions `[2, 3]` a
 are excluded even if they have selected cores. Other observed positions are
 treated as open; this is not a complete sieve-geometry inventory. Without a mask,
 the figure explicitly states that blocked geometry is unverified. Preserve this
-mask with the saved diagnostics to reproduce the figure. This mask currently
-affects the diagnostic and proposed-cap calculations, not the event selector.
+mask with the saved diagnostics to reproduce the figure. The legacy selector does not apply this mask. The strict frozen-tag allocator applies it before eligibility and cap references.
 
 The original HMS sieve engineering schematic is preserved in
 [docs/HMS-Sieve.pdf](docs/HMS-Sieve.pdf), supplied by the campaign owner on
@@ -390,3 +392,111 @@ existing linear-color figure. Event counts and proposed allocations are unchange
 For both slices at 1.5 times P25, use `--delta 0 1 --cap 1.5 --log`.
 Nondefault cap multipliers add a filename suffix such as `_cap1p5_log.png`,
 preserving the default 2-times-P25 figures.
+
+## Strict frozen-tag balance (September 2026)
+
+The strict allocator is an explicit frozen-tag command. It shares one counts
+engine between preview and event selection. Existing `run_core_sample.sh` calls
+and legacy GMM solver calls retain their behavior; adding no balance mode does
+not change legacy selection. The strict command never estimates density or
+reserves holdout again.
+
+The first policy is in `HMS_6p667GeV/config/core_balance.json` (these are also the
+strict command's defaults):
+
+```json
+{
+  "balance": {"foil": "equal", "delta": 1.5, "hole": 1.5},
+  "qa_min": 10,
+  "fit_max": 200000
+}
+```
+
+`qa_min` only flags positive available leaves receiving fewer than 10 training
+events, including zero. It is not a reserve or floor. The parent tag supplies
+`seed`, `holdout`, quality assignments, density models and grouping. Only the
+three policy entries above may change. `fit_fraction`, `fit_cap` and the flat
+allocator are explicitly inactive in this mode, although retained in the
+configuration snapshot for provenance.
+
+One short preview command for the reviewed campaign/tag is:
+
+```bash
+./run_core_balance.sh HMS_6p667GeV min10 equal15_review --preview
+```
+
+It writes `05d_core_balance/equal15_review/HMS_6p667_CORE_BALANCE.md`. Preview
+counts are quotas, not actual event membership; the actual-selected columns stay
+blank. All five delta pages include all five physical foils, links to all 60
+setting/local-foil/delta views, and explicit unavailable event-cloud panels when
+masks are missing. Tables, comparison maps, training maps, fraction maps and
+full-resolution PNGs are saved beside the index. No historical GMM events are
+substituted for core events.
+
+On the analysis host with the complete frozen parent tag, perform reallocation:
+
+```bash
+./run_core_balance.sh HMS_6p667GeV min10 equal15
+```
+
+This writes a new `05c_core_sample/equal15/` tag, exact IDs, retained frozen models,
+all event categories and the full numerical/map/cloud diagnostics. Never rerun
+`min10` density selection to supply missing masks. The local preview's
+`INPUT_AVAILABILITY.md` lists exact missing frozen files, originating ifarm paths
+inferred from the parent manifest, and replay paths required later for export.
+Original candidate files are unnecessary when the saved event masks are present.
+The fallback local campaign table is accepted only if it matches the parent
+hash. Physical foil positions and delta boundaries are checked against saved
+optics metadata (the verified historical snapshot for the original `min10` tag),
+then saved with the new allocation. HMS 6.667 explicitly requires all five foils;
+aligned configured intervals are required across every setting.
+
+P25 is linearly interpolated over original positive eligible counts. References
+are never recalculated after capping. Integer equal-share filling uses seed/key
+hashes for residual ties; selected IDs use the existing fit ranking, with entry
+ID resolving a hash collision. All grouping, metadata, geometry, policy, code,
+dependency versions and input/output hashes are recorded. New tags cannot be
+overwritten. Changing factors requires a new tag. A zero feasible required foil
+(or a ceiling too small for one event per foil) produces a zero-budget report and
+cannot be exported. Zero-capacity foils are never dropped.
+
+Geometrically excluded events remain in the ROOT audit population with
+`balance_excluded=1`; their quality and protected holdout membership stay frozen.
+Excluded development events have `sample=0`, so for strict tags sample 0 also
+includes geometry-excluded development events. This does not reclassify their
+quality. `tsv/geometry_exclusions.tsv` records their IDs, reason and original sample.
+Unused eligible development core events have `sample=3`. All original upstream
+candidate exclusion TSVs are retained.
+
+After reviewing event-level diagnostics, build TFit trees and verify admission:
+
+```bash
+./run_build_core_fit.sh HMS_6p667GeV equal15
+python3 preallocated_svd.py HMS_6p667GeV equal15 HMS_6p667GeV/06c_core_ntuple/equal15/acceptance
+```
+
+The second command defaults to **acceptance only**: it executes the current
+solver's input/admission/design-row path, then stops before SVD and before opening
+any output matrix. It requires the allocation/build manifest, verifies output
+hashes, bypasses all legacy Y-column, rungroup/foil and sequential global cuts,
+and compares actual IDs exactly with intended IDs. Rejected/missing IDs fail the
+handoff and remain in audit files. The event ceiling (default 200000) and estimated
+design/normal-matrix memory limit (default 1 GiB) cause failures rather than
+truncation. `solver_used_ids.tsv` and `solver_used_counts.tsv` record admission;
+`acceptance.json` is written only on success. `--fit` explicitly permits solving
+in a later reviewed fit study; it has not been used for campaign data here.
+The adapter remains HMS-only; SHMS end-to-end support is not claimed.
+
+Targeted checks (ROOT is required for the two adapter/solver integration paths):
+
+```bash
+python3 -m unittest discover -s tests -p 'test_core_balance.py' -v
+python3 -m unittest discover -s tests -p 'test_frozen_reallocation.py' -v
+python3 -m unittest discover -s tests -p 'test_preallocated_svd.py' -v
+python3 -m unittest discover -s tests -p 'test_core_sample.py' -v
+```
+
+The first local preview gives 68,535 planned training events, exactly 13,707 per
+physical foil. The +3 cm foil is limiting after hole caps; delta caps cause no
+additional loss at the first factors. These are count-allocation results, not
+claims about leverage, conditioning or stability of a fitted optics matrix.

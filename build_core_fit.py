@@ -15,11 +15,21 @@ import numpy as np
 import uproot
 
 from core_sample import PROJECT, digest, read_tsv
+from preallocated_svd import membership_manifest
 
 
 def build(campaign, tag, sample):
     source = campaign / "05c_core_sample" / tag
     manifest = json.loads((source / "manifest.json").read_text())
+    balanced = manifest.get('schema') == 'core_balance_v1'
+    if balanced and (manifest.get('mode') != 'event_allocation' or manifest.get('status') != 'quotas_ready' or manifest['totals']['fit'] <= 0):
+        raise ValueError('Export requires a positive event-level allocation; preview/zero budget cannot be exported')
+    if balanced:
+        for rel in ('tsv/selected_ids.tsv','metadata/optics.dat','metadata/sieve_mask.json','allocation.json'):
+            if digest(source/rel) != manifest['outputs'][rel]:
+                raise ValueError(f'Allocation input changed: {rel}')
+        if digest(source/'metadata/optics.dat') != digest(PROJECT/'DATfiles/list_of_optics_run.dat'):
+            raise ValueError('Current export metadata differs from frozen allocation metadata')
     # Keep the build tied to the saved campaign and masks, even if config changes.
     tables = list(source.glob("rungroups_*_inputs.tsv"))
     if len(tables) != 1:
@@ -50,8 +60,16 @@ def build(campaign, tag, sample):
             if digest(mask) != manifest["outputs"][relative]:
                 raise ValueError(f"Core sample changed after selection: {mask}")
             with uproot.open(mask) as root:
-                a = root["CoreSample"].arrays(["entry", "sample", "xscol", "yscol"], library="np")
+                a = root["CoreSample"].arrays(library="np")
             entries = a["entry"][a["sample"] == code]
+            if balanced and sample == 'fit':
+                wanted = [r for r in read_tsv(source/'tsv/selected_ids.tsv') if r['rungroup']==name]
+                expected = np.array([int(r['entry']) for r in wanted], dtype=np.int64)
+                if not np.array_equal(np.sort(entries), np.sort(expected)) or len(np.unique(entries)) != len(entries):
+                    raise ValueError(f'Training mask/selected IDs disagree: {name}')
+                mask_selected=a['sample']==1
+                if np.any(a['quality'][mask_selected]!=2) or np.any(a['balance_excluded'][mask_selected]!=0):
+                    raise ValueError('Noncore or excluded event in training mask')
             if np.any((a["xscol"] > 8) | (a["yscol"] > 8)):
                 raise ValueError("This TFit adapter uses existing HMS 9x9 geometry; selection itself supports other hole counts")
             if not len(entries):
@@ -77,11 +95,22 @@ def build(campaign, tag, sample):
                 raise RuntimeError(f"TFit membership differs from saved {sample} mask for {name}")
             report.append(dict(rungroup=name, entries=len(entries), status="verified"))
         metadata = PROJECT / "DATfiles/list_of_optics_run.dat"
-        (stage / "build.json").write_text(json.dumps(dict(sample=sample, groups=report,
+        build_manifest=dict(sample=sample, groups=report,
             sample_manifest=digest(source / "manifest.json"), metadata=digest(metadata),
             macro=digest(PROJECT / "make_fit_ntuple_from_gmm.C"),
             geometry={name: digest(PROJECT / name) for name in
-                      ("spectrometer_config.h", "spectrometer_root.h")}), indent=2) + "\n")
+                      ("spectrometer_config.h", "spectrometer_root.h")})
+        if balanced and sample=='fit':
+            build_manifest['schema']='core_preallocated_v1'
+            shutil.copy2(source/'manifest.json',stage/'allocation_manifest.json')
+            shutil.copy2(source/'tsv/selected_ids.tsv',stage/'selected_ids.tsv')
+            shutil.copy2(source/'metadata/optics.dat',stage/'optics.dat')
+            shutil.copy2(source/'metadata/sieve_mask.json',stage/'sieve_mask.json')
+            shutil.copy2(tables[0],stage/tables[0].name)
+            shutil.copy2(campaign/'config/oldfit.dat',stage/'oldfit.dat')
+            membership_manifest(stage/'solver_input.tsv',read_tsv(stage/'selected_ids.tsv'),settings,build_manifest['sample_manifest'])
+            build_manifest['outputs']={str(p.relative_to(stage)):digest(p) for p in stage.rglob('*') if p.is_file()}
+        (stage/'build.json').write_text(json.dumps(build_manifest,indent=2)+'\n')
         stage.rename(target)
         print(f"Core TFit build complete: {target}. SVD was not run.")
     except BaseException:

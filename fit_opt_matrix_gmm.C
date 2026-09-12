@@ -1,5 +1,6 @@
 // HMS/SHMS: campaign-selected branches, centered geometry and acceptance; see docs/HMS_SHMS_REVIEW.md.
 #include "spectrometer_root.h"
+#include "preallocated_sample.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -34,7 +35,10 @@ void fit_opt_matrix_gmm(
   TString outputDir,
   TString oldCoeffsFile,
   TString rungroupsTsv,
-  TString opticsMetadataFile) {
+  TString opticsMetadataFile,
+  TString preallocatedManifest = "",
+  Bool_t acceptanceOnly = kFALSE,
+  Long64_t maxDesignBytes = 1073741824) {
   hallc::Spectrometer spec;
   if (!hallc::loadSpectrometer(rungroupsTsv, spec)) return;
 
@@ -95,6 +99,8 @@ void fit_opt_matrix_gmm(
     nSettings = (Int_t)settings.size();
   }
 
+  if (!preallocatedManifest.IsNull() && nSettings != (Int_t)settings.size())
+    throw std::runtime_error("Preallocated mode requires all campaign settings");
   settings.resize(nSettings);
 
   cout << "Campaign settings read from: "
@@ -114,6 +120,14 @@ void fit_opt_matrix_gmm(
   gSystem->mkdir(Form("%s/matrices", outputDir.Data()), kTRUE);
   gSystem->mkdir(Form("%s/root", outputDir.Data()), kTRUE);
   gSystem->mkdir(Form("%s/plots", outputDir.Data()), kTRUE);
+
+  hallc::PreallocatedSample allocated;
+  allocated.load(preallocatedManifest.Data(), nfit_max_arg, outputDir.Data());
+  if (allocated.enabled) {
+    std::map<std::string,int> allSettings;
+    for(const auto& s:settings) allSettings[s.rungroup.Data()]=s.opticsId;
+    allocated.preflight(inputTreeDir.Data(),FileID,allSettings,spec.nx,spec.ny);
+  } else if (acceptanceOnly) throw std::runtime_error("Acceptance-only requires a preallocated manifest");
 
   string newcoeffsfilename =
     Form("%s/matrices/nps_%s_newfit_%s.dat",
@@ -146,7 +160,8 @@ void fit_opt_matrix_gmm(
   TH1F *hyptarnew = new TH1F("hyptarnew","yptar new recon ",100,-.1,.1);
   TH1F *hyptarnewdiff = new TH1F("hyptarnewdiff","yptar new diff (mr) ",100,-10,10);
   //
-  ofstream newcoeffsfile(newcoeffsfilename.c_str());
+  ofstream newcoeffsfile; // Open only after exact sample acceptance and before solving.
+  if (!allocated.enabled) newcoeffsfile.open(newcoeffsfilename.c_str());
  ifstream oldcoeffsfile(oldcoeffsfilename.c_str());
    if(!oldcoeffsfile.is_open()) {
      cout << " error opening reconstruction coefficient file: " << oldcoeffsfilename.c_str() << endl;
@@ -304,6 +319,11 @@ void fit_opt_matrix_gmm(
   TVectorD b_xptar(npar);
   TVectorD b_delta(npar);
   b_ytar.Zero(); b_yptar.Zero(); b_xptar.Zero(); b_delta.Zero();
+  if (allocated.enabled) {
+    nfit_max = static_cast<int>(allocated.expected.size());
+    if (maxDesignBytes <= 0 || 8.L*npar*nfit_max + 32.L*npar*npar > maxDesignBytes)
+      throw std::runtime_error("Preallocated design exceeds memory budget; no truncation");
+  }
   TMatrixD lambda(npar,nfit_max);
   TMatrixD Ay(npar,npar);
   //
@@ -430,6 +450,14 @@ void fit_opt_matrix_gmm(
       fsimc->Close();
       continue;
     }
+    Long64_t suppliedEntry=0; Int_t suppliedFoil=0,suppliedDelta=0,suppliedX=0,suppliedY=0;
+    if(allocated.enabled) {
+      FitTree->SetBranchAddress("entry",&suppliedEntry);
+      FitTree->SetBranchAddress("foil",&suppliedFoil);
+      FitTree->SetBranchAddress("ndel",&suppliedDelta);
+      FitTree->SetBranchAddress("xscol",&suppliedX);
+      FitTree->SetBranchAddress("yscol",&suppliedY);
+    }
     //Declaration of leaves types
     Double_t  ys,xtar,xptar,yptar,ytar,delta,xptarT,yptarT,ytarT,ztarT,xtarT;
     Double_t xfp,xpfp,yfp,ypfp,ysieveT,ysieve;
@@ -514,7 +542,13 @@ void fit_opt_matrix_gmm(
 	  good_bin=kTRUE;
 	}
 
-	if (good_bin && nfit < nfit_max && Ztar_Ys_Delta_Cnts[found_nf][found_nd][found_ny]< MaxPerBin && Ztar_Cnts[found_nf]< MaxZtarPerBin && Ztar_Cnts[found_nf]<Max_Per_Run_Per_Foil[found_nf]) {
+	if (allocated.enabled && (!good_bin || found_nf!=suppliedFoil || found_nd!=suppliedDelta || found_ny!=suppliedY)) {
+          allocated.reject({rungroup.Data(),suppliedEntry},"geometry_or_metadata_mismatch");
+          throw std::runtime_error("Preallocated event fails solver geometry validity");
+        }
+        if (good_bin && (allocated.enabled || (nfit < nfit_max && Ztar_Ys_Delta_Cnts[found_nf][found_nd][found_ny]< MaxPerBin && Ztar_Cnts[found_nf]< MaxZtarPerBin && Ztar_Cnts[found_nf]<Max_Per_Run_Per_Foil[found_nf]))) {
+          if (allocated.enabled && !allocated.accept(rungroup.Data(),suppliedEntry,nrun,suppliedFoil,suppliedDelta,suppliedX,suppliedY,ztarT,delta,ysieveT,true))
+            throw std::runtime_error("Failed supplied membership acceptance");
 
 	  //reconstruct it
 	  Double_t ytar_xtar = 0.0,yptar_xtar=0.0,xptar_xtar=0.0;
@@ -589,6 +623,12 @@ void fit_opt_matrix_gmm(
   ////////////////////
   }
    //
+  allocated.finish(outputDir.Data());
+  if (acceptanceOnly) {
+    cout << "PREALLOCATED ACCEPTANCE VERIFIED: " << nfit << " events; no solve or matrix output" << endl;
+    return;
+  }
+  if (allocated.enabled) newcoeffsfile.open(newcoeffsfilename.c_str());
   if (nfit <= 0) {
     cout << " ERROR: no events collected for SVD fit." << endl;
     return;
