@@ -94,7 +94,7 @@ def build(campaign, tag, sample):
             if not np.array_equal(np.sort(entries), np.sort(actual)):
                 raise RuntimeError(f"TFit membership differs from saved {sample} mask for {name}")
             report.append(dict(rungroup=name, entries=len(entries), status="verified"))
-        metadata = PROJECT / "DATfiles/list_of_optics_run.dat"
+        metadata = source / "metadata/optics.dat"
         build_manifest=dict(sample=sample, groups=report,
             sample_manifest=digest(source / "manifest.json"), metadata=digest(metadata),
             macro=digest(PROJECT / "make_fit_ntuple_from_gmm.C"),
