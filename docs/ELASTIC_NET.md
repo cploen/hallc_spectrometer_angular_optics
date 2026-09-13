@@ -321,3 +321,47 @@ residuals as well as overall scores before choosing settings for the full
 three-fold study. A promising one-fold score is development evidence, not a
 final selection or proof of improvement. Beam search comes after that check,
 and it must be able to reintroduce terms excluded by elastic net.
+
+## Pooled validation for beam-search seeds
+
+Run the same small candidate grid across every saved training fold:
+
+```bash
+./run_elastic.sh HMS_6p667GeV equal15 pooled --pooled
+```
+
+This uses `config/elastic_refit.json` for the existing alpha, L1 and iteration
+budgets; its single `fold` setting is superseded by all saved folds. Fold 0 is
+rerun along with the other folds so the pooled residuals come from one reproducible
+run. Existing `refit` results are preserved. No protected export is needed.
+For another HMS campaign, substitute its campaign name and balanced sample tag.
+
+Every training event supplies exactly one validation prediction per complete
+candidate. Selection, scaling and both direct-X SVD fits use the other folds.
+The selected basis can differ across folds: pooled scores assess the selection
+procedure at each penalty setting, not one fixed basis fitted to all events.
+Only cases converged in every fold receive pooled results.
+
+Outputs are in `06d_elastic_net/pooled/`. Start with `plots/plateau.png`, showing
+term counts against median absolute residual, mean foil/delta MSE, P90 absolute
+residual and condition number. Faint dots show individual folds; horizontal
+spans show term-count ranges. `plots/foil_delta.png` checks pooled MSE across
+all foils and delta slices. These are the only two new plots.
+
+`pooled.tsv` and `fold_scores.tsv` retain exact pooled and individual-fold
+scores. `foil_delta.tsv` adds cell median and P90; `coverage.tsv` records pooled
+and per-fold counts down to individual setting/hole, flagging sparse samples
+without rejecting candidates. Event-weighted median/P90 are calculated from
+the pooled residuals, not averaged fold quantiles. `cell_mse` retains equal
+weight per populated foil/delta cell; `mse` is event weighted. Residual units
+are mrad for angles and cm for ytar; MSE uses their squares.
+
+`terms.tsv` and `coefficients.npz` preserve actual fold-specific bases and
+unpenalized refit coefficients. `residuals.npz` records complete-case residual
+pairs and exact event/fold identities. The manifest, saved source code, seed
+matrix and fold table preserve reproducibility.
+
+Choose a few seeds from a reasonably stable range; do not require them to beat
+full-basis SVD. Four penalty settings provide a coarse view, not a precisely
+located plateau. Sparse-hole scores remain weak evidence even after pooling.
+There is no automatic winner, new parameter scan, or final replay matrix export.

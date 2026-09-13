@@ -97,7 +97,7 @@ def study(x, y, folds, cells, cfg, tol, rcond, record, on_fit=None):
                           f'MSE/SVD={row["mse_ratio"]:.4g}; converged={info["converged"]}', flush=True)
                     if info['converged'] and on_fit is not None:
                         on_fit(j, alpha, l1, beta, dict(x=z, y=t, validation=zv, state=state,
-                                                      svd=ls, mask=va, rcond=rcond))
+                                                      svd=ls, mask=va, rcond=rcond, singular=singular))
     return dict(training=int(sum(tr)), validation=int(sum(va)), rank=int(rank),
                 singular_values=singular.tolist(), svd_mse=baseline.tolist())
 
@@ -126,7 +126,7 @@ def plot(out, rows):
     fig.savefig(out/'convergence.png',dpi=140,bbox_inches='tight'); plt.close(fig)
 
 
-def run(campaign, tag, name, source='enet', refit=False):
+def run(campaign, tag, name, source='enet', refit=False, pooled=False):
     from fit_elastic import checked, load_sample, matrix_rows, problem
     parent = campaign/'06d_elastic_net'/source
     out = campaign/'06d_elastic_net'/name
@@ -150,7 +150,7 @@ def run(campaign, tag, name, source='enet', refit=False):
     (out/'code').mkdir()
     for file in ('elastic_convergence.py','elastic_net.py','fit_elastic.py','core_sample.py',
                  'preallocated_svd.py','spectrometer_config.py','spectrometer_profiles.def','run_elastic.sh',
-                 'elastic_refit.py','elastic_diagnostics.py'):
+                 'elastic_refit.py','elastic_pool.py','elastic_diagnostics.py'):
         shutil.copy2(PROJECT/file,out/'code'/file)
     rows = []
     manifest = dict(schema='elastic_refit_v1' if refit else 'elastic_convergence_v1', status='running', sample=tag, source=source,
@@ -163,6 +163,22 @@ def run(campaign, tag, name, source='enet', refit=False):
         write_tsv(out/'checkpoints.tsv',rows)
     save_manifest()
     try:
+        if pooled:
+            from elastic_pool import run_study
+            from fit_elastic import basis
+            manifest['schema'] = 'elastic_pool_v1'
+            manifest['config'] = dict(cfg, fold='all')
+            save_manifest()
+            shutil.copy2(parent/'seed.dat', out/'seed.dat')
+            shutil.copy2(parent/'tsv/folds.tsv', out/'folds.tsv')
+            report = run_study(out, a, x[:,1:], y, folds, cells, cfg, manifest['tol'],
+                               manifest['rcond'], record, basis(seed_rows), base['config']['qa_min'])
+            manifest.update(report, status='complete')
+            manifest['outputs'] = {str(p.relative_to(out)):digest(p) for p in out.rglob('*')
+                                   if p.is_file() and p.name != 'manifest.json'}
+            save_manifest()
+            print(f'Pooled study complete: {out}; {report["converged_cases"]}/{report["cases"]} fold cases converged. No protected evaluation.',flush=True)
+            return
         comparison = None
         if refit:
             from elastic_refit import Comparison
