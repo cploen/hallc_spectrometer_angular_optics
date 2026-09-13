@@ -1,0 +1,12 @@
+{
+  "angle": 12.490,
+  "source": "beam10",
+  "delta": [-10, 10],
+  "cer": 2,
+  "cal": 0.65,
+  "foil_width": 2,
+  "replay_offsets": [0, 0, 0],
+  "gmm_offsets": [0, 0, 0],
+  "beam_offsets": [0, 0, 0],
+  "closure": 0.05
+}

@@ -136,3 +136,6 @@ HMS_6p667GeV/06b_svd_fit/diagnostics/*
 !HMS_6p667GeV/config/elastic_refit.json
 !HMS_6p667GeV/config/beam.json
 !HMS_6p667GeV/config/comparison.json
+
+# Standalone full-replay sieve comparison settings.
+!HMS_6p667GeV/config/sieve.json

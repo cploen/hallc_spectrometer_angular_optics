@@ -12,6 +12,9 @@ the GMM workflow available for comparison.
 For a frozen five-matrix comparison on protected and surplus events, see
 [Matrix comparison](docs/MATRIX_COMPARISON.md).
 
+For quick GMM-versus-beam sieve plots from existing replay files, see
+[Sieve afterburner](docs/SIEVE_AFTERBURNER.md).
+
 ## 1. Software requirements
 
 The workflow requires:
