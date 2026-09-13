@@ -245,3 +245,79 @@ choosing a matrix. If cases remain unfinished, use the gap/objective/prediction
 changes and runtime to decide whether more iterations or a solver change is
 justified. Do not loosen tolerance merely to obtain a passing status. This
 study neither exports a matrix nor evaluates protected samples.
+
+## Complete convergence and refit the selected terms without penalties
+
+Run this next, using the same exports and original `enet` folds:
+
+```bash
+./run_elastic.sh HMS_6p667GeV equal15 refit --refit
+```
+
+The study uses the same twelve target/penalty cases on fold 0. It repeats the
+short initial passes because the previous `conv` output saved diagnostics but
+not resumable coefficient states. Cases stop when converged. Cases that remain
+unfinished can continue through cumulative totals of 1,000,000 and 3,000,000
+iterations at the original tolerance. It does not relax the stopping rule.
+The policy is in `config/elastic_refit.json`; existing `enet` and `conv` results
+remain unchanged.
+
+For each converged elastic-net fit, the nonzero coefficients define a proposed
+term set. The selected columns of centered/scaled **X are then solved directly
+by SVD without penalties**, using the same fitting events. The constant is
+always included and is unpenalized. The seed's xtar-dependent angular terms
+remain fixed, and delta is not fitted. A case that still fails convergence has
+checkpoint records but does not receive a selected-term refit.
+
+Three predictions are compared on identical validation events:
+
+1. `full_svd`: the full original polynomial basis, solved by scaled direct SVD.
+2. `enet`: the converged penalized elastic-net prediction.
+3. `refit_svd`: the elastic-net-selected basis, solved by scaled direct SVD
+   without penalties.
+
+Selection, centering, scaling and all coefficient estimation use **only the
+fitting portion of the fold**. Validation events score the resulting predictions;
+they do not supply the selected terms or fitted coefficients. There is no
+protected-sample evaluation, no change to allocation, and no final matrix is
+installed or exported for replay.
+
+Outputs go to `06d_elastic_net/refit/`:
+
+- `RESULTS.md`: convergence status and the three-way comparison.
+- `plots/comparison.png`: penalized and refitted validation MSE relative to
+  full-basis SVD, with selected term counts including the constant.
+- `comparison.tsv`: exact scores, selected term counts, refit rank and
+  conditioning. A count of selected terms does not guarantee full numerical
+  rank; the same saved SVD cutoff is used and the rank is reported.
+- `validation.tsv`: validation N, bias, RMS and P95, overall and by physical
+  foil/delta, setting, and setting/hole. It records all three predictions.
+- `plots/*_foil_delta.png`: elastic-net and refitted RMS ratios across all
+  physical foils and delta slices. ztar appears only for penalty combinations
+  where all three targets converged; it combines their predictions using the
+  same fixed-input HMS reconstruction diagnostic as before.
+- `plots/*_holes.png`: selected-term SVD/full-SVD RMS ratios at sieve holes,
+  with all foils and delta slices on each target/case page. Settings are pooled
+  by event count for these maps but remain separate in the table. Black outlines
+  mark fewer than `qa_min` validation events, and blank positions have no
+  validation estimate. The numbers printed in circles are **RMS ratios**, not
+  counts; counts are in `validation.tsv`. Colors saturate outside 0.5–1.5 and
+  printed numbers preserve the actual ratio.
+- `terms.tsv`, `coefficients.npz`, `seed.dat`, `folds.tsv`: term selections,
+  native coefficients, fixed terms, and exact saved fold assignments for the
+  next study. Coefficients here describe fits on two thirds of the training
+  events, not a final fit to the full balanced sample.
+- `checkpoints.tsv`, `convergence.png`, `manifest.json`, `code/`: continuation
+  diagnostics and reproducibility records as in the earlier study.
+
+The constant is included in the term counts in this comparison, whereas the
+original elastic-net report's "active slopes" count excluded it. Five-digit
+term codes must be read as strings to preserve leading zeros.
+
+If the unpenalized refit recovers the accuracy that the penalized fit lost,
+elastic net is providing useful candidate bases. If the refit remains worse,
+the removed terms or their alternatives may still be needed. Inspect local
+residuals as well as overall scores before choosing settings for the full
+three-fold study. A promising one-fold score is development evidence, not a
+final selection or proof of improvement. Beam search comes after that check,
+and it must be able to reintroduce terms excluded by elastic net.

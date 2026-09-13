@@ -310,7 +310,8 @@ def main():
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--check', action='store_true', help='Verify required exports; no outputs or fit')
     mode.add_argument('--convergence', action='store_true', help='Study solver convergence on one saved training fold')
-    p.add_argument('--source', default='enet', help='Saved fit supplying folds for --convergence')
+    mode.add_argument('--refit', action='store_true', help='Complete convergence and compare selected-term SVD refits')
+    p.add_argument('--source', default='enet', help='Saved fit supplying folds for the study')
     mode.add_argument('--evaluate', action='store_true', help='Evaluate an existing frozen fit once on protected pools')
     a = p.parse_args()
     for label in (a.tag, a.name, a.source):
@@ -324,6 +325,9 @@ def main():
             for sample in ('fit', 'holdout'):
                 data, _ = load_sample(campaign, a.tag, sample)
                 print(f'OK {sample}: {len(data["entry"]):,} exact-membership events')
+        elif a.refit:
+            from elastic_convergence import run
+            run(campaign, a.tag, a.name, a.source, refit=True)
         elif a.convergence:
             from elastic_convergence import run
             run(campaign, a.tag, a.name, a.source)

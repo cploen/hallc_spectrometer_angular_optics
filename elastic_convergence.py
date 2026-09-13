@@ -69,7 +69,7 @@ def checkpoints(x, y, gram, alpha, l1, budgets, tol):
         if converged: break
 
 
-def study(x, y, folds, cells, cfg, tol, rcond, record):
+def study(x, y, folds, cells, cfg, tol, rcond, record, on_fit=None):
     tr, va = folds != cfg['fold'], folds == cfg['fold']
     state = scaling(x[tr], y[tr])
     z, t = transform(x[tr], y[tr], state)
@@ -95,6 +95,9 @@ def study(x, y, folds, cells, cfg, tol, rcond, record):
                     previous = prediction
                     print(f'  {info["iterations"]:,} iterations; gap/tolerance={info["gap_ratio"]:.3g}; '
                           f'MSE/SVD={row["mse_ratio"]:.4g}; converged={info["converged"]}', flush=True)
+                    if info['converged'] and on_fit is not None:
+                        on_fit(j, alpha, l1, beta, dict(x=z, y=t, validation=zv, state=state,
+                                                      svd=ls, mask=va, rcond=rcond))
     return dict(training=int(sum(tr)), validation=int(sum(va)), rank=int(rank),
                 singular_values=singular.tolist(), svd_mse=baseline.tolist())
 
@@ -123,7 +126,7 @@ def plot(out, rows):
     fig.savefig(out/'convergence.png',dpi=140,bbox_inches='tight'); plt.close(fig)
 
 
-def run(campaign, tag, name, source='enet'):
+def run(campaign, tag, name, source='enet', refit=False):
     from fit_elastic import checked, load_sample, matrix_rows, problem
     parent = campaign/'06d_elastic_net'/source
     out = campaign/'06d_elastic_net'/name
@@ -136,18 +139,21 @@ def run(campaign, tag, name, source='enet'):
     a, inputs = load_sample(campaign, tag, 'fit')
     folds = saved_folds(a, read_tsv(parent/'tsv/folds.tsv'), base['config']['folds'])
     cfg = dict(DEFAULTS)
-    policy = campaign/'config/elastic_conv.json'
+    if refit: cfg['budgets'] = [20000, 100000, 300000, 1000000, 3000000]
+    policy = campaign/'config'/('elastic_refit.json' if refit else 'elastic_conv.json')
     if policy.exists(): cfg.update(json.loads(policy.read_text()))
     validate(cfg, base['config']['folds'])
-    x, y, _ = problem(a, matrix_rows(parent/'seed.dat'))
+    seed_rows = matrix_rows(parent/'seed.dat')
+    x, y, offset = problem(a, seed_rows)
     cells = np.array([f'{z}:{d}' for z,d in zip(a['ztarT'],a['ndel'])])
     out.mkdir(parents=True)
     (out/'code').mkdir()
     for file in ('elastic_convergence.py','elastic_net.py','fit_elastic.py','core_sample.py',
-                 'preallocated_svd.py','spectrometer_config.py','spectrometer_profiles.def','run_elastic.sh'):
+                 'preallocated_svd.py','spectrometer_config.py','spectrometer_profiles.def','run_elastic.sh',
+                 'elastic_refit.py','elastic_diagnostics.py'):
         shutil.copy2(PROJECT/file,out/'code'/file)
     rows = []
-    manifest = dict(schema='elastic_convergence_v1', status='running', sample=tag, source=source,
+    manifest = dict(schema='elastic_refit_v1' if refit else 'elastic_convergence_v1', status='running', sample=tag, source=source,
                     source_manifest=digest(parent/'manifest.json'), config=cfg, tol=base['config']['tol'],
                     rcond=base['config']['rcond'], inputs=inputs,
                     versions={m: importlib.metadata.version(m) for m in ('numpy','scipy','scikit-learn','uproot','matplotlib')})
@@ -157,7 +163,15 @@ def run(campaign, tag, name, source='enet'):
         write_tsv(out/'checkpoints.tsv',rows)
     save_manifest()
     try:
-        manifest['baseline'] = study(x[:,1:], y, folds, cells, cfg, manifest['tol'],manifest['rcond'],record)
+        comparison = None
+        if refit:
+            from elastic_refit import Comparison
+            from fit_elastic import basis
+            from spectrometer_config import from_campaign
+            comparison = Comparison(out, a, y, offset, basis(seed_rows), base['config']['qa_min'], from_campaign(campaign))
+            shutil.copy2(parent/'seed.dat', out/'seed.dat')
+            shutil.copy2(parent/'tsv/folds.tsv', out/'folds.tsv')
+        manifest['baseline'] = study(x[:,1:], y, folds, cells, cfg, manifest['tol'],manifest['rcond'],record, comparison)
         plot(out, rows)
         final = {}
         for r in rows: final[r['target'],r['l1'],r['alpha']] = r
@@ -172,6 +186,8 @@ def run(campaign, tag, name, source='enet'):
         text += 'If convergence is reached and scores stabilize, extend the useful settings to all saved folds. '
         text += 'If not, inspect objective, gap, KKT residual, prediction changes and runtime before raising the budget again or changing solver. '
         text += 'Do not loosen tolerance to obtain a passing status. Starts differ from the original descending-alpha warm path, so this is a controlled continuation study rather than an exact replay of its 20,000-iteration fit.\n'
+        if comparison is not None:
+            text += '\n'+comparison.finish()
         (out/'RESULTS.md').write_text(text)
         manifest['status'] = 'complete'
         manifest['converged_cases'] = sum(r['converged'] for r in final.values())
