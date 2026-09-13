@@ -1,0 +1,13 @@
+{
+  "beam": 4,
+  "threads": 8,
+  "steps": 20,
+  "patience": 3,
+  "gain": 0.001,
+  "slack": 0.005,
+  "seeds": {
+    "xptar": {"alpha": 0.00003, "l1": 0.5},
+    "ytar": {"alpha": 0.00003, "l1": 0.5},
+    "yptar": {"alpha": 0.0001, "l1": 0.5}
+  }
+}

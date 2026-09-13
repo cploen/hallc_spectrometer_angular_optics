@@ -134,3 +134,4 @@ HMS_6p667GeV/06b_svd_fit/diagnostics/*
 !HMS_6p667GeV/config/elastic.json
 !HMS_6p667GeV/config/elastic_conv.json
 !HMS_6p667GeV/config/elastic_refit.json
+!HMS_6p667GeV/config/beam.json

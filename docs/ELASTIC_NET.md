@@ -365,3 +365,6 @@ Choose a few seeds from a reasonably stable range; do not require them to beat
 full-basis SVD. Four penalty settings provide a coarse view, not a precisely
 located plateau. Sparse-hole scores remain weak evidence even after pooling.
 There is no automatic winner, new parameter scan, or final replay matrix export.
+
+The next stage can consume these products directly; see [Beam search](BEAM_SEARCH.md)
+for the seed handoff, campaign command and unpenalized SVD search procedure.
