@@ -1,0 +1,5 @@
+// Shared by C++ and Python. Lengths cm; delta in percentage points.
+// arm,prefix,cer,nx,ny,L,dx,dy,deltaMin,deltaMax,xMP,yMP,HBlinear,HBquadratic
+// SHMS centered sieve assumed by user instruction; shifted support deferred.
+HALLC_PROFILE(HMS,H,cer,9,9,168.0,2.54,1.524,-10.0,10.0,0.0,0.0,0.0,0.0)
+HALLC_PROFILE(SHMS,P,ngcer,11,11,253.0,2.5,1.64,-10.0,22.0,-0.126,-0.05,-0.0398,0.000398)
