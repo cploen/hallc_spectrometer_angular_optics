@@ -1,0 +1,49 @@
+{
+  "gmm": "06b_svd_fit/matrices/nps_hms_newfit_6p667_gmm_clean.dat",
+  "old_sha256": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+  "gmm_sha256": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+  "gmm_ids": "06b_svd_fit/diagnostics/balance/selected.npz",
+  "gmm_provenance": "06b_svd_fit/diagnostics/balance/provenance.json",
+  "offsets": {
+    "old": [
+      0.711802209,
+      0,
+      0.584959117
+    ],
+    "gmm": [
+      0,
+      0,
+      0
+    ],
+    "core": [
+      0,
+      0,
+      0
+    ],
+    "enet": [
+      0,
+      0,
+      0
+    ],
+    "beam": [
+      0,
+      0,
+      0
+    ]
+  },
+  "offset_sources": {
+    "old": "Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction",
+    "gmm": "Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting",
+    "core": "Free fitted intercept is embedded in matrix; no extra offsets",
+    "enet": "Free fitted intercept is embedded in matrix; no extra offsets",
+    "beam": "Free fitted intercept is embedded in matrix; no extra offsets"
+  },
+  "exclude_rows": {
+    "gmm": {
+      "rows": [
+        "6.95321437e-310 6.91713519e-310 6.91713527e-310  6.2746337e-322 96228528088595472097541840"
+      ],
+      "reason": "Known uninitialized fixed-xtar row from the historical parser bug, documented in 08_preliminary_conditioning/PLAIN_LANGUAGE_CLARIFICATIONS.md section 10. Exclude this invalid exponent code only; preserve every valid historical fitted coefficient. This is not the corrected-parser refit and does not establish how HCANA treated this corrupt row."
+    }
+  }
+}

@@ -96,7 +96,7 @@ def load_sample(campaign, tag, sample):
     spec = from_campaign(campaign)
     if spec.name != 'HMS': raise ValueError('Elastic TFit adapter currently supports HMS only')
     blocked = {tuple(v) for v in json.loads((source/'metadata/sieve_mask.json').read_text())['blocked']}
-    code = {'fit': 1, 'holdout': 2}[sample]
+    code = {'fit': 1, 'holdout': 2, 'surplus': 3}[sample]
     pieces = []
     settings = read_tsv(tables[0])
     if len({r['rungroup'] for r in settings}) != len(settings):
@@ -145,6 +145,8 @@ def load_sample(campaign, tag, sample):
         a['excluded'] = np.array([(int(x), int(y)) in blocked for x, y in zip(a['xscol'], a['yscol'])])
         if sample == 'fit' and np.any((a['quality'] != 2) | (a['core_keep'] != 1) | a['excluded']):
             raise ValueError('Training contains noncore or blocked labels')
+        if sample == 'surplus' and np.any(a['quality'] != 2):
+            raise ValueError('Surplus core export contains noncore events')
         a['rungroup'] = np.full(len(idx), name)
         a['angle'] = np.full(len(idx), np.deg2rad(meta['angle_deg']))
         a['delta_low'], a['delta_high'] = lo, hi

@@ -9,6 +9,9 @@ For the optional label-seeded core sample and protected holdout prototype, see
 point is `./run_core_sample.sh HMS_6p667GeV`. It writes separate outputs and leaves
 the GMM workflow available for comparison.
 
+For a frozen five-matrix comparison on protected and surplus events, see
+[Matrix comparison](docs/MATRIX_COMPARISON.md).
+
 ## 1. Software requirements
 
 The workflow requires:
