@@ -192,3 +192,56 @@ The mirrored equal15 diagnostic figures do not supply those inputs. Run the
 commands on the complete ifarm data, or expose the full balanced tag and both
 fit/holdout export directories to run the identical study locally. No real
 campaign elastic-net result or superiority claim has been produced here yet.
+
+## Bounded convergence study after the first 6.667 result
+
+The first run selected the lowest converged penalties on their paths. Many
+weaker penalties did not converge, so the original `alpha_edge=false` field
+must not be read as evidence that the search found an interior optimum. The
+original CV plot omits failed candidates; use `tsv/cv_summary.tsv` to see them.
+
+Before another full grid, run this smaller study from the repository root:
+
+```bash
+./run_elastic.sh HMS_6p667GeV equal15 conv --convergence
+```
+
+It reads the saved `enet` result and exactly reuses fold 0 from its `folds.tsv`.
+It fits all three targets at alpha 0.0001 and 0.00003, with L1 fractions 0.1 and
+0.5: twelve cases on one training/validation split. Each case starts at zero
+and continues at the **same** alpha/L1 through cumulative iteration budgets
+of 20,000, 100,000 and 300,000, stopping when converged. These budgets are totals,
+not extra iterations at each checkpoint. The original tolerance remains 1e-6;
+the script reads it from the saved fit and does not offer a tolerance override.
+The scaled direct-X SVD reference is recomputed on that same fold.
+
+This is deliberately a controlled continuation study, not an exact repetition
+of the original descending-alpha warm-start path. More iterations are the only
+change within a given case. Starts can differ from the original first run.
+Optional `config/elastic_conv.json` sets the fold, alphas, L1 fractions and
+budgets for other campaigns/studies. `--source enet2` uses a different saved
+fit if needed; use a new short output name to preserve the first study.
+
+Outputs are in `06d_elastic_net/conv/`:
+
+- `RESULTS.md`: final status and validation error relative to SVD for each case.
+- `convergence.png`: convergence gap and validation error versus iterations;
+  circles mean converged and crosses mean unfinished.
+- `checkpoints.tsv`: actual cumulative iterations, cumulative solver seconds,
+  objective, gap relative to its stopping limit, maximum coefficient optimality
+  violation (`kkt_max`), active terms, validation MSE, and prediction changes.
+  Prediction-change RMS uses mrad/cm/mrad for xptar/ytar/yptar and compares
+  consecutive checkpoints on the same validation events; the first is blank.
+- `manifest.json` and `code/`: input hashes, effective policy, versions and code.
+
+The maximum optimality violation is an additional diagnostic, not a replacement
+stopping rule. Solver time excludes input loading, SVD and plot generation.
+Unfinished cases remain visible even when their validation error looks good.
+The table is saved after every checkpoint. An interrupted study is not resumed
+or overwritten; its partial table can still inform our next decision.
+
+If useful cases converge, repeat those settings across all saved folds before
+choosing a matrix. If cases remain unfinished, use the gap/objective/prediction
+changes and runtime to decide whether more iterations or a solver change is
+justified. Do not loosen tolerance merely to obtain a passing status. This
+study neither exports a matrix nor evaluates protected samples.

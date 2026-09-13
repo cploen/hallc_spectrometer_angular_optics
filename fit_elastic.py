@@ -309,9 +309,11 @@ def main():
     p.add_argument('name', nargs='?', default='enet')
     mode = p.add_mutually_exclusive_group()
     mode.add_argument('--check', action='store_true', help='Verify required exports; no outputs or fit')
+    mode.add_argument('--convergence', action='store_true', help='Study solver convergence on one saved training fold')
+    p.add_argument('--source', default='enet', help='Saved fit supplying folds for --convergence')
     mode.add_argument('--evaluate', action='store_true', help='Evaluate an existing frozen fit once on protected pools')
     a = p.parse_args()
-    for label in (a.tag, a.name):
+    for label in (a.tag, a.name, a.source):
         if not re.fullmatch('[A-Za-z0-9][A-Za-z0-9_-]*', label): p.error('Invalid tag/name')
     campaign = (a.campaign if a.campaign.is_absolute() else PROJECT/a.campaign).resolve()
     try:
@@ -322,6 +324,9 @@ def main():
             for sample in ('fit', 'holdout'):
                 data, _ = load_sample(campaign, a.tag, sample)
                 print(f'OK {sample}: {len(data["entry"]):,} exact-membership events')
+        elif a.convergence:
+            from elastic_convergence import run
+            run(campaign, a.tag, a.name, a.source)
         elif a.evaluate:
             report = json.loads((campaign/'06d_elastic_net'/a.name/'manifest.json').read_text())
             if report['sample'] != a.tag: raise ValueError('Requested tag differs from saved fit')

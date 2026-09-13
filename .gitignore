@@ -132,3 +132,4 @@ HMS_6p667GeV/06b_svd_fit/diagnostics/*
 
 # Campaign elastic-net policy; result directories remain local until reviewed.
 !HMS_6p667GeV/config/elastic.json
+!HMS_6p667GeV/config/elastic_conv.json
