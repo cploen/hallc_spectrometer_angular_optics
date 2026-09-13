@@ -1,0 +1,151 @@
+{
+  "schema": "matrix_comparison_v1",
+  "status": "complete",
+  "sample": "equal15",
+  "source": "beam10",
+  "policy": {
+    "gmm": "06b_svd_fit/matrices/nps_hms_newfit_6p667_gmm_clean.dat",
+    "old_sha256": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+    "gmm_sha256": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+    "gmm_ids": "06b_svd_fit/diagnostics/balance/selected.npz",
+    "gmm_provenance": "06b_svd_fit/diagnostics/balance/provenance.json",
+    "offsets": {
+      "old": [
+        0.711802209,
+        0,
+        0.584959117
+      ],
+      "gmm": [
+        0,
+        0,
+        0
+      ],
+      "core": [
+        0,
+        0,
+        0
+      ],
+      "enet": [
+        0,
+        0,
+        0
+      ],
+      "beam": [
+        0,
+        0,
+        0
+      ]
+    },
+    "offset_sources": {
+      "old": "Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction",
+      "gmm": "Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting",
+      "core": "Free fitted intercept is embedded in matrix; no extra offsets",
+      "enet": "Free fitted intercept is embedded in matrix; no extra offsets",
+      "beam": "Free fitted intercept is embedded in matrix; no extra offsets"
+    },
+    "exclude_rows": {
+      "gmm": {
+        "rows": [
+          "6.95321437e-310 6.91713519e-310 6.91713527e-310  6.2746337e-322 96228528088595472097541840"
+        ],
+        "reason": "Known uninitialized fixed-xtar row from the historical parser bug, documented in 08_preliminary_conditioning/PLAIN_LANGUAGE_CLARIFICATIONS.md section 10. Exclude this invalid exponent code only; preserve every valid historical fitted coefficient. This is not the corrected-parser refit and does not establish how HCANA treated this corrupt row."
+      }
+    }
+  },
+  "inputs": {
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/manifest.json": "27b34c82cc6b1595a9508aff4092903026790e034a3a8b421d2bfadfa1bbac9d",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/seed.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/matrices/svd.dat": "00ee58f3c3efb52a1ce2c67ef3019c35ec215f4e118d687378bfb9c37fda77ec",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/matrices/start.dat": "3616dd3bf9ab5d7e8f8f73b0a990951b5184066bc840ad10bcc92f35cea0c72d",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/matrices/beam.dat": "f04237add9ea72a9b3cdb58cfcf437141300ba947837516b34ddbf18e0a0a573",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/tsv/folds.tsv": "f41a1fe7a5100824b6782e2b804af1fff56b70c2cefce9d693e3700c5da55319",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/tsv/final_fit.tsv": "2733b54d3223363e61fc760c4123acf8350062c6c7f68c12bef80aac92fe8b6c",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/matrices/nps_hms_newfit_6p667_gmm_clean.dat": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/manifest.json": "6dfcf5ae67d79cefbe83e26c49955166ee1c0dab5c4d0412b4145cb6dd3d8bf9",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/build.json": "1b8068be8a642c75f8f1cdc8bd5368206f60ad4c1e321d9c66ce05a32e7636d0",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666702_-1_fit_tree_gmm.root": "1448a1097f6fa33aa993346ccb2f6727b7edd963e023ee7f2f581a9f400f31f5",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666704_-1_fit_tree_gmm.root": "e1c988aedc262ff4dce93ad27ee9c48ea7af33d9e7fbd2c694e6a3b2207ca24a",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666707_-1_fit_tree_gmm.root": "8fb60abaeba7e15e8a24fe861af351c5f262e566e3b4efa2dcbd2f13467c2614",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666703_-1_fit_tree_gmm.root": "1190ad2b3ec071d7669ef437cc3ae710e18a80ee258f569b03e7471adab9fee6",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666706_-1_fit_tree_gmm.root": "fbcd172d3b090e9c15986f0c143bc82be534761e8e261948ea1e147e770ddbb8",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666701_-1_fit_tree_gmm.root": "e46ab86c3e3dd7dfeb606f5f0035e9593d3bd417ddf7d7708d4cef53b559c54b",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/root/Optics_666705_-1_fit_tree_gmm.root": "8b0d69fad72796c6bbec7f8c1581ec33c735d88628fcc3cc7c3361d6dad1e733",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg04_theta15p195_foilpm3.log": "9fcd54d7d358ddb6604d95e6ce67af44dffb8334060fb97af9e87370ec45412e",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg03_theta12p490_foilpm8.log": "5b34185312df340488a3764ae9525245778236f22cdb292669f7de34834398ed",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg07_theta12p495_foilpm8.log": "a0fd5deb9da057b0077baaf7bc86cd1aebd608e6d66def23c1bfd7d503c21631",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg06_theta15p195_foilpm8.log": "e1f5750d386bfeef73fca155f01c051ccc1f80f990406dc79ffc473a396ea203",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg01_theta12p490_foil0.log": "f1f4cfc51c01ce78d3639090a825d188db0a21b5d1bf5c330c5a4c0baecf6b1d",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg02_theta15p195_foil0.log": "00d8f2a80497b3ce5748bbf232950bd96cb649e019f22a0e16983faff7171333",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/holdout/logs/core_rg05_theta12p495_foilpm3.log": "87382d7352f29da5a6c99b2f1df297a46abd5acd8907fb0d06b65d32a656b26b",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/rungroups_6p667_inputs.tsv": "aea3dcae3e47735d7ea57ea0c7079a6d6f6ab6708fc58057bf7270d11444c500",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/metadata/optics.dat": "0199c6fed3faa0c567b6e3a0fd016662acdc3c5c46cd72c7d1ea9a93b4a769d4",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/metadata/sieve_mask.json": "0619043702593f0ad68490082b6a1d4da7473c86a457e159d7a09ea4e7dc067f",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg01_theta12p490_foil0.root": "201cae4ae0c257ad2d1b5e0d64f2cd9ea05cfa91583e4ca6b6e6789c93594112",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg02_theta15p195_foil0.root": "e49fac239c08a47b9197e563f22869a588d86416a23b4cc9fa3886021c2afb3a",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg03_theta12p490_foilpm8.root": "24433b26f825a0ac03f624cb3b764fc771e4c7c5e6d5ea2523dbea2c086f490b",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg04_theta15p195_foilpm3.root": "623d93f935b1d9a4acc17c99ffce347fe278c8b8785c9f863511bd7a46c737f1",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg05_theta12p495_foilpm3.root": "50af5787f649e9f8bc2770514dcb25d91560bdfc43f2e2a713064090b61c9375",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg06_theta15p195_foilpm8.root": "79877c19322b897eb5c804b93f59d86982e900c30cd948d615f18d0c9286400f",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/05c_core_sample/equal15/root/CoreSample_rg07_theta12p495_foilpm8.root": "ad9f5c07a720099a9b84854bf14b17d96a43de5958ba994fbb6af683209fc28f",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/build.json": "24bfbbc1b4ed48f06575d841febf342d7ed044d739e76b56a9448031e0255141",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666702_-1_fit_tree_gmm.root": "00b55ff6e829ebfc1f0bf0309196654d2ed6513d52b2d75426d0b168e07a499c",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666704_-1_fit_tree_gmm.root": "a8964434787a8bc612293943ca7a263194b1a83afa531ec155b6bf1704ae5d3a",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666707_-1_fit_tree_gmm.root": "6d9f1b058122a359e012285208c5ec68c888a89b40660bf566c6a38cfdb9a6cd",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666703_-1_fit_tree_gmm.root": "a514b9d4a65d21429d9ee9b0477d5252b1f687ea91c9cc19e061f0d2dcded350",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666706_-1_fit_tree_gmm.root": "220f1c406f5c7ac82982c2646148cada60096b8ba41d06650ae1008f2c2eeb2e",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666701_-1_fit_tree_gmm.root": "cc756fafb570359fcdc8508283a0d6529cbf1926a94ee5c01a7e12c26e8c8905",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/root/Optics_666705_-1_fit_tree_gmm.root": "796961bb259494e8ffab328a9fefb0b59427f70e319883d7c9c889917c192ccb",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg04_theta15p195_foilpm3.log": "4b612a64651f552caeff0e624cc513a8caf9db05eab2483874033dc274e71c63",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg03_theta12p490_foilpm8.log": "2b332dd7301a246ac81ba8d8a6b3c5ad30256da67bcb4bd31c0a2b10b331b176",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg07_theta12p495_foilpm8.log": "7c765101721eafa2ab0ce2742545a2dc3a085eead101d3c725b1b8e50629c40f",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg06_theta15p195_foilpm8.log": "f92e6f603b21b8da6007f7c169f72bb97f2c5c511d9cfaaad82462206bfe642d",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg01_theta12p490_foil0.log": "eb40102d732c3b74a6eafd0513a75488ae3958f2a99edfb13cf782e73bbf8182",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg02_theta15p195_foil0.log": "b3748a0a5210dbc1db2d3e8796a6852d46860474fea0381da2c4dc0b8559572c",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06c_core_ntuple/equal15/surplus/logs/core_rg05_theta12p495_foilpm3.log": "1ef252b01d8751760c84f74290d1c2145425d7cea0e0337f66b34b04d3dad8ac",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/diagnostics/balance/selected.npz": "41a3a8ba29c36ec2817d7cdc6284ae2253896d8a7e7d65b659fa17e130004b4f",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/diagnostics/balance/provenance.json": "3c475540d23bc59c4d4f7f887781a29273acb756617c979aa5b5a07499283266"
+  },
+  "counts": {
+    "blocked": 224,
+    "protected_core": 77864,
+    "protected_noncore": 22532,
+    "protected_unsupported": 638,
+    "surplus_core": 241978
+  },
+  "threads": 8,
+  "historical_overlap": "reconstructed GMM membership; old replay training membership unknown",
+  "outputs": {
+    "MATRIX_COMPARISON.md": "32b97ec82f7f97d20d5bed1f24c3b69e684d26f58c6bd97a4ae67b38b7b75442",
+    "residuals.npz": "c84296f6ead0ea115a15c8a16c6f96708da1c19af74b5418e62f70e7a64a05e4",
+    "code/spectrometer_profiles.def": "7ba1b787230ea26ec7f790094c59260359dfcb25de7e8592ddba93f7fe502eba",
+    "code/comparison_plots.py": "803f8e515740a4395a4f90a45f51f25ea938f65f8a12d2805dadd41f2db0b833",
+    "code/fit_elastic.py": "c19a9057a616202aeffaa380fd3686054840de34f9f44b78f844afacff733b0d",
+    "code/preallocated_svd.py": "2147017d5a9877d4748cd24a58905899b3c6e0f6cd9d518fa7ad092cfa0ce77b",
+    "code/core_sample.py": "003dc67aeea01ba28169dbf4e946d9bf454261042a9ed6aee7c1c3a43998c9d2",
+    "code/spectrometer_config.py": "adaab9dc7f8b23e2c4ec8430cd1250c72dd8c83e35b41903a7c0478625844084",
+    "code/elastic_net.py": "c0b00ffe4472fceafaac9eca8383045d09bd3267427b550dab6280e06332183f",
+    "code/elastic_diagnostics.py": "7b34f3ee2abee4ec7d91ac2cc970cb252f532e1366c287f0e3c139b5325cd181",
+    "code/compare_matrices.py": "47afd8d4ad6868ad19dd3deeda7fbbe6dbf0bc397b4031ba517f97216272bf02",
+    "code/run_compare.sh": "d9700d6e94715377577730fad3485f1b6f05277ac5b90ee2dda7b927b50721e9",
+    "plots/protected_core_foil_delta.png": "75771b8dfafbb0e308f91da10e32b8cd77c2ddb8245d2fd65d17fbf16d188721",
+    "plots/protected_noncore_tails.png": "3e2eb9a0b8caf96b0bc3a5f62459e6fd051694cfa0660f626cc0d4779011762b",
+    "plots/surplus_core_center.png": "df2f5701a340db79d40423983f0510495e54a5a191b0dee2781763a8d731d474",
+    "plots/protected_noncore_foil_delta.png": "513afca72c21d30d3b702b32cdefad6cd07983d512cc4a7e742522c6eb27dd95",
+    "plots/protected_core_tails.png": "2b1634571de179cd0cee61aee9b72e9e2beb7bf70299121e74ff97e0dc693a5e",
+    "plots/surplus_core_tails.png": "a203a35698c50095b24f5f3a2dc60b95f1d19fb574ba54cc9451fc997540cce7",
+    "plots/protected_core_center.png": "59a9db6856acc7488a68bfcabdf1c266c30b2329bbab4eef7a499046470fdd5f",
+    "plots/surplus_core_foil_delta.png": "0ab87de1c7b7eba05e4120a598c227f0130791c8986f197731f797267c5b9c35",
+    "plots/protected_noncore_center.png": "4d111f4c93a21d19bce1ad19df74027257b85153ae08cd78ae5ec554854474d5",
+    "tsv/training_conditioning.tsv": "2733b54d3223363e61fc760c4123acf8350062c6c7f68c12bef80aac92fe8b6c",
+    "tsv/residuals.tsv": "4a414559b54eed69d501dea7f6354621d821284bdb9c756bb8cbee52ff3cec4f",
+    "tsv/changes.tsv": "745bb7b8d161b35d64f4116861ecb6cfa9fffed452a6d50f758306d6c038ee05",
+    "tsv/offsets.tsv": "60b6f7ff4ca00a8ba89868362339dc0abea325fb216bfbb356763aa5c53f0079",
+    "tsv/summary.tsv": "8150d0f8f0b9897f5a64ebe3d1ec0d066bc68d8f69ea4c796fd3594d6519ab55",
+    "tsv/overlap.tsv": "5d083ae3b07aab571461b205b126d5ab252cf64dbc9aeb33cf1955ac06800318",
+    "matrices/gmm.dat": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+    "matrices/enet.dat": "3616dd3bf9ab5d7e8f8f73b0a990951b5184066bc840ad10bcc92f35cea0c72d",
+    "matrices/beam.dat": "f04237add9ea72a9b3cdb58cfcf437141300ba947837516b34ddbf18e0a0a573",
+    "matrices/core.dat": "00ee58f3c3efb52a1ce2c67ef3019c35ec215f4e118d687378bfb9c37fda77ec",
+    "matrices/old.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1"
+  }
+}
