@@ -1,0 +1,36 @@
+model	rungroup	xptar_mrad	ytar_cm	yptar_mrad	source
+old	rg01_theta12p490_foil0	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg02_theta15p195_foil0	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg03_theta12p490_foilpm8	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg04_theta15p195_foilpm3	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg05_theta12p495_foilpm3	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg06_theta15p195_foilpm8	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+old	rg07_theta12p495_foilpm8	0.711802209	0	0.584959117	Christine, 2026-09-13: legacy pre-rotation/clustering/GMM fit hphi_offset=7.11802209e-4 rad, htheta_offset=5.84959117e-4 rad; add after polynomial; no external ytar correction
+gmm	rg01_theta12p490_foil0	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg02_theta15p195_foil0	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg03_theta12p490_foilpm8	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg04_theta15p195_foilpm3	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg05_theta12p495_foilpm3	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg06_theta15p195_foilpm8	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+gmm	rg07_theta12p495_foilpm8	0	0	0	Saved GMM matrix includes active fitted 00000 coefficients; evaluate that solved matrix without adding legacy corrections, consistent with replay without offsets before fitting
+core	rg01_theta12p490_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg02_theta15p195_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg03_theta12p490_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg04_theta15p195_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg05_theta12p495_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg06_theta15p195_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+core	rg07_theta12p495_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg01_theta12p490_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg02_theta15p195_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg03_theta12p490_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg04_theta15p195_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg05_theta12p495_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg06_theta15p195_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+enet	rg07_theta12p495_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg01_theta12p490_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg02_theta15p195_foil0	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg03_theta12p490_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg04_theta15p195_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg05_theta12p495_foilpm3	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg06_theta15p195_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets
+beam	rg07_theta12p495_foilpm8	0	0	0	Free fitted intercept is embedded in matrix; no extra offsets

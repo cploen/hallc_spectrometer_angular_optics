@@ -1,0 +1,6 @@
+pool	n	gmm_seen	gmm_unseen	gmm_unknown	old_seen
+blocked	224	12	212	0	unknown
+protected_core	77864	28600	49264	0	unknown
+protected_noncore	22532	4924	17608	0	unknown
+protected_unsupported	638	233	405	0	unknown
+surplus_core	241978	71388	170590	0	unknown
