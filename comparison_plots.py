@@ -1,5 +1,6 @@
 """Frozen-matrix attribution tables, central residual zooms, and separate tail views."""
 import json
+from time import perf_counter
 import numpy as np
 from core_sample import write_tsv
 from elastic_diagnostics import groups,LABELS
@@ -50,26 +51,49 @@ def stats(v):
                 median=float(np.median(np.abs(v))),p90=float(np.percentile(np.abs(v),90)))
 
 
+def grouped_statistics(a,pool,rr):
+    """Select each group's events once per model, retaining event and TSV order."""
+    details=[];started=last=perf_counter();count=0
+    print(f'Grouped statistics: {len(pool):,} events; starting',flush=True)
+    for count,(g,sel) in enumerate(groups(a,pool),1):
+        idx=np.flatnonzero(sel)
+        qa_low=len(idx)<10
+        values={m:rr[m][idx] for m in MODELS}
+        for j,t in enumerate(TARGETS):
+            for m in MODELS:
+                details.append(dict(g,model=m,target=t,qa_low=qa_low,**stats(values[m][:,j])))
+        now=perf_counter()
+        if now-last>=5:
+            print(f'  {count:,} groups; {len(details):,} rows; {now-started:.1f}s elapsed',flush=True)
+            last=now
+    print(f'Grouped statistics complete: {count:,} groups; {len(details):,} rows; '
+          f'{perf_counter()-started:.1f}s elapsed',flush=True)
+    return details
+
+
 def report(out,a,pool,rr,known,seen,history):
+    started=perf_counter()
+    print('Summary statistics: starting',flush=True)
     cells=np.array([f'{z}:{d}' for z,d in zip(a['ztarT'],a['ndel'])])
-    summary,details,overlap,changes=[],[],[],[]
+    summary,overlap,changes=[],[],[]
     for p in np.unique(pool):
         mask=pool==p
-        overlap.append(dict(pool=p,n=int(sum(mask)),gmm_seen=int(sum(mask & known & seen)),
-                            gmm_unseen=int(sum(mask & known & ~seen)),gmm_unknown=int(sum(mask & ~known)),
+        overlap.append(dict(pool=p,n=int(np.count_nonzero(mask)),gmm_seen=int(np.count_nonzero(mask & known & seen)),
+                            gmm_unseen=int(np.count_nonzero(mask & known & ~seen)),gmm_unknown=int(np.count_nonzero(mask & ~known)),
                             old_seen='unknown'))
         if p=='blocked':continue
         for subset,sel in (('all',mask),('outside_gmm',mask & known & ~seen)):
-            if not sel.any():continue
+            idx=np.flatnonzero(sel)
+            if not len(idx):continue
+            values={m:rr[m][idx] for m in MODELS}
+            selected_cells=cells[idx]
             for j,t in enumerate(TARGETS):
                 for m in MODELS:
-                    v=rr[m][sel,j]
+                    v=values[m][:,j]
                     summary.append(dict(pool=p,subset=subset,model=m,target=t,
-                                        cell_mse=float(macro_mse(v,cells[sel])),**stats(v)))
-    for g,sel in groups(a,pool):
-        for j,t in enumerate(TARGETS):
-            for m in MODELS:
-                details.append(dict(g,model=m,target=t,qa_low=int(sum(sel))<10,**stats(rr[m][sel,j])))
+                                        cell_mse=float(macro_mse(v,selected_cells)),**stats(v)))
+            print(f'  Summary {p}/{subset}: {len(idx):,} events; {perf_counter()-started:.1f}s elapsed',flush=True)
+    details=grouped_statistics(a,pool,rr)
     for r in summary:
         index=MODELS.index(r['model'])
         for label,base in [('starting','old')]+([('previous',MODELS[index-1])] if index else []):
@@ -80,11 +104,14 @@ def report(out,a,pool,rr,known,seen,history):
                                     reference=base,comparison=label,metric=metric,value=r[metric],
                                     reference_value=b[metric],change=r[metric]-b[metric],
                                     percent_change=100*(r[metric]/b[metric]-1) if b[metric] and metric!='bias' else ''))
+    print('Writing statistics tables',flush=True)
     for f,rows in [('summary',summary),('residuals',details),('overlap',overlap),('changes',changes)]:
         write_tsv(out/f'tsv/{f}.tsv',rows)
+    print('Saving compressed residuals',flush=True)
     np.savez_compressed(out/'residuals.npz',rungroup=a['rungroup'],entry=a['entry'],pool=pool,
                         zfoil=a['ztarT'],ndel=a['ndel'],xscol=a['xscol'],yscol=a['yscol'],
                         gmm_known=known,gmm_seen=seen,targets=np.array(TARGETS),**rr)
+    print(f'Statistics and residual archive complete: {perf_counter()-started:.1f}s elapsed; plotting',flush=True)
     plots(out,pool,rr,details)
     text='# Frozen matrix comparison\n\n'
     policy=json.loads((out/'manifest.json').read_text()).get('policy',{}) if (out/'manifest.json').exists() else {}
