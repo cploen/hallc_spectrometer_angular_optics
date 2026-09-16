@@ -47,7 +47,7 @@ and saves the plotting code under `plot_code/`. The original numerical code
 snapshot, matrices, offsets, residual arrays and TSVs remain unchanged. The
 plot guide is `plots/README.md`. The historical report's old plot description
 is replaced with a link to that guide. This command does not fix the uncertain
-legacy offset convention or the slow statistics calculation in a fresh run.
+matrix identity or offset policy in saved results. Fresh-run statistics were optimized on 2026-09-16; see below.
 
 ## Offsets and the historical file
 
@@ -56,19 +56,25 @@ legacy offset convention or the slow statistics calculation in a fresh run.
 be shared by all rungroups or supplied as a rungroup-to-vector mapping. Null or
 missing values fail preflight. No correction is estimated from evaluation data.
 
-Christine supplied the legacy pre-rotation/clustering/GMM offsets on 2026-09-13:
+The replay baseline is explicitly `config/oldfit.dat`, pinned by `old_sha256`
+in `config/comparison.json`. On 2026-09-16 it was corrected to the user-supplied
+2024 matrix (`old.dat.2024`), with **zero external offsets**. The prior comparison
+used a May 2026 test matrix with legacy angular additions; its old-baseline
+results must not be interpreted as the original replay.
 
-- hphi_offset = 7.11802209e-4 rad: add 0.711802209 mrad to xptar.
-- htheta_offset = 5.84959117e-4 rad: add 0.584959117 mrad to yptar.
-- No external ytar correction is supplied.
+The 2024 matrix closes saved xsieve/ysieve to floating-point precision for
+265,877 selected rg01 events and 98,382 rg03 events, as reported by Christine.
+Commented constants are inactive. GMM, full-core, compact and beam matrices
+retain their fitted constants and zero external additions.
 
-These additions match the ordering in the upstream
-[HCANA target reconstruction](https://github.com/JeffersonLab/hcana/blob/master/src/THcHallCSpectrometer.cxx).
-Commented constant rows in the starting matrix are not active coefficients.
-The GMM, full core, compact and beam matrices have active fitted constants;
-the policy adds zero external correction to these solved matrices. We do not
-add the old offsets again. This follows replay without offsets followed by
-solving for them; it does not reproduce every historical runtime flag.
+The two seed matrices have the same ordered 461-term basis, exactly identical
+252 xtar-dependent rows and identical delta coefficients. Only the 209 free
+angular/ytar rows differ. This substitution therefore does not change the
+modern fitting objectives or basis searches. Archived seeds, manifests and
+completed comparisons remain records of what was run; do not replace them.
+The explicit `old` policy path prevents a new comparison from selecting the
+May seed archived with beam10. Use a new output name, such as `compare2024`,
+for corrected evaluation. `--replot` cannot correct saved predictions.
 
 The archived GMM output has one corrupt exponent row from the documented old
 parser bug (see `08_preliminary_conditioning/PLAIN_LANGUAGE_CLARIFICATIONS.md`,
@@ -146,3 +152,33 @@ frozen allocation, holdout/surplus exports and historical GMM membership. Verify
 historical offsets and matrix identity for that campaign. Do not copy 6.667
 values or row exclusions blindly. The TFit adapter currently accepts HMS only;
 SHMS evaluation requires its geometry/reconstruction adapter first.
+
+## Statistics performance (16 September 2026)
+
+Fresh reports count each group once and gather its residual rows once per model,
+reusing those rows across all four targets. Summary subsets likewise reuse
+indices. Group definitions, event order, statistical formulas, sparse-group
+flags and output schemas are unchanged. Progress reports show summary subsets,
+group/row counts and elapsed time, followed by table writing, compression and
+plotting stages. Existing outputs are still immutable.
+
+The former inner-loop Python `sum(sel)` traversed 343,236 events for each of
+153,620 rows (7,681 groups × 4 targets × 5 models). A local 20-call benchmark
+projected 2,474.5 seconds for counting alone. With synthetic residuals and the
+archived campaign's exact hole populations, the updated grouped pass took
+10.5 seconds; summaries, grouped statistics, TSVs and compressed residuals
+together took 15.8 seconds. This excludes ROOT loading, matrix evaluation and
+plotting, and is not a measured ifarm runtime.
+
+Reproduce the benchmark without replay inputs or changing campaign products:
+
+```bash
+python3 tests/benchmark_comparison.py
+```
+
+It checks every group identity, count, sparse flag and row order against the
+archived report. Eight comparison tests passed, including numerical parity
+with the original grouped calculation and a guard against repeated per-target
+gathers. A separate mixed-pool before/after report check produced byte-identical
+summary/residual/overlap/change TSVs and report text, plus identical NPZ arrays.
+This performance change does not select or replace any matrix or offset policy.

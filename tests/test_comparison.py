@@ -6,11 +6,44 @@ from pathlib import Path
 from unittest.mock import patch
 import numpy as np
 from compare_matrices import MODELS,read_matrix,predict,offset_rows,apply_offsets,historical_overlap,run,replot
-from comparison_plots import report,stats,tail_percent,rms_change
+from comparison_plots import report,stats,tail_percent,rms_change,grouped_statistics,TARGETS
+from elastic_diagnostics import groups
 from core_sample import read_tsv,digest
 
 
 class ComparisonTest(unittest.TestCase):
+    def test_grouped_statistics_parity_and_selection_reuse(self):
+        # Interleaved pools/settings and sparse holes, including the N=10 boundary.
+        rng=np.random.default_rng(667);n=120
+        pool=np.resize(['protected_core','protected_noncore','surplus_core',
+                        'protected_unsupported','blocked'],n)
+        a=dict(ztarT=np.resize([-8.,0.,8.],n),ndel=np.arange(n)%2,
+               rungroup=np.resize(['rg1','rg2'],n),xscol=np.arange(n)%4,yscol=np.arange(n)%3)
+        rr={m:rng.normal(size=(n,4)) for m in MODELS}
+        expected=[];ngroups=0
+        for g,sel in groups(a,pool):
+            ngroups+=1
+            for j,t in enumerate(TARGETS):
+                for m in MODELS:
+                    expected.append(dict(g,model=m,target=t,qa_low=int(sum(sel))<10,
+                                         **stats(rr[m][sel,j])))
+        class CountSelections:
+            def __init__(self,values):self.values=values;self.calls=0
+            def __getitem__(self,index):
+                # A single integer-index gather per group/model, never a mask per target.
+                self.calls+=1
+                assert isinstance(index,np.ndarray) and index.dtype.kind in 'iu'
+                return self.values[index]
+        counted={m:CountSelections(v) for m,v in rr.items()}
+        self.assertEqual(grouped_statistics(a,pool,counted),expected)
+        self.assertTrue(all(v.calls==ngroups for v in counted.values()))
+        # Explicit single-hole groups at N=1, 9, 10, plus blocked-only input.
+        for size in (1,9,10):
+            data={k:v[:size]*0 if v.dtype.kind!='U' else np.full(size,'rg') for k,v in a.items()}
+            rows=grouped_statistics(data,np.full(size,'protected_core'),{m:v[:size] for m,v in rr.items()})
+            self.assertTrue(all(r['n']==size and r['qa_low']==(size<10) for r in rows))
+        self.assertEqual(grouped_statistics(a,np.full(n,'blocked'),rr),[])
+
     def test_matrix_comments_units_and_offsets(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'matrix.dat'
