@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 import numpy as np
-from compare_matrices import MODELS,read_matrix,predict,offset_rows,apply_offsets,historical_overlap,run
-from comparison_plots import report,stats
-from core_sample import read_tsv
+from compare_matrices import MODELS,read_matrix,predict,offset_rows,apply_offsets,historical_overlap,run,replot
+from comparison_plots import report,stats,tail_percent,rms_change
+from core_sample import read_tsv,digest
 
 
 class ComparisonTest(unittest.TestCase):
@@ -68,6 +68,34 @@ class ComparisonTest(unittest.TestCase):
                 r=next(r for r in rows if r['model']==m and r['target']=='xptar' and r['subset']=='all')
                 self.assertAlmostEqual(float(r['rms'])**2,float(r['bias'])**2+float(r['spread'])**2)
             saved=np.load(out/'residuals.npz');np.testing.assert_array_equal(saved['entry'],a['entry'])
+
+    def test_tail_percent_and_change(self):
+        # Ties count at the threshold; zooming must not change the denominator.
+        np.testing.assert_allclose(tail_percent(np.array([0.,1.,1.,4.]),np.array([0.,1.,2.,4.,5.])),[100,75,25,25,0])
+        self.assertAlmostEqual(rms_change(1.8,2.),-10.)
+        self.assertTrue(np.isnan(rms_change(1.,0.)))
+
+    def test_replot_saved_results_without_evaluation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            campaign=Path(tmp);out=campaign/'07_diagnostics/compare';(out/'tsv').mkdir(parents=True)
+            n=24;a=dict(entry=np.arange(n),rungroup=np.full(n,'rg'),ztarT=np.repeat([-8.,0.,8.],8),
+                        ndel=np.tile(np.repeat([0,1],4),3),xscol=np.ones(n,int),yscol=np.ones(n,int))
+            pool=np.full(n,'protected_core');known=np.ones(n,bool)
+            residual=np.tile(np.linspace(-1,1,n)[:,None],(1,4));rr={m:residual*(1+i*.1) for i,m in enumerate(MODELS)}
+            with patch('comparison_plots.plots'):report(out,a,pool,rr,known,~known,{'method':'fixture'})
+            hashes={str(p.relative_to(out)):digest(p) for p in out.rglob('*') if p.is_file()}
+            (out/'manifest.json').write_text(json.dumps(dict(schema='matrix_comparison_v1',status='complete',sample='test',outputs=hashes)))
+            with patch('compare_matrices.prepare',side_effect=AssertionError('must not load source events')), \
+                 patch('compare_matrices.predict',side_effect=AssertionError('must not evaluate')), \
+                 patch('comparison_plots.report',side_effect=AssertionError('must not repeat statistics')):
+                replot(campaign,'test','compare')
+            for rel,sha in hashes.items():
+                if rel!='MATRIX_COMPARISON.md':self.assertEqual(digest(out/rel),sha)
+            self.assertEqual(len(list((out/'plots').glob('*.png'))),5)
+            manifest=json.loads((out/'manifest.json').read_text())
+            for rel,sha in manifest['outputs'].items():self.assertEqual(digest(out/rel),sha)
+            (out/'tsv/residuals.tsv').write_text('modified')
+            with self.assertRaises(ValueError):replot(campaign,'test','compare')
 
 
 if __name__=='__main__':unittest.main()

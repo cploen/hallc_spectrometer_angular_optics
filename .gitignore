@@ -139,3 +139,18 @@ HMS_6p667GeV/06b_svd_fit/diagnostics/*
 
 # Standalone full-replay sieve comparison settings.
 !HMS_6p667GeV/config/sieve.json
+
+# Reviewed comparison figures and their small replot provenance; keep event arrays local.
+!HMS_6p667GeV/07_diagnostics/
+HMS_6p667GeV/07_diagnostics/*
+!HMS_6p667GeV/07_diagnostics/compare/
+HMS_6p667GeV/07_diagnostics/compare/*
+!HMS_6p667GeV/07_diagnostics/compare/manifest.json
+!HMS_6p667GeV/07_diagnostics/compare/MATRIX_COMPARISON.md
+!HMS_6p667GeV/07_diagnostics/compare/plots/
+HMS_6p667GeV/07_diagnostics/compare/plots/*
+!HMS_6p667GeV/07_diagnostics/compare/plots/*.png
+!HMS_6p667GeV/07_diagnostics/compare/plots/README.md
+!HMS_6p667GeV/07_diagnostics/compare/plot_code/
+HMS_6p667GeV/07_diagnostics/compare/plot_code/*
+!HMS_6p667GeV/07_diagnostics/compare/plot_code/*.py

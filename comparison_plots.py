@@ -6,10 +6,43 @@ from elastic_diagnostics import groups,LABELS
 from elastic_net import macro_mse
 
 MODELS=('old','gmm','core','enet','beam')
-NAMES=dict(old='Old replay + offsets',gmm='GMM fit + offsets',core='Full core SVD',
+NAMES=dict(old='Old replay + offsets',gmm='GMM SVD',core='Full core SVD',
            enet='EN-selected SVD',beam='Beam')
 TARGETS=('xptar','ytar','yptar','ztar')
 POOLS=('protected_core','protected_noncore','surplus_core')
+PAIRS=(('gmm','old'),('core','gmm'),('enet','core'),('beam','enet'),('beam','core'),('beam','gmm'))
+PLOT_GUIDE='''# Reading the comparison plots
+
+- `*_center.png`: signed residuals near zero. Each bin shows a percentage of
+  **all events in that pool**, with common bins for every matrix. The window is
+  ±beam P90; the legend in each panel reports the percentage visible. No curve
+  is recentered. A narrower, taller peak is not by itself evidence of less bias.
+- `*_tails.png`: percentage of events with an absolute residual at least as
+  large as the horizontal threshold. For example, 1% at 3 mrad means 1% of the
+  pool has |residual| ≥3 mrad. Lower is better. The horizontal axis is linear,
+  from zero to the largest P99.9 among the five matrices; the vertical axis is
+  logarithmic, labelled in percent with 10%, 1%, and 0.1% guides.
+- `*_extremes.png`: a separate full-range tail view, with logarithmic axes.
+  This retains the rare extremes beyond the main tail view. Both tail figures
+  use the entire pool as denominator; zooming never renormalizes the data.
+- `*_foil_delta.png`: absolute RMS, all five matrices, all populated physical
+  foils and delta slices. Each target uses a common color scale across matrices.
+- `*_change.png`: RMS change, 100 × (new/reference − 1), for each foil/delta
+  cell. Blue/negative means smaller RMS; red/positive means larger RMS. Colors
+  saturate at ±20%; printed values remain exact to the displayed precision.
+  Zero reference RMS or absent cells have no defined percentage and show “—”.
+
+Angular residuals are at the target in **mrad**; ytar and derived ztar are in
+**cm**. N is the number of evaluation events, identical for both matrices in
+each comparison. An asterisk marks N<10 for caution; it never excludes events.
+RMS includes bias and is not a fitted Gaussian resolution. Consult bias and
+mean-subtracted spread in the unchanged TSVs as well. The historical old-matrix
+offset convention remains provisional; changing the plots does not resolve it.
+
+Protected cores and protected noncore events are separate. Surplus cores are
+development coverage. These figures change presentation only, not matrices,
+offsets, event membership, or residuals.
+'''
 
 
 def stats(v):
@@ -52,7 +85,7 @@ def report(out,a,pool,rr,known,seen,history):
     np.savez_compressed(out/'residuals.npz',rungroup=a['rungroup'],entry=a['entry'],pool=pool,
                         zfoil=a['ztarT'],ndel=a['ndel'],xscol=a['xscol'],yscol=a['yscol'],
                         gmm_known=known,gmm_seen=seen,targets=np.array(TARGETS),**rr)
-    plots(out,a,pool,rr,details)
+    plots(out,pool,rr,details)
     text='# Frozen matrix comparison\n\n'
     policy=json.loads((out/'manifest.json').read_text()).get('policy',{}) if (out/'manifest.json').exists() else {}
     for m,item in policy.get('exclude_rows',{}).items():
@@ -91,13 +124,10 @@ def report(out,a,pool,rr,known,seen,history):
            'not counted as unseen. Training membership for the old replay matrix remains unknown. Thus '
            'the all-events historical comparison is descriptive; new-fit held-out performance must not '
            'be confused with an independently held-out test of every historical matrix.\n\n'
-           'plots/*_center.png zoom to ± the beam P90 absolute residual, with linear vertical axes and '
-           'identical bins for every matrix. Densities are normalized to the entire pool, not just the '
-           'visible events; percentages in the panel list how much each curve shows. No residual is '
-           'recentered for the plot. plots/*_tails.png shows the fraction at or beyond each absolute '
-           'residual over the full range. plots/*_foil_delta.png shows absolute RMS for all five matrices, '
-           'with shared scales and N. Full bias, spread, median and P90 down to setting/hole are in '
-           'tsv/residuals.tsv; qa_low flags N<10 and never changes the sample.\n\n'
+           'Read plots/README.md for the central residual, tail, extreme-tail and foil/delta figures. '
+           'Central bins and tail probabilities are percentages of the entire pool. Percent-change '
+           'heat maps complement absolute RMS maps. Full bias, spread, median and P90 down to '
+           'setting/hole are in tsv/residuals.tsv; qa_low flags N<10 and never changes the sample.\n\n'
            'tsv/changes.tsv reports both previous-stage and starting-matrix differences; negative width '
            'changes mean improvement. Mean cell MSE gives equal weight to populated foil/delta cells; '
            'other pooled statistics weight events equally. tsv/training_conditioning.tsv preserves the '
@@ -110,57 +140,105 @@ def report(out,a,pool,rr,known,seen,history):
     (out/'MATRIX_COMPARISON.md').write_text(text)
 
 
-def plots(out,a,pool,rr,details):
-    import matplotlib
-    matplotlib.use('Agg')
+
+def tail_percent(sorted_absolute, thresholds):
+    """Percentage at or beyond each threshold, including ties and all pool events."""
+    return 100*(len(sorted_absolute)-np.searchsorted(sorted_absolute,thresholds,side='left'))/len(sorted_absolute)
+
+
+def rms_change(value, reference):
+    return 100*(value/reference-1) if reference>0 else np.nan
+
+
+def heatmaps(out,p,details):
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
-    colors=('0.35','C1','C0','C4','C2');styles=(':','--','-','-.','-')
-    for p in POOLS:
-        sel=pool==p
-        if not sel.any():continue
-        center,axes=plt.subplots(1,4,figsize=(18,4.5),constrained_layout=True)
-        tails,tax=plt.subplots(1,4,figsize=(18,4.5),constrained_layout=True)
-        for j,(ax,tx) in enumerate(zip(axes,tax)):
-            limit=max(float(np.percentile(np.abs(rr['beam'][sel,j]),90)),1e-9)
-            bins=np.linspace(-limit,limit,81);mid=(bins[:-1]+bins[1:])/2
-            fractions=[]
-            for m,color,style in zip(MODELS,colors,styles):
-                v=rr[m][sel,j];count,_=np.histogram(v,bins)
-                ax.plot(mid,count/(len(v)*np.diff(bins)),color=color,ls=style,label=NAMES[m])
-                fractions.append(f'{NAMES[m]}: {100*np.mean(np.abs(v)<=limit):.1f}% visible')
-                # Exact empirical survival at sampled unique values, including tied residuals.
-                sorted_v=np.sort(np.abs(v));absolute,first=np.unique(sorted_v,return_index=True)
-                take=np.unique(np.linspace(0,len(absolute)-1,min(700,len(absolute))).astype(int))
-                positive=absolute[take]>0;take=take[positive]
-                tx.plot(absolute[take],(len(v)-first[take])/len(v),color=color,ls=style,label=NAMES[m])
-            ax.set(xlabel=LABELS[j],ylabel='Density per physical unit',title='Central signed residual',xlim=(-limit,limit))
-            ax.text(.02,.98,'\n'.join(fractions),va='top',transform=ax.transAxes,fontsize=6)
-            tx.set(xlabel='Absolute '+LABELS[j],ylabel='Fraction at or beyond',xscale='log',yscale='log',title='Full-range tails')
-        center.legend(*axes[-1].get_legend_handles_labels(), loc='outside lower center', ncol=5, fontsize=8)
-        tax[-1].legend(fontsize=7)
-        center.suptitle(f'{p}: N={sum(sel):,}; central window = ±beam P90; no recentering')
-        tails.suptitle(f'{p}: all events included in tail probabilities')
-        center.savefig(out/f'plots/{p}_center.png',dpi=140);plt.close(center)
-        tails.savefig(out/f'plots/{p}_tails.png',dpi=140);plt.close(tails)
-        local=[r for r in details if r['pool']==p and r['level']=='foil_delta']
-        foils=sorted({r['zfoil'] for r in local});deltas=sorted({r['ndel'] for r in local})
-        lookup={(r['model'],r['target'],r['zfoil'],r['ndel']):r for r in local}
-        fig,grid=plt.subplots(5,4,figsize=(17,15),constrained_layout=True)
+    local=[r for r in details if r['pool']==p and r['level']=='foil_delta']
+    if not local:return
+    foils=sorted({r['zfoil'] for r in local});deltas=sorted({r['ndel'] for r in local})
+    lookup={(r['model'],r['target'],r['zfoil'],r['ndel']):r for r in local}
+    for change in (False,True):
+        rows=PAIRS if change else [(m,None) for m in MODELS]
+        fig,grid=plt.subplots(len(rows),4,figsize=(17,3*len(rows)),constrained_layout=True)
         for j,t in enumerate(TARGETS):
-            norm=Normalize(0,max((r['rms'] for r in local if r['target']==t),default=1) or 1)
-            for i,m in enumerate(MODELS):
+            norm=Normalize(-20,20) if change else Normalize(0,max(r['rms'] for r in local if r['target']==t) or 1)
+            cmap=plt.get_cmap('RdBu_r' if change else 'viridis').with_extremes(bad='0.9')
+            for i,(m,base) in enumerate(rows):
                 ax=grid[i,j];values=np.full((len(foils),len(deltas)),np.nan)
                 for zi,z in enumerate(foils):
                     for di,d in enumerate(deltas):
-                        r=lookup.get((m,t,z,d))
-                        if r:
-                            values[zi,di]=r['rms']
-                            ax.text(di,zi,f"{r['rms']:.3f}\nN={r['n']}",ha='center',va='center',fontsize=5,
-                                    color='white' if norm(r['rms'])<.5 else 'black')
-                im=ax.imshow(values,norm=norm,cmap='viridis',aspect='auto')
-                ax.set(title=f'{NAMES[m]}: {LABELS[j]}',xticks=range(len(deltas)),xticklabels=deltas,
+                        r=lookup.get((m,t,z,d));b=lookup.get((base,t,z,d))
+                        v=rms_change(r['rms'],b['rms']) if change and r and b else (r['rms'] if r and not change else np.nan)
+                        values[zi,di]=v
+                        label=f'{v:+.1f}%' if change else f'{v:.3f}'
+                        if not np.isfinite(v):label='—'
+                        if r:label+=f"\nN={r['n']}{'*' if r['n']<10 else ''}"
+                        rgba=cmap(norm(v)) if np.isfinite(v) else (.9,.9,.9,1)
+                        luminance=np.dot(rgba[:3],[.2126,.7152,.0722])
+                        ax.text(di,zi,label,ha='center',va='center',fontsize=6,color='black' if luminance>.5 else 'white')
+                im=ax.imshow(values,norm=norm,cmap=cmap,aspect='auto')
+                title=f'{NAMES[m]} vs {NAMES[base]}' if change else NAMES[m]
+                ax.set_title(f'{title}\n{LABELS[j]}',fontsize=10)
+                ax.set(xticks=range(len(deltas)),xticklabels=deltas,
                        yticks=range(len(foils)),yticklabels=foils,xlabel='Delta slice',ylabel='Foil (cm)')
-            fig.colorbar(im,ax=grid[:,j].tolist(),label='RMS residual',shrink=.6)
-        fig.suptitle(f'{p}: absolute RMS on identical events; color scale shared vertically')
-        fig.savefig(out/f'plots/{p}_foil_delta.png',dpi=140);plt.close(fig)
+            if not change:fig.colorbar(im,ax=grid[:,j].tolist(),label='RMS residual',shrink=.6)
+        if change:fig.colorbar(im,ax=grid.ravel().tolist(),label='RMS change (%)',extend='both',shrink=.6)
+        title=('RMS change: blue = smaller; red = larger; colors saturate at ±20%' if change else
+               'absolute RMS on identical events; color scale shared vertically')
+        fig.suptitle(f'{p}: {title}\n* N<10; no events excluded')
+        suffix='change' if change else 'foil_delta'
+        fig.savefig(out/f'plots/{p}_{suffix}.png',dpi=140);plt.close(fig)
+
+
+def plots(out,pool,rr,details):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter, FixedLocator, NullFormatter
+    colors=('0.35','C1','C0','C4','C2');styles=(':','--','-','-.','-')
+    (out/'plots').mkdir(exist_ok=True)
+    (out/'plots/README.md').write_text(PLOT_GUIDE)
+    for p in POOLS:
+        sel=pool==p
+        if not sel.any():continue
+        n=int(np.count_nonzero(sel));values={m:rr[m][sel] for m in MODELS}
+        print(f'Plot {p}: {n:,} events',flush=True)
+        center,axes=plt.subplots(1,4,figsize=(18,5),constrained_layout=True)
+        tails,tax=plt.subplots(1,4,figsize=(18,5),constrained_layout=True)
+        extremes,eax=plt.subplots(1,4,figsize=(18,5),constrained_layout=True)
+        for j,(ax,tx,ex) in enumerate(zip(axes,tax,eax)):
+            limit=max(float(np.percentile(np.abs(values['beam'][:,j]),90)),1e-9)
+            tail_limit=max(max(float(np.percentile(np.abs(v[:,j]),99.9)) for v in values.values()),1e-9)
+            bins=np.linspace(-limit,limit,81)
+            thresholds=np.linspace(0,tail_limit,701)
+            fractions=[]
+            for m,color,style in zip(MODELS,colors,styles):
+                v=values[m][:,j];count,_=np.histogram(v,bins)
+                ax.stairs(100*count/len(v),bins,color=color,ls=style,label=NAMES[m])
+                fractions.append(f'{NAMES[m]}: {100*np.mean(np.abs(v)<=limit):.1f}% visible')
+                sorted_v=np.sort(np.abs(v))
+                tx.plot(thresholds,tail_percent(sorted_v,thresholds),color=color,ls=style,label=NAMES[m])
+                # More samples in the rare tail; probabilities remain exact at each threshold.
+                take=np.unique(np.rint(len(v)-np.geomspace(len(v),1,min(700,len(v)))).astype(int))
+                absolute=np.unique(sorted_v[take]);absolute=absolute[absolute>0]
+                if len(absolute):
+                    ex.step(absolute,tail_percent(sorted_v,absolute),where='pre',color=color,ls=style,label=NAMES[m])
+            ax.set(xlabel='Residual '+LABELS[j],ylabel='Events per bin (%)',title='Central signed residual',xlim=(-limit,limit))
+            ax.text(.02,.98,'\n'.join(fractions),va='top',transform=ax.transAxes,fontsize=6)
+            for view in (tx,ex):
+                view.set(xlabel='Absolute residual '+LABELS[j],ylabel='Events at or beyond threshold (%)',yscale='log')
+                for y in (10,1,.1):view.axhline(y,color='0.7',ls=':',lw=.8,zorder=0)
+                ticks=[v for v in (100,10,1,.1,.01,.001,.0001) if v>=min(.1,50/n)]
+                view.yaxis.set_major_locator(FixedLocator(ticks))
+                view.yaxis.set_major_formatter(FuncFormatter(lambda v,pos:f'{v:g}%'))
+                view.yaxis.set_minor_formatter(NullFormatter())
+            tx.set(xlim=(0,tail_limit),ylim=(.1,105),title='Main tails: linear residual axis')
+            ex.set(xscale='log',ylim=(min(.05,50/n),105),title='Rare extremes: full residual range')
+        for fig,axs,suffix,title in (
+            (center,axes,'center','central window = ±beam P90; no recentering'),
+            (tails,tax,'tails','linear range to largest P99.9; rarer tails in the extremes figure'),
+            (extremes,eax,'extremes','full-range tails; both axes logarithmic')):
+            fig.legend(*axs[0].get_legend_handles_labels(),loc='outside lower center',ncol=5,fontsize=8)
+            fig.suptitle(f'{p}: N={n:,}; {title}\nPercentages use all events in this pool')
+            fig.savefig(out/f'plots/{p}_{suffix}.png',dpi=140);plt.close(fig)
+        heatmaps(out,p,details)

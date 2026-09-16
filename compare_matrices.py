@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Frozen five-matrix comparison on protected and surplus events; never fit coefficients."""
 import argparse
+import csv
 import json
 import re
 import shutil
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 import numpy as np
 from threadpoolctl import threadpool_limits
@@ -177,16 +180,65 @@ def run(campaign,tag,name,source,policy,threads=8,check=False):
     print(f'Frozen comparison complete: {out}. Coefficients were not refitted.',flush=True)
 
 
+def replot(campaign,tag,name):
+    """Redraw a completed comparison from saved residuals, without prediction or statistics."""
+    from comparison_plots import plots,TARGETS
+    out=campaign/'07_diagnostics'/name
+    manifest_path=out/'manifest.json'
+    manifest=json.loads(manifest_path.read_text())
+    if (manifest.get('schema'),manifest.get('status'),manifest.get('sample'))!=('matrix_comparison_v1','complete',tag):
+        raise ValueError('Replot requires a completed comparison for the same sample')
+    hashes={}
+    for rel in ('residuals.npz','tsv/residuals.tsv'):
+        if not (out/rel).exists():raise FileNotFoundError(f'Replot needs saved {out/rel}; run on the machine holding the original comparison')
+        checked(out/rel,manifest['outputs'][rel],hashes)
+    print('Saved residuals and tables verified; redrawing only. No matrix evaluation or grouped statistics.',flush=True)
+    with np.load(out/'residuals.npz',allow_pickle=False) as saved:
+        if tuple(saved['targets'])!=TARGETS:raise ValueError('Unexpected saved residual target order')
+        pool=saved['pool'];rr={m:saved[m] for m in MODELS}
+    if pool.ndim!=1 or any(v.shape!=(len(pool),len(TARGETS)) or not np.isfinite(v).all() for v in rr.values()):
+        raise ValueError('Invalid saved residual arrays')
+    with (out/'tsv/residuals.tsv').open(newline='') as f:
+        details=[r for r in csv.DictReader(f,delimiter='\t') if r['level']=='foil_delta']
+    for r in details:
+        for k in ('zfoil','rms'):r[k]=float(r[k])
+        for k in ('ndel','n'):r[k]=int(r[k])
+    # Generate everything before replacing existing figures; retain the original numerical code snapshot.
+    with tempfile.TemporaryDirectory(prefix='.replot-',dir=out) as tmp:
+        stage=Path(tmp);plots(stage,pool,rr,details)
+        (stage/'plot_code').mkdir()
+        for file in ('compare_matrices.py','comparison_plots.py'):shutil.copy2(PROJECT/file,stage/'plot_code'/file)
+        report_path=out/'MATRIX_COMPARISON.md'
+        if report_path.exists():
+            text=report_path.read_text()
+            text=re.sub(r'(?ms)^plots/\*_center\.png.*?\n\n',
+                        'Read [plots/README.md](plots/README.md) for the revised figures. Plotting changes do not change the saved residuals or numerical tables.\n\n',text)
+            (stage/report_path.name).write_text(text)
+        updated={str(p.relative_to(stage)):digest(p) for p in stage.rglob('*') if p.is_file()}
+        for rel in updated:
+            (out/rel).parent.mkdir(exist_ok=True)
+            (stage/rel).replace(out/rel)
+    manifest['outputs'].update(updated)
+    manifest['replot']=dict(time=datetime.now(timezone.utc).isoformat(),inputs=hashes,
+                            code='plot_code',note='Presentation only; residuals, tables, matrices and offsets unchanged')
+    pending=out/'manifest.json.tmp';pending.write_text(json.dumps(manifest,indent=2)+'\n');pending.replace(manifest_path)
+    print(f'Plots refreshed: {out}/plots. Numerical results unchanged.',flush=True)
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('campaign',type=Path);p.add_argument('tag',nargs='?',default='equal15')
     p.add_argument('name',nargs='?',default='compare');p.add_argument('--source',default='beam10')
     p.add_argument('--threads',type=int,default=8);p.add_argument('--check',action='store_true')
+    p.add_argument('--replot',action='store_true',help='refresh plots from an existing comparison; do not evaluate matrices again')
     a=p.parse_args()
+    if a.replot and a.check:p.error('--replot and --check are separate modes')
     for v in (a.tag,a.name,a.source):
         if not re.fullmatch('[A-Za-z0-9][A-Za-z0-9_-]*',v):p.error('Invalid tag/name/source')
     campaign=(a.campaign if a.campaign.is_absolute() else PROJECT/a.campaign).resolve()
     try:
+        if a.replot:
+            replot(campaign,a.tag,a.name);return
         policy=json.loads((campaign/'config/comparison.json').read_text())
         allowed={'old','gmm','old_sha256','gmm_sha256','gmm_ids','gmm_provenance','offsets','offset_sources','exclude_rows'}
         if set(policy)-allowed or not {'gmm','gmm_ids','gmm_provenance'}<=set(policy):raise ValueError('Invalid comparison policy')

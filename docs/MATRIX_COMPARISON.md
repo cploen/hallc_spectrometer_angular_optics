@@ -28,6 +28,27 @@ use a different short output name for another explicitly documented comparison.
 Local Mac evaluation requires the allocation masks/manifest and both evaluation
 TFit exports. PNGs and beam matrices alone are insufficient.
 
+## Refresh existing plots quickly
+
+For the completed `compare` result, run on ifarm, where `residuals.npz` is saved:
+
+```bash
+./run_compare.sh HMS_6p667GeV equal15 compare --replot
+```
+
+This checks the saved residual-array and table checksums, then redraws the plots
+in the existing `compare/plots/` directory. It does **not** reload ROOT files,
+evaluate matrices, refit, or repeat the slow grouped statistics. It prints
+progress for each event pool. Keep the saved `residuals.npz` on ifarm; PNGs and
+summary tables alone cannot reproduce the residual histograms.
+
+`--replot` explicitly replaces the figures, updates their manifest checksums,
+and saves the plotting code under `plot_code/`. The original numerical code
+snapshot, matrices, offsets, residual arrays and TSVs remain unchanged. The
+plot guide is `plots/README.md`. The historical report's old plot description
+is replaced with a link to that guide. This command does not fix the uncertain
+legacy offset convention or the slow statistics calculation in a fresh run.
+
 ## Offsets and the historical file
 
 `config/comparison.json` specifies external additions in this order:
@@ -62,12 +83,23 @@ is not established by this evaluation.
 
 Start with `MATRIX_COMPARISON.md`, then:
 
-- `plots/*_center.png`: signed residuals near zero, common bins, linear density
-  axis, no recentering. Window is ±beam P90. Each curve lists its visible fraction;
-  density normalization uses the full pool so clipping cannot hide event loss.
-- `plots/*_tails.png`: full-range absolute-residual survival curves.
+- `plots/*_center.png`: signed residuals near zero, common bins, **events per
+  bin (%)**, no recentering. Window is ±beam P90. Each curve lists its visible
+  fraction; percentages use the full pool so clipping cannot hide event loss.
+- `plots/*_tails.png`: percentage of events at or beyond each absolute residual.
+  Linear horizontal axis out to the largest P99.9 among the matrices; logarithmic
+  percentage axis with 10%, 1%, and 0.1% guides. For example, 1% at 3 mrad means
+  1% of the pool has |residual| ≥3 mrad. Lower is better.
+- `plots/*_extremes.png`: separate full-range tails on logarithmic axes, including
+  the rare events beyond the main tail window. Neither tail view renormalizes
+  when zoomed.
 - `plots/*_foil_delta.png`: all physical foils and delta slices, all five models,
   absolute RMS with common color scale per target and counts in each cell.
+- `plots/*_change.png`: percent RMS change for each consecutive stage, plus beam
+  versus full core and beam versus GMM. Blue/negative means smaller RMS;
+  red/positive means larger RMS. Colors saturate at ±20%, but printed values
+  are not clipped. Undefined changes (missing cells or zero reference RMS) show
+  “—”. Counts are shown; N<10 has an asterisk and never changes allocation.
 - `tsv/summary.tsv` and `changes.tsv`: bias, mean-subtracted spread, RMS, median
   absolute residual, P90 absolute residual and equal-cell MSE; changes relative
   to both the previous stage and the starting matrix.
