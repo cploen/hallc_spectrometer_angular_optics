@@ -115,7 +115,7 @@
   "threads": 8,
   "historical_overlap": "reconstructed GMM membership; old replay training membership unknown",
   "outputs": {
-    "MATRIX_COMPARISON.md": "32b97ec82f7f97d20d5bed1f24c3b69e684d26f58c6bd97a4ae67b38b7b75442",
+    "MATRIX_COMPARISON.md": "8f501b6727b1f782d08ee8e7b40a37894f79bbabd97b028dc02930450eac07c8",
     "residuals.npz": "c84296f6ead0ea115a15c8a16c6f96708da1c19af74b5418e62f70e7a64a05e4",
     "code/spectrometer_profiles.def": "7ba1b787230ea26ec7f790094c59260359dfcb25de7e8592ddba93f7fe502eba",
     "code/comparison_plots.py": "803f8e515740a4395a4f90a45f51f25ea938f65f8a12d2805dadd41f2db0b833",
@@ -127,15 +127,15 @@
     "code/elastic_diagnostics.py": "7b34f3ee2abee4ec7d91ac2cc970cb252f532e1366c287f0e3c139b5325cd181",
     "code/compare_matrices.py": "47afd8d4ad6868ad19dd3deeda7fbbe6dbf0bc397b4031ba517f97216272bf02",
     "code/run_compare.sh": "d9700d6e94715377577730fad3485f1b6f05277ac5b90ee2dda7b927b50721e9",
-    "plots/protected_core_foil_delta.png": "75771b8dfafbb0e308f91da10e32b8cd77c2ddb8245d2fd65d17fbf16d188721",
-    "plots/protected_noncore_tails.png": "3e2eb9a0b8caf96b0bc3a5f62459e6fd051694cfa0660f626cc0d4779011762b",
-    "plots/surplus_core_center.png": "df2f5701a340db79d40423983f0510495e54a5a191b0dee2781763a8d731d474",
-    "plots/protected_noncore_foil_delta.png": "513afca72c21d30d3b702b32cdefad6cd07983d512cc4a7e742522c6eb27dd95",
-    "plots/protected_core_tails.png": "2b1634571de179cd0cee61aee9b72e9e2beb7bf70299121e74ff97e0dc693a5e",
-    "plots/surplus_core_tails.png": "a203a35698c50095b24f5f3a2dc60b95f1d19fb574ba54cc9451fc997540cce7",
-    "plots/protected_core_center.png": "59a9db6856acc7488a68bfcabdf1c266c30b2329bbab4eef7a499046470fdd5f",
-    "plots/surplus_core_foil_delta.png": "0ab87de1c7b7eba05e4120a598c227f0130791c8986f197731f797267c5b9c35",
-    "plots/protected_noncore_center.png": "4d111f4c93a21d19bce1ad19df74027257b85153ae08cd78ae5ec554854474d5",
+    "plots/protected_core_foil_delta.png": "f80d519f245eccda6c659d85c37a60d2181c9e5275269d02fd4a22e7cdd76409",
+    "plots/protected_noncore_tails.png": "a91e6bfc772f618e5411353577bf3ef657d7aeed6122970d794e30f6694a9741",
+    "plots/surplus_core_center.png": "ffa381360775b157acf45be943e1d933278d271431dcaceb835de9414494aa24",
+    "plots/protected_noncore_foil_delta.png": "6449137e800dc0fc19aa12537db37364ebc6fb54ffcca4ebe0d88fa68f75f7da",
+    "plots/protected_core_tails.png": "fc2708310d96d1316183a979db3a15992602eacb08b7906ff2dc8a3dfa31c7c6",
+    "plots/surplus_core_tails.png": "645b23b9e758a1e7641d081a10810067f067ea38846814d8946a9d6e145f42e9",
+    "plots/protected_core_center.png": "e516c250ddc94bd54298aee46a9f7dd9d356e8d43d24867e265122fce93fe9a1",
+    "plots/surplus_core_foil_delta.png": "acb5b4342a051f001db37fc22f729e0bec2dacec04b21df622fee5db47c9de1e",
+    "plots/protected_noncore_center.png": "7bfc899a53edd6812e656b363b3dcd1e786938b7235be5171cb8b500af7f36b9",
     "tsv/training_conditioning.tsv": "2733b54d3223363e61fc760c4123acf8350062c6c7f68c12bef80aac92fe8b6c",
     "tsv/residuals.tsv": "4a414559b54eed69d501dea7f6354621d821284bdb9c756bb8cbee52ff3cec4f",
     "tsv/changes.tsv": "745bb7b8d161b35d64f4116861ecb6cfa9fffed452a6d50f758306d6c038ee05",
@@ -146,6 +146,24 @@
     "matrices/enet.dat": "3616dd3bf9ab5d7e8f8f73b0a990951b5184066bc840ad10bcc92f35cea0c72d",
     "matrices/beam.dat": "f04237add9ea72a9b3cdb58cfcf437141300ba947837516b34ddbf18e0a0a573",
     "matrices/core.dat": "00ee58f3c3efb52a1ce2c67ef3019c35ec215f4e118d687378bfb9c37fda77ec",
-    "matrices/old.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1"
+    "matrices/old.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+    "plots/protected_core_extremes.png": "450196e59ef887222d4684ddd884a93ca948655574dd19f38921687e407cf29a",
+    "plots/protected_noncore_change.png": "1d3a1aad6a0ff9c1168170183cf5a42bf067208f27c31778ea92b93b8be9da18",
+    "plots/README.md": "fefed99b852ecac996b30e1d6cebdde271d4a567a3f9db5e962590053ac7c75c",
+    "plots/surplus_core_change.png": "fc9cc6cb728cae10839203c0619118b2d7e2e13ad74c7cf913ffa5e90a730a3a",
+    "plots/protected_core_change.png": "e03648e01f79ff924b74a19a5f4c5abea245b01c6e09df8354f3093f6667ceae",
+    "plots/surplus_core_extremes.png": "edf1d6693e702f9952452ba69152cc78ad2e629280b554022582fe93f19e971c",
+    "plots/protected_noncore_extremes.png": "2deb164169bc742d042575b3b187db2b4eb89cb76b49dae8e21cec1592dcc28b",
+    "plot_code/comparison_plots.py": "a0e823b013b7b165d2a76b327fd96059102afc7aeecc0c6626224bcf498d2323",
+    "plot_code/compare_matrices.py": "4d907ea26c87a23efc899a762d934f48d7c5022db1904c4476b1467cff2dfe0a"
+  },
+  "replot": {
+    "time": "2026-09-16T01:13:05.589716+00:00",
+    "inputs": {
+      "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/07_diagnostics/compare/residuals.npz": "c84296f6ead0ea115a15c8a16c6f96708da1c19af74b5418e62f70e7a64a05e4",
+      "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/07_diagnostics/compare/tsv/residuals.tsv": "4a414559b54eed69d501dea7f6354621d821284bdb9c756bb8cbee52ff3cec4f"
+    },
+    "code": "plot_code",
+    "note": "Presentation only; residuals, tables, matrices and offsets unchanged"
   }
 }

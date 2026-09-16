@@ -1,0 +1,7 @@
+model	rungroup	zfoil	n	outside_frame	file
+gmm	rg01_theta12p490_foil0	0.0	265877	126	gmm_rg01_theta12p490_foil0_foil0.png
+beam	rg01_theta12p490_foil0	0.0	265877	134	beam_rg01_theta12p490_foil0_foil0.png
+gmm	rg03_theta12p490_foilpm8	-8.0	51938	61	gmm_rg03_theta12p490_foilpm8_foilm8.png
+beam	rg03_theta12p490_foilpm8	-8.0	51938	59	beam_rg03_theta12p490_foilpm8_foilm8.png
+gmm	rg03_theta12p490_foilpm8	8.0	46444	18	gmm_rg03_theta12p490_foilpm8_foilp8.png
+beam	rg03_theta12p490_foilpm8	8.0	46444	21	beam_rg03_theta12p490_foilpm8_foilp8.png

@@ -1,0 +1,77 @@
+{
+  "schema": "sieve_afterburner_v1",
+  "status": "complete",
+  "settings": {
+    "angle": 12.49,
+    "source": "beam10",
+    "delta": [
+      -10,
+      10
+    ],
+    "cer": 2,
+    "cal": 0.65,
+    "foil_width": 2,
+    "replay_offsets": [
+      0,
+      0,
+      0
+    ],
+    "gmm_offsets": [
+      0,
+      0,
+      0
+    ],
+    "beam_offsets": [
+      0,
+      0,
+      0
+    ],
+    "xmis": null,
+    "closure": 0.05
+  },
+  "threads": 8,
+  "inputs": {
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/rungroups_6p667_inputs.tsv": "aea3dcae3e47735d7ea57ea0c7079a6d6f6ab6708fc58057bf7270d11444c500",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/oldfit.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06b_svd_fit/matrices/nps_hms_newfit_6p667_gmm_clean.dat": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/06e_beam_search/beam10/matrices/beam.dat": "f04237add9ea72a9b3cdb58cfcf437141300ba947837516b34ddbf18e0a0a573",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/HMS_6p667GeV/config/comparison.json": "975e6d193a5549d96609c847928662e0b44dedb756c0f8a9752c2f764916c629",
+    "/u/group/nps/cploen/ML_HMS_OPTICS_DEV/DATfiles/list_of_optics_run.dat": "6ffc66a39059d04b7b807b9a4a8907d9ee81f588341c23c2129978b0f789e010"
+  },
+  "replays": [
+    {
+      "path": "/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root",
+      "entries": 1011533,
+      "size": 1144070052,
+      "mtime_ns": 1783982900000000000
+    },
+    {
+      "path": "/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg03_theta12p490_foilpm8.root",
+      "entries": 550283,
+      "size": 480872937,
+      "mtime_ns": 1783982902000000000
+    }
+  ],
+  "reconstruction": "Saved golden focal-plane tracks and react.y/react.z; HCANA extended-target iteration; fixed original delta and foil windows. No retracking or new reaction-vertex solve.",
+  "closure_passed": false,
+  "outputs": {
+    "histograms.npz": "48fca7e77b14ac5a033415bc7fb5790f74a76fdcf0e68b6da57ffa77e0abd485",
+    "code/spectrometer_profiles.def": "7ba1b787230ea26ec7f790094c59260359dfcb25de7e8592ddba93f7fe502eba",
+    "code/run_sieve.sh": "d770843a6314e0e59fdf234d2dd35315f43dd42fd21fcd989daf4a118efdbba0",
+    "code/core_sample.py": "003dc67aeea01ba28169dbf4e946d9bf454261042a9ed6aee7c1c3a43998c9d2",
+    "code/spectrometer_config.py": "adaab9dc7f8b23e2c4ec8430cd1250c72dd8c83e35b41903a7c0478625844084",
+    "code/sieve_afterburner.py": "b5e84b825b21ce2a76820c6c4d33d061beff06d1b8188418458dacd2bddca61b",
+    "code/compare_matrices.py": "47afd8d4ad6868ad19dd3deeda7fbbe6dbf0bc397b4031ba517f97216272bf02",
+    "plots/gmm_rg03_theta12p490_foilpm8_foilp8.png": "dc9b89f4d09b0a95ac9761c25494701fd3278d159f5f54385bc2b008aba2dd2a",
+    "plots/beam_rg03_theta12p490_foilpm8_foilp8.png": "70f51c6dd4c2a649798b93394753beabaf76b23d15b1d71733f5bc058d5f051d",
+    "plots/gmm_rg03_theta12p490_foilpm8_foilm8.png": "af03e8ecb302bb4318b070738cab94ffb56a08cd14bbf254154dd7893d211863",
+    "plots/beam_rg01_theta12p490_foil0_foil0.png": "e15ddf7e2acbee1b53542041580fdb24dead6b9b00955cd7a130d3d139047bdd",
+    "plots/gmm_rg01_theta12p490_foil0_foil0.png": "b35b8aa34bcd09f51d66c35f4fddf4a8ad6daffc653eee808ef5794df09d6e96",
+    "plots/beam_rg03_theta12p490_foilpm8_foilm8.png": "04efffadc6e1fbb7f1e9f6e491ca364b75c05061875f887f6c9241ba08f44bc5",
+    "tsv/counts.tsv": "7fa1c21a631a7118a02cc30fea7c0d4a078d752ffb85d6684d90412ced8f2c86",
+    "tsv/closure.tsv": "8f70649c1bb72cb2cd8614474d264fe0d37a456f85cb5513819d559828f60fe1",
+    "matrices/gmm.dat": "ca3820ce1c8df08d5b4fb4c6a189652478562c1fd751fc9a785f42459f8e3044",
+    "matrices/replay.dat": "3bf27d1e057d76c525074c15b89b7f19d070f3e04a519af2d98f0d4e9c32e8c1",
+    "matrices/beam.dat": "f04237add9ea72a9b3cdb58cfcf437141300ba947837516b34ddbf18e0a0a573"
+  }
+}
