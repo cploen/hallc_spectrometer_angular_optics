@@ -1,0 +1,5 @@
+{
+  "balance": {"foil": "equal", "delta": 1.5, "hole": 1.5},
+  "qa_min": 10,
+  "fit_max": 200000
+}

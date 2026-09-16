@@ -70,14 +70,20 @@ are used. The known corrupt historical GMM row uses the same explicit,
 checksum-pinned exclusion as the matrix-comparison step. The original files
 are unchanged. Supplying a custom GMM file does not inherit this exclusion.
 
-**These input ROOT files are zero-offset replays.** The closure reference uses
-config/oldfit.dat with zero external offsets, not the legacy corrections used
-in the residual comparison. GMM and beam already include fitted constants and
-also receive no external addition by default. Explicit `replay_offsets`,
+The configured source directory identifies these as zero-offset replays, but
+the exact matrix, hmsflags and HCANA version used to produce them have not been
+verified. The closure reference uses config/oldfit.dat with zero external offsets,
+not the legacy corrections used in the residual comparison. GMM and beam already
+include fitted constants and also receive no external addition by default. Explicit `replay_offsets`,
 `gmm_offsets`, `beam_offsets` use [xptar mrad, ytar cm, yptar mrad]. Settings are
 saved in the output manifest. No offset is inferred or fitted to the data.
 
 ## Replay check and products
+
+The first actual farm run failed xsieve closure for rg03 (both outer foils
+combined). See the [campaign closure recap](../HMS_6p667GeV/07_diagnostics/SIEVE_GEOMETRY_RECAP.md)
+for the reported numbers and outstanding provenance checks; synthetic closure
+tests did not establish agreement with the historical replay.
 
 `--check` inspects branches and reconstructs the first 50,000 input entries per
 rungroup, applying the cuts above. It prints xsieve/ysieve RMS differences from

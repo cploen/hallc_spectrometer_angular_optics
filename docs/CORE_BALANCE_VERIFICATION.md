@@ -5,10 +5,16 @@ Implemented in `core_balance.py`, `reallocate_core.py`, `balance_diagnostics.py`
 `fit_opt_matrix_gmm.C` / `preallocated_sample.h`. The command and configuration
 reference is [CORE_SAMPLE.md](../CORE_SAMPLE.md#strict-frozen-tag-balance-september-2026).
 
-[Complete campaign counts-preview index](../HMS_6p667GeV/05d_core_balance/equal15_review/HMS_6p667_CORE_BALANCE.md)
+This is the implementation-stage verification record. The campaign reallocation
+and exports were subsequently run; see the
+[campaign recap](../HMS_6p667GeV/05c_core_sample/FOIL_BALANCE_RECAP.md).
+The numerical results below were originally counts-preview results.
+
+[Completed campaign index](../HMS_6p667GeV/05c_core_sample/equal15/HMS_6p667_CORE_BALANCE.md)
 — all 25 physical-foil/delta and 60 setting/local-foil/delta views, five cross-foil
-pages, numerical tables, log circle maps and fraction maps. Event clouds are
-explicitly unavailable in this preview; none are inferred from historical GMM.
+pages, numerical tables, log circle maps, fraction maps and real core event clouds.
+Clouds were unavailable in the original preview; historical GMM was never
+substituted for the missing core events.
 
 ## Campaign counts result
 
@@ -91,17 +97,14 @@ outputs. **No campaign production SVD fit was run and no matrix was replaced.**
 The preallocated fixture wrote no matrix. ROOT loaded the modified macro; its
 existing `sprintf` deprecation warnings remain unrelated to these changes.
 
-## Remaining data-dependent work
+## Input availability after subsequent campaign work
 
-The local `min10` mirror lacks seven event-mask ROOT files, 60 frozen model files,
-two archived source/default files and seven upstream exclusion audit TSVs.
-Replay inputs for all seven rungroups are also absent. Exact local and originating
-ifarm paths are in the index's
-[INPUT_AVAILABILITY.md](../HMS_6p667GeV/05d_core_balance/equal15_review/INPUT_AVAILABILITY.md).
-
-Consequently, **campaign event IDs, event-level reconciliation, real allocation
-clouds, campaign TFit export and campaign solver admission are not verified or
-produced here**. The counts preview is complete; the event implementation is
-fixture-tested. Run the documented frozen-tag command on the complete saved
-inputs to finish those data-dependent outputs without re-estimating density.
+At the implementation-stage verification above, the local mirror lacked the
+seven masks, 60 models and several archived/audit files; only the counts preview
+and synthetic integration tests were available. The full `min10` tag was later
+exposed, and campaign reallocation/clouds and TFit exports were completed on ifarm.
+The original exact `equal15` manifest/masks and TFit builds are still not tracked
+in this checkout. See the current
+[analysis inventory](../HMS_6p667GeV/ANALYSIS_INDEX.md#is-the-record-sufficient).
+Do not infer a new campaign ROOT solver-admission test from those later exports.
 SHMS adapter/geometry support was not validated and is not claimed.

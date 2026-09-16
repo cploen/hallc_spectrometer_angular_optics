@@ -250,7 +250,8 @@ python3 HMS_6p667GeV/05c_core_sample/core/code/core_sample.py \
 
 During visual tuning, regard plots involving protected holdout events as validation.
 If those plots or residuals guide repeated decisions, this reserve is no longer an
-untouched final test set. Use fresh withheld data for the final unbiased assessment.
+untouched final test set. No additional data can be collected for this campaign;
+report that limitation rather than treating a renamed or reused split as fresh data.
 
 ## 6. Build compatible HMS fit trees
 
@@ -329,9 +330,9 @@ HCANA=root ./run_build_core_fit.sh /tmp/HMS_core_demo
 ```
 
 The fixture has eight populated holes, one missing hole, and a 24-to-1 occupancy
-ratio. It checks mechanics, not performance on real HMS or SHMS data. Real
-HMS 6.667 candidate trees were absent from the development workspace; the first
-campaign run and visual acceptance check remain to be done on the analysis host.
+ratio. It checks mechanics, not performance on real HMS or SHMS data. The first
+HMS campaign runs and visual review were subsequently completed on ifarm; see the
+[campaign selection recap](HMS_6p667GeV/05c_core_sample/CORE_SAMPLE_RECAP.md).
 
 ## Hole-count histograms
 
