@@ -62,10 +62,10 @@ void fixture(const char* path, bool shms) {
                     with (campaign/f'results/foil_{foil}cm/central_dense_half/rg01/slopes.tsv').open() as stream:
                         rows=list(csv.DictReader(stream,delimiter='\t'))
                     rows=[r for r in rows if r['ndel']=='-1']
-                    self.assertEqual(len(rows),4)
+                    self.assertEqual(len(rows),2)
                     for row in rows:
                         self.assertEqual(int(row['n']),201 if row['subset']=='core' else 101)
-                        expected=0 if arm=='SHMS' or row['corrected']=='1' else 1000/(168-foil*math.cos(math.radians(12.49)))
+                        expected=0 if arm=='SHMS' else 1000/(168-foil*math.cos(math.radians(12.49)))
                         self.assertAlmostEqual(float(row['slope_mrad_per_cm']),expected,places=6)
                         self.assertAlmostEqual(float(row['predicted_slope']),expected,places=6)
 

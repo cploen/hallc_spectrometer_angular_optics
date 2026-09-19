@@ -9,6 +9,7 @@
 #include <TFitResult.h>
 #include <TCanvas.h>
 #include <TLatex.h>
+#include <TPaveStats.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TError.h>
@@ -23,7 +24,7 @@
 
 namespace core_geometry_detail {
 struct Event {
-  double reacty, residual, corrected, predicted, coreScore;
+  double reacty, residual, predicted, coreScore;
   std::array<double,4> fp;
   int ndel;
 };
@@ -83,13 +84,13 @@ std::vector<Event> densestHalf(const std::vector<Event>& events) {
   }
   return result;
 }
-void plot(const std::vector<Event>& events, bool corrected, const std::string& name,
+void plot(const std::vector<Event>& events, const std::string& name,
           const std::string& title, const std::string& output, TFile& file,
           std::ofstream& table, int xscol, int yscol, const std::string& subset, int ndel) {
   std::vector<double> x,y,predicted;
   double sx=0,sy=0,sxx=0,syy=0;
   for(const auto& e:events) {
-    x.push_back(e.reacty); y.push_back(corrected?e.corrected:e.residual); predicted.push_back(e.predicted);
+    x.push_back(e.reacty); y.push_back(e.residual); predicted.push_back(e.predicted);
     sx+=x.back(); sy+=y.back(); sxx+=x.back()*x.back(); syy+=y.back()*y.back();
   }
   const double n=x.size();
@@ -103,29 +104,36 @@ void plot(const std::vector<Event>& events, bool corrected, const std::string& n
   auto fit=graph.Fit(&line,"QSN"); // Unbinned ordinary least squares; no histogram-bin weighting.
   if(int(fit)!=0) throw std::runtime_error("Line fit failed: "+name);
   const double error=line.GetParError(1), slope=line.GetParameter(1);
-  TH2D hist(name.c_str(),(title+";reacty (cm);"+
-       (corrected?std::string("1000 (xptar - corrected xptarT) (mrad)"):
-                   std::string("1000 (xptar - xptarT) (mrad)"))).c_str(),
+  TH2D hist(name.c_str(),(title+";reacty (cm);1000 (xptar - xptarT) (mrad)").c_str(),
        70,xmin-xpad,xmax+xpad,80,ymin-ypad,ymax+ypad);
   for(size_t i=0;i<x.size();++i) hist.Fill(x[i],y[i]);
   TCanvas canvas((name+"_canvas").c_str(),"",1000,750);
   canvas.SetLeftMargin(.15);canvas.SetRightMargin(.14);canvas.SetBottomMargin(.13);
   canvas.SetTopMargin(.18);
-  hist.Draw("COLZ");line.SetLineColor(kRed+1);line.SetLineWidth(2);line.Draw("SAME");
-  TLatex stats;stats.SetNDC();stats.SetTextFont(42);stats.SetTextSize(.029);
-  stats.DrawLatex(.15,.88,Form("Data fit: slope = %.2f #pm %.2f mrad/cm     N = %zu",slope,error,x.size()));
+  line.SetParNames("Intercept (mrad)","Slope (mrad/cm)");
+  line.SetLineColor(kRed+1);line.SetLineWidth(2);
+  hist.GetListOfFunctions()->Add(line.Clone());
+  hist.Draw("COLZ");line.Draw("SAME");
+  canvas.Update();
+  auto stats=dynamic_cast<TPaveStats*>(hist.GetListOfFunctions()->FindObject("stats"));
+  if(!stats) throw std::runtime_error("ROOT fit statistics box was not created");
+  stats->SetX1NDC(.48);stats->SetX2NDC(.85);stats->SetY1NDC(.60);stats->SetY2NDC(.815);
+  stats->SetTextFont(42);stats->SetTextSize(.024);
+
+  double expected=0;
+  for(auto p:predicted) expected+=p/n;
+  TLatex subtitle;subtitle.SetNDC();subtitle.SetTextFont(42);subtitle.SetTextSize(.029);
+  subtitle.DrawLatex(.15,.88,Form("Predicted slope from geometry: %.2f mrad/cm",expected));
+  canvas.Modified();canvas.Update();
   canvas.SaveAs((output+"/"+name+".pdf").c_str());
   canvas.SaveAs((output+"/"+name+".png").c_str());
   file.cd(); hist.Write();line.Write();canvas.Write();
-  double predictedMean=0;
-  for(auto p:predicted) predictedMean+=p/n;
-  double expected=corrected?0:predictedMean;
   std::cout<<name<<": N="<<n<<", reacty RMS="<<std::sqrt(variance)<<" cm, range=["<<xmin<<", "<<xmax
     <<"] cm, residual RMS="<<std::sqrt(std::max(0.,syy/n-std::pow(sy/n,2)))<<" mrad\n"
     <<"  slope="<<slope<<" +/- "<<error<<" mrad/cm; predicted="<<expected
     <<" mrad/cm; slope/error="<<(error>0?slope/error:0)
     <<"; (slope-predicted)/error="<<(error>0?(slope-expected)/error:0)<<"\n";
-  table<<xscol<<'\t'<<yscol<<'\t'<<subset<<'\t'<<ndel<<'\t'<<corrected<<'\t'<<n<<'\t'
+  table<<xscol<<'\t'<<yscol<<'\t'<<subset<<'\t'<<ndel<<'\t'<<n<<'\t'
     <<std::sqrt(variance)<<'\t'<<xmin<<'\t'<<xmax<<'\t'<<line.GetParameter(0)<<'\t'<<slope<<'\t'<<error<<'\t'
     <<std::sqrt(std::max(0.,syy/n-std::pow(sy/n,2)))<<'\t'<<expected<<'\n';
 }
@@ -136,7 +144,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
                    double fraction=.5,double foilWidth=2.,bool denseHalf=false) {
   using namespace core_geometry_detail;
   try {
-    gROOT->SetBatch(true);gStyle->SetOptStat(0);gStyle->SetOptFit(0);
+    gROOT->SetBatch(true);gStyle->SetOptStat(10);gStyle->SetOptFit(111);
     gErrorIgnoreLevel=kWarning;std::cout<<std::unitbuf;
     gStyle->SetTitleFontSize(.035);
     auto spec=hallc::profileForName(arm);
@@ -205,8 +213,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       const double xsT=spec.xs(hole.first);
       // xbpm affects only the y targets, which this x study does not use.
       const auto truth=hallc::targetTruth(spec,angle,zfoil,xsT,spec.ys(hole.second),delta,reactx,e.reacty,0.);
-      double correction=spec.shms()?0.:(e.reacty+spec.xMis(angle))/(spec.sieveDistance-zfoil*c);
-      e.residual=1000*(xptar-truth.xptar);e.corrected=e.residual-1000*correction;
+      e.residual=1000*(xptar-truth.xptar);
       e.predicted=spec.shms()?0.:1000/(spec.sieveDistance-zfoil*c);
       double expectedClosure=spec.shms()?0.:-e.reacty-spec.xMis(angle);
       maxClosure=std::max(maxClosure,std::abs(truth.xtar+spec.sieveDistance*truth.xptar-xsT-expectedClosure));
@@ -215,7 +222,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
     gSystem->mkdir(output,true);
     TFile result((std::string(output)+"/geometry.root").c_str(),"RECREATE");
     std::ofstream table(std::string(output)+"/slopes.tsv");table<<std::setprecision(12);
-    table<<"xscol\tyscol\tsubset\tndel\tcorrected\tn\treacty_rms_cm\treacty_min_cm\treacty_max_cm\tintercept_mrad\tslope_mrad_per_cm\tslope_error\tresidual_rms_mrad\tpredicted_slope\n";
+    table<<"xscol\tyscol\tsubset\tndel\tn\treacty_rms_cm\treacty_min_cm\treacty_max_cm\tintercept_mrad\tslope_mrad_per_cm\tslope_error\tresidual_rms_mrad\tpredicted_slope\n";
     std::cout<<std::setprecision(7)
       <<(replay?"Core/replay identity verified in focal-plane coordinates and delta.":
                  "Using saved replay values from CoreSample; source replay comparison unavailable.")
@@ -223,7 +230,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       <<"\nMaximum target-identity algebra discrepancy="<<maxClosure<<" cm\n"
       <<"Predictions assume reconstructed angles follow the reference ray. Core selection can bias slopes.\n"
       <<"Errors are ordinary least-squares statistical errors; no selection systematic is included.\n";
-    if(spec.shms()) std::cout<<"SHMS targets already include reacty and xmis: correction is zero, predicted residual slope is zero.\n";
+    if(spec.shms()) std::cout<<"SHMS targets already include reacty and xmis: predicted residual slope is zero.\n";
     int plots=0;
     for(auto hole:order) {
       auto& events=data[hole];
@@ -245,10 +252,8 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
             <<hole.first<<", "<<hole.second<<"), "<<(subset?(denseHalf?"densest half":"inner FP core"):"core");
           if(slice.first>=0) heading<<", delta slice "<<slice.first;
           std::string title=heading.str();
-          for(int corrected=0;corrected<2;++corrected) {
-            plot(slice.second,corrected,name+(corrected?"_corrected":"_original"),title,output,result,table,hole.first,hole.second,label,slice.first);
-            ++plots;
-          }
+          plot(slice.second,name,title,output,result,table,hole.first,hole.second,label,slice.first);
+          ++plots;
         }
       }
     }

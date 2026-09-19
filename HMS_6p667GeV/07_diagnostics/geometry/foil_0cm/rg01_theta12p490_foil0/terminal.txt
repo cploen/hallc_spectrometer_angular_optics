@@ -4,143 +4,73 @@ Using saved replay values from CoreSample; source replay comparison unavailable.
 Maximum target-identity algebra discrepancy=6.106227e-16 cm
 Predictions assume reconstructed angles follow the reference ray. Core selection can bias slopes.
 Errors are ordinary least-squares statistical errors; no selection systematic is included.
-x4_y4_core_all_delta_original: N=1584, reacty RMS=0.05333308 cm, range=[-0.1030855, 0.08860381] cm, residual RMS=1.370603 mrad
+x4_y4_core_all_delta: N=1584, reacty RMS=0.05333308 cm, range=[-0.1030855, 0.08860381] cm, residual RMS=1.370603 mrad
   slope=8.731284 +/- 0.6076834 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.36815; (slope-predicted)/error=4.572945
-x4_y4_core_all_delta_corrected: N=1584, reacty RMS=0.05333308 cm, range=[-0.1030855, 0.08860381] cm, residual RMS=1.297564 mrad
-  slope=2.778903 +/- 0.6076834 mrad/cm; predicted=0 mrad/cm; slope/error=4.572945; (slope-predicted)/error=4.572945
-x4_y4_core_delta0_original: N=183, reacty RMS=0.05174256 cm, range=[-0.1006551, 0.08580057] cm, residual RMS=1.894396 mrad
+x4_y4_core_delta0: N=183, reacty RMS=0.05174256 cm, range=[-0.1006551, 0.08580057] cm, residual RMS=1.894396 mrad
   slope=2.422183 +/- 2.715383 mrad/cm; predicted=5.952381 mrad/cm; slope/error=0.8920226; (slope-predicted)/error=-1.300074
-x4_y4_core_delta0_corrected: N=183, reacty RMS=0.05174256 cm, range=[-0.1006551, 0.08580057] cm, residual RMS=1.899051 mrad
-  slope=-3.530198 +/- 2.715383 mrad/cm; predicted=0 mrad/cm; slope/error=-1.300074; (slope-predicted)/error=-1.300074
-x4_y4_core_delta1_original: N=314, reacty RMS=0.05501108 cm, range=[-0.09967255, 0.08860381] cm, residual RMS=1.599499 mrad
+x4_y4_core_delta1: N=314, reacty RMS=0.05501108 cm, range=[-0.09967255, 0.08860381] cm, residual RMS=1.599499 mrad
   slope=10.80704 +/- 1.528174 mrad/cm; predicted=5.952381 mrad/cm; slope/error=7.071865; (slope-predicted)/error=3.176771
-x4_y4_core_delta1_corrected: N=314, reacty RMS=0.05501108 cm, range=[-0.09967255, 0.08860381] cm, residual RMS=1.508735 mrad
-  slope=4.85466 +/- 1.528174 mrad/cm; predicted=0 mrad/cm; slope/error=3.176771; (slope-predicted)/error=3.176771
-x4_y4_core_delta2_original: N=482, reacty RMS=0.05278475 cm, range=[-0.0993766, 0.08595277] cm, residual RMS=1.229014 mrad
+x4_y4_core_delta2: N=482, reacty RMS=0.05278475 cm, range=[-0.0993766, 0.08595277] cm, residual RMS=1.229014 mrad
   slope=8.339198 +/- 0.9922396 mrad/cm; predicted=5.952381 mrad/cm; slope/error=8.40442; (slope-predicted)/error=2.405485
-x4_y4_core_delta2_corrected: N=482, reacty RMS=0.05278475 cm, range=[-0.0993766, 0.08595277] cm, residual RMS=1.154377 mrad
-  slope=2.386817 +/- 0.9922396 mrad/cm; predicted=0 mrad/cm; slope/error=2.405485; (slope-predicted)/error=2.405485
-x4_y4_core_delta3_original: N=372, reacty RMS=0.05395078 cm, range=[-0.1030855, 0.0859064] cm, residual RMS=1.164917 mrad
+x4_y4_core_delta3: N=372, reacty RMS=0.05395078 cm, range=[-0.1030855, 0.0859064] cm, residual RMS=1.164917 mrad
   slope=10.40401 +/- 0.9836231 mrad/cm; predicted=5.952381 mrad/cm; slope/error=10.57723; (slope-predicted)/error=4.525744
-x4_y4_core_delta3_corrected: N=372, reacty RMS=0.05395078 cm, range=[-0.1030855, 0.0859064] cm, residual RMS=1.048642 mrad
-  slope=4.451626 +/- 0.9836231 mrad/cm; predicted=0 mrad/cm; slope/error=4.525744; (slope-predicted)/error=4.525744
-x4_y4_core_delta4_original: N=233, reacty RMS=0.05203002 cm, range=[-0.09841716, 0.08614306] cm, residual RMS=1.064483 mrad
+x4_y4_core_delta4: N=233, reacty RMS=0.05203002 cm, range=[-0.09841716, 0.08614306] cm, residual RMS=1.064483 mrad
   slope=8.643386 +/- 1.220076 mrad/cm; predicted=5.952381 mrad/cm; slope/error=7.0843; (slope-predicted)/error=2.205604
-x4_y4_core_delta4_corrected: N=233, reacty RMS=0.05203002 cm, range=[-0.09841716, 0.08614306] cm, residual RMS=0.9749277 mrad
-  slope=2.691005 +/- 1.220076 mrad/cm; predicted=0 mrad/cm; slope/error=2.205604; (slope-predicted)/error=2.205604
-x4_y4_fp_inner_all_delta_original: N=791, reacty RMS=0.04886898 cm, range=[-0.1006551, 0.0854704] cm, residual RMS=1.123664 mrad
+x4_y4_fp_inner_all_delta: N=791, reacty RMS=0.04886898 cm, range=[-0.1006551, 0.0854704] cm, residual RMS=1.123664 mrad
   slope=0.5073984 +/- 0.8183875 mrad/cm; predicted=5.952381 mrad/cm; slope/error=0.6199976; (slope-predicted)/error=-6.653306
-x4_y4_fp_inner_all_delta_corrected: N=791, reacty RMS=0.04886898 cm, range=[-0.1006551, 0.0854704] cm, residual RMS=1.154474 mrad
-  slope=-5.444983 +/- 0.8183875 mrad/cm; predicted=0 mrad/cm; slope/error=-6.653306; (slope-predicted)/error=-6.653306
-x2_y4_core_all_delta_original: N=4357, reacty RMS=0.05385446 cm, range=[-0.1029338, 0.08848983] cm, residual RMS=1.379754 mrad
+x2_y4_core_all_delta: N=4357, reacty RMS=0.05385446 cm, range=[-0.1029338, 0.08848983] cm, residual RMS=1.379754 mrad
   slope=8.236497 +/- 0.3676179 mrad/cm; predicted=5.952381 mrad/cm; slope/error=22.40505; (slope-predicted)/error=6.213289
-x2_y4_core_all_delta_corrected: N=4357, reacty RMS=0.05385446 cm, range=[-0.1029338, 0.08848983] cm, residual RMS=1.312287 mrad
-  slope=2.284116 +/- 0.3676179 mrad/cm; predicted=0 mrad/cm; slope/error=6.213289; (slope-predicted)/error=6.213289
-x2_y4_core_delta0_original: N=483, reacty RMS=0.05229077 cm, range=[-0.09840993, 0.08848983] cm, residual RMS=1.626828 mrad
+x2_y4_core_delta0: N=483, reacty RMS=0.05229077 cm, range=[-0.09840993, 0.08848983] cm, residual RMS=1.626828 mrad
   slope=2.530232 +/- 1.413849 mrad/cm; predicted=5.952381 mrad/cm; slope/error=1.789606; (slope-predicted)/error=-2.420449
-x2_y4_core_delta0_corrected: N=483, reacty RMS=0.05229077 cm, range=[-0.09840993, 0.08848983] cm, residual RMS=1.631284 mrad
-  slope=-3.422149 +/- 1.413849 mrad/cm; predicted=0 mrad/cm; slope/error=-2.420449; (slope-predicted)/error=-2.420449
-x2_y4_core_delta1_original: N=848, reacty RMS=0.05474272 cm, range=[-0.09983459, 0.08615651] cm, residual RMS=1.596696 mrad
+x2_y4_core_delta1: N=848, reacty RMS=0.05474272 cm, range=[-0.09983459, 0.08615651] cm, residual RMS=1.596696 mrad
   slope=6.232176 +/- 0.9796331 mrad/cm; predicted=5.952381 mrad/cm; slope/error=6.361745; (slope-predicted)/error=0.2856119
-x2_y4_core_delta1_corrected: N=848, reacty RMS=0.05474272 cm, range=[-0.09983459, 0.08615651] cm, residual RMS=1.559897 mrad
-  slope=0.2797949 +/- 0.9796331 mrad/cm; predicted=0 mrad/cm; slope/error=0.2856119; (slope-predicted)/error=0.2856119
-x2_y4_core_delta2_original: N=1294, reacty RMS=0.05402063 cm, range=[-0.1013995, 0.08776104] cm, residual RMS=1.326315 mrad
+x2_y4_core_delta2: N=1294, reacty RMS=0.05402063 cm, range=[-0.1013995, 0.08776104] cm, residual RMS=1.326315 mrad
   slope=9.607863 +/- 0.6285829 mrad/cm; predicted=5.952381 mrad/cm; slope/error=15.28496; (slope-predicted)/error=5.815433
-x2_y4_core_delta2_corrected: N=1294, reacty RMS=0.05402063 cm, range=[-0.1013995, 0.08776104] cm, residual RMS=1.236415 mrad
-  slope=3.655482 +/- 0.6285829 mrad/cm; predicted=0 mrad/cm; slope/error=5.815433; (slope-predicted)/error=5.815433
-x2_y4_core_delta3_original: N=1054, reacty RMS=0.05360483 cm, range=[-0.1001554, 0.08750035] cm, residual RMS=1.186709 mrad
+x2_y4_core_delta3: N=1054, reacty RMS=0.05360483 cm, range=[-0.1001554, 0.08750035] cm, residual RMS=1.186709 mrad
   slope=9.471788 +/- 0.61692 mrad/cm; predicted=5.952381 mrad/cm; slope/error=15.35335; (slope-predicted)/error=5.704804
-x2_y4_core_delta3_corrected: N=1054, reacty RMS=0.05360483 cm, range=[-0.1001554, 0.08750035] cm, residual RMS=1.089072 mrad
-  slope=3.519407 +/- 0.61692 mrad/cm; predicted=0 mrad/cm; slope/error=5.704804; (slope-predicted)/error=5.704804
-x2_y4_core_delta4_original: N=678, reacty RMS=0.05375916 cm, range=[-0.1029338, 0.08770539] cm, residual RMS=1.138914 mrad
+x2_y4_core_delta4: N=678, reacty RMS=0.05375916 cm, range=[-0.1029338, 0.08770539] cm, residual RMS=1.138914 mrad
   slope=10.08857 +/- 0.7165066 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.08021; (slope-predicted)/error=5.772711
-x2_y4_core_delta4_corrected: N=678, reacty RMS=0.05375916 cm, range=[-0.1029338, 0.08770539] cm, residual RMS=1.025876 mrad
-  slope=4.136186 +/- 0.7165066 mrad/cm; predicted=0 mrad/cm; slope/error=5.772711; (slope-predicted)/error=5.772711
-x2_y4_fp_inner_all_delta_original: N=2178, reacty RMS=0.04945517 cm, range=[-0.1001628, 0.08744668] cm, residual RMS=1.176508 mrad
+x2_y4_fp_inner_all_delta: N=2178, reacty RMS=0.04945517 cm, range=[-0.1001628, 0.08744668] cm, residual RMS=1.176508 mrad
   slope=-1.258823 +/- 0.5092662 mrad/cm; predicted=5.952381 mrad/cm; slope/error=-2.471838; (slope-predicted)/error=-14.15999
-x2_y4_fp_inner_all_delta_corrected: N=2178, reacty RMS=0.04945517 cm, range=[-0.1001628, 0.08744668] cm, residual RMS=1.227795 mrad
-  slope=-7.211204 +/- 0.5092662 mrad/cm; predicted=0 mrad/cm; slope/error=-14.15999; (slope-predicted)/error=-14.15999
-x6_y4_core_all_delta_original: N=4293, reacty RMS=0.05457934 cm, range=[-0.1003072, 0.08870124] cm, residual RMS=1.350126 mrad
+x6_y4_core_all_delta: N=4293, reacty RMS=0.05457934 cm, range=[-0.1003072, 0.08870124] cm, residual RMS=1.350126 mrad
   slope=8.972006 +/- 0.3519165 mrad/cm; predicted=5.952381 mrad/cm; slope/error=25.4947; (slope-predicted)/error=8.580516
-x6_y4_core_all_delta_corrected: N=4293, reacty RMS=0.05457934 cm, range=[-0.1003072, 0.08870124] cm, residual RMS=1.268941 mrad
-  slope=3.019625 +/- 0.3519165 mrad/cm; predicted=0 mrad/cm; slope/error=8.580516; (slope-predicted)/error=8.580516
-x6_y4_core_delta0_original: N=441, reacty RMS=0.05258316 cm, range=[-0.1003072, 0.08686669] cm, residual RMS=1.772909 mrad
+x6_y4_core_delta0: N=441, reacty RMS=0.05258316 cm, range=[-0.1003072, 0.08686669] cm, residual RMS=1.772909 mrad
   slope=9.304218 +/- 1.546706 mrad/cm; predicted=5.952381 mrad/cm; slope/error=6.015506; (slope-predicted)/error=2.167081
-x6_y4_core_delta0_corrected: N=441, reacty RMS=0.05258316 cm, range=[-0.1003072, 0.08686669] cm, residual RMS=1.713157 mrad
-  slope=3.351837 +/- 1.546706 mrad/cm; predicted=0 mrad/cm; slope/error=2.167081; (slope-predicted)/error=2.167081
-x6_y4_core_delta1_original: N=841, reacty RMS=0.05439919 cm, range=[-0.09933889, 0.08757503] cm, residual RMS=1.480885 mrad
+x6_y4_core_delta1: N=841, reacty RMS=0.05439919 cm, range=[-0.09933889, 0.08757503] cm, residual RMS=1.480885 mrad
   slope=9.510528 +/- 0.8806065 mrad/cm; predicted=5.952381 mrad/cm; slope/error=10.79997; (slope-predicted)/error=4.040564
-x6_y4_core_delta1_corrected: N=841, reacty RMS=0.05439919 cm, range=[-0.09933889, 0.08757503] cm, residual RMS=1.401007 mrad
-  slope=3.558147 +/- 0.8806065 mrad/cm; predicted=0 mrad/cm; slope/error=4.040564; (slope-predicted)/error=4.040564
-x6_y4_core_delta2_original: N=1360, reacty RMS=0.05484863 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.310898 mrad
+x6_y4_core_delta2: N=1360, reacty RMS=0.05484863 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.310898 mrad
   slope=8.813672 +/- 0.6028545 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.6199; (slope-predicted)/error=4.746238
-x6_y4_core_delta2_corrected: N=1360, reacty RMS=0.05484863 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.228572 mrad
-  slope=2.861291 +/- 0.6028545 mrad/cm; predicted=0 mrad/cm; slope/error=4.746238; (slope-predicted)/error=4.746238
-x6_y4_core_delta3_original: N=1029, reacty RMS=0.05452473 cm, range=[-0.1001912, 0.08650536] cm, residual RMS=1.163876 mrad
+x6_y4_core_delta3: N=1029, reacty RMS=0.05452473 cm, range=[-0.1001912, 0.08650536] cm, residual RMS=1.163876 mrad
   slope=8.788517 +/- 0.607008 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.47842; (slope-predicted)/error=4.67232
-x6_y4_core_delta3_corrected: N=1029, reacty RMS=0.05452473 cm, range=[-0.1001912, 0.08650536] cm, residual RMS=1.071866 mrad
-  slope=2.836136 +/- 0.607008 mrad/cm; predicted=0 mrad/cm; slope/error=4.67232; (slope-predicted)/error=4.67232
-x6_y4_core_delta4_original: N=622, reacty RMS=0.05562819 cm, range=[-0.09978431, 0.08870124] cm, residual RMS=1.08223 mrad
+x6_y4_core_delta4: N=622, reacty RMS=0.05562819 cm, range=[-0.09978431, 0.08870124] cm, residual RMS=1.08223 mrad
   slope=8.70233 +/- 0.6987952 mrad/cm; predicted=5.952381 mrad/cm; slope/error=12.45333; (slope-predicted)/error=3.935272
-x6_y4_core_delta4_corrected: N=622, reacty RMS=0.05562819 cm, range=[-0.09978431, 0.08870124] cm, residual RMS=0.9799366 mrad
-  slope=2.749949 +/- 0.6987952 mrad/cm; predicted=0 mrad/cm; slope/error=3.935272; (slope-predicted)/error=3.935272
-x6_y4_fp_inner_all_delta_original: N=2145, reacty RMS=0.05047367 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.106276 mrad
+x6_y4_fp_inner_all_delta: N=2145, reacty RMS=0.05047367 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.106276 mrad
   slope=0.4825053 +/- 0.4733501 mrad/cm; predicted=5.952381 mrad/cm; slope/error=1.019341; (slope-predicted)/error=-11.55567
-x6_y4_fp_inner_all_delta_corrected: N=2145, reacty RMS=0.05047367 cm, range=[-0.09981066, 0.08838573] cm, residual RMS=1.139946 mrad
-  slope=-5.469876 +/- 0.4733501 mrad/cm; predicted=0 mrad/cm; slope/error=-11.55567; (slope-predicted)/error=-11.55567
-x4_y2_core_all_delta_original: N=2449, reacty RMS=0.0532488 cm, range=[-0.0997913, 0.08734931] cm, residual RMS=1.436531 mrad
+x4_y2_core_all_delta: N=2449, reacty RMS=0.0532488 cm, range=[-0.0997913, 0.08734931] cm, residual RMS=1.436531 mrad
   slope=7.771762 +/- 0.5222458 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.88143; (slope-predicted)/error=3.483764
-x4_y2_core_all_delta_corrected: N=2449, reacty RMS=0.0532488 cm, range=[-0.0997913, 0.08734931] cm, residual RMS=1.379038 mrad
-  slope=1.819381 +/- 0.5222458 mrad/cm; predicted=0 mrad/cm; slope/error=3.483764; (slope-predicted)/error=3.483764
-x4_y2_core_delta0_original: N=262, reacty RMS=0.05284341 cm, range=[-0.09895878, 0.08588859] cm, residual RMS=1.677434 mrad
+x4_y2_core_delta0: N=262, reacty RMS=0.05284341 cm, range=[-0.09895878, 0.08588859] cm, residual RMS=1.677434 mrad
   slope=2.214051 +/- 1.963853 mrad/cm; predicted=5.952381 mrad/cm; slope/error=1.127402; (slope-predicted)/error=-1.903569
-x4_y2_core_delta0_corrected: N=262, reacty RMS=0.05284341 cm, range=[-0.09895878, 0.08588859] cm, residual RMS=1.684969 mrad
-  slope=-3.73833 +/- 1.963853 mrad/cm; predicted=0 mrad/cm; slope/error=-1.903569; (slope-predicted)/error=-1.903569
-x4_y2_core_delta1_original: N=447, reacty RMS=0.05271398 cm, range=[-0.09949369, 0.08627276] cm, residual RMS=1.445012 mrad
+x4_y2_core_delta1: N=447, reacty RMS=0.05271398 cm, range=[-0.09949369, 0.08627276] cm, residual RMS=1.445012 mrad
   slope=5.234636 +/- 1.275556 mrad/cm; predicted=5.952381 mrad/cm; slope/error=4.103808; (slope-predicted)/error=-0.5626924
-x4_y2_core_delta1_corrected: N=447, reacty RMS=0.05271398 cm, range=[-0.09949369, 0.08627276] cm, residual RMS=1.418926 mrad
-  slope=-0.7177454 +/- 1.275556 mrad/cm; predicted=0 mrad/cm; slope/error=-0.5626924; (slope-predicted)/error=-0.5626924
-x4_y2_core_delta2_original: N=829, reacty RMS=0.05281093 cm, range=[-0.0997913, 0.08534148] cm, residual RMS=1.304343 mrad
+x4_y2_core_delta2: N=829, reacty RMS=0.05281093 cm, range=[-0.0997913, 0.08534148] cm, residual RMS=1.304343 mrad
   slope=9.2185 +/- 0.7967798 mrad/cm; predicted=5.952381 mrad/cm; slope/error=11.5697; (slope-predicted)/error=4.099149
-x4_y2_core_delta2_corrected: N=829, reacty RMS=0.05281093 cm, range=[-0.0997913, 0.08534148] cm, residual RMS=1.222314 mrad
-  slope=3.266119 +/- 0.7967798 mrad/cm; predicted=0 mrad/cm; slope/error=4.099149; (slope-predicted)/error=4.099149
-x4_y2_core_delta3_original: N=585, reacty RMS=0.0543296 cm, range=[-0.09876115, 0.08696111] cm, residual RMS=1.204517 mrad
+x4_y2_core_delta3: N=585, reacty RMS=0.0543296 cm, range=[-0.09876115, 0.08696111] cm, residual RMS=1.204517 mrad
   slope=9.178831 +/- 0.8358216 mrad/cm; predicted=5.952381 mrad/cm; slope/error=10.98181; (slope-predicted)/error=3.860214
-x4_y2_core_delta3_corrected: N=585, reacty RMS=0.0543296 cm, range=[-0.09876115, 0.08696111] cm, residual RMS=1.110363 mrad
-  slope=3.22645 +/- 0.8358216 mrad/cm; predicted=0 mrad/cm; slope/error=3.860214; (slope-predicted)/error=3.860214
-x4_y2_core_delta4_original: N=326, reacty RMS=0.05327976 cm, range=[-0.09840308, 0.08734931] cm, residual RMS=1.137584 mrad
+x4_y2_core_delta4: N=326, reacty RMS=0.05327976 cm, range=[-0.09840308, 0.08734931] cm, residual RMS=1.137584 mrad
   slope=9.71791 +/- 1.056189 mrad/cm; predicted=5.952381 mrad/cm; slope/error=9.200917; (slope-predicted)/error=3.565203
-x4_y2_core_delta4_corrected: N=326, reacty RMS=0.05327976 cm, range=[-0.09840308, 0.08734931] cm, residual RMS=1.032601 mrad
-  slope=3.765529 +/- 1.056189 mrad/cm; predicted=0 mrad/cm; slope/error=3.565203; (slope-predicted)/error=3.565203
-x4_y2_fp_inner_all_delta_original: N=1223, reacty RMS=0.04931136 cm, range=[-0.0997913, 0.08627276] cm, residual RMS=1.193852 mrad
+x4_y2_fp_inner_all_delta: N=1223, reacty RMS=0.04931136 cm, range=[-0.0997913, 0.08627276] cm, residual RMS=1.193852 mrad
   slope=-0.5306436 +/- 0.6926938 mrad/cm; predicted=5.952381 mrad/cm; slope/error=-0.766058; (slope-predicted)/error=-9.359149
-x4_y2_fp_inner_all_delta_corrected: N=1223, reacty RMS=0.04931136 cm, range=[-0.0997913, 0.08627276] cm, residual RMS=1.235637 mrad
-  slope=-6.483025 +/- 0.6926938 mrad/cm; predicted=0 mrad/cm; slope/error=-9.359149; (slope-predicted)/error=-9.359149
-x4_y6_core_all_delta_original: N=9322, reacty RMS=0.05317128 cm, range=[-0.1024575, 0.08795106] cm, residual RMS=1.352832 mrad
+x4_y6_core_all_delta: N=9322, reacty RMS=0.05317128 cm, range=[-0.1024575, 0.08795106] cm, residual RMS=1.352832 mrad
   slope=7.401084 +/- 0.2521507 mrad/cm; predicted=5.952381 mrad/cm; slope/error=29.35183; (slope-predicted)/error=5.745387
-x4_y6_core_all_delta_corrected: N=9322, reacty RMS=0.05317128 cm, range=[-0.1024575, 0.08795106] cm, residual RMS=1.296621 mrad
-  slope=1.448703 +/- 0.2521507 mrad/cm; predicted=0 mrad/cm; slope/error=5.745387; (slope-predicted)/error=5.745387
-x4_y6_core_delta0_original: N=788, reacty RMS=0.05187181 cm, range=[-0.09953317, 0.08657088] cm, residual RMS=1.593413 mrad
+x4_y6_core_delta0: N=788, reacty RMS=0.05187181 cm, range=[-0.09953317, 0.08657088] cm, residual RMS=1.593413 mrad
   slope=2.430376 +/- 1.09225 mrad/cm; predicted=5.952381 mrad/cm; slope/error=2.225109; (slope-predicted)/error=-3.22454
-x4_y6_core_delta0_corrected: N=788, reacty RMS=0.05187181 cm, range=[-0.09953317, 0.08657088] cm, residual RMS=1.59889 mrad
-  slope=-3.522005 +/- 1.09225 mrad/cm; predicted=0 mrad/cm; slope/error=-3.22454; (slope-predicted)/error=-3.22454
-x4_y6_core_delta1_original: N=1479, reacty RMS=0.05246472 cm, range=[-0.1003387, 0.08699137] cm, residual RMS=1.455961 mrad
+x4_y6_core_delta1: N=1479, reacty RMS=0.05246472 cm, range=[-0.1003387, 0.08699137] cm, residual RMS=1.455961 mrad
   slope=5.699217 +/- 0.7066997 mrad/cm; predicted=5.952381 mrad/cm; slope/error=8.064553; (slope-predicted)/error=-0.3582338
-x4_y6_core_delta1_corrected: N=1479, reacty RMS=0.05246472 cm, range=[-0.1003387, 0.08699137] cm, residual RMS=1.424988 mrad
-  slope=-0.2531637 +/- 0.7066997 mrad/cm; predicted=0 mrad/cm; slope/error=-0.3582338; (slope-predicted)/error=-0.3582338
-x4_y6_core_delta2_original: N=2789, reacty RMS=0.05366531 cm, range=[-0.1024575, 0.08743622] cm, residual RMS=1.287591 mrad
+x4_y6_core_delta2: N=2789, reacty RMS=0.05366531 cm, range=[-0.1024575, 0.08743622] cm, residual RMS=1.287591 mrad
   slope=7.583703 +/- 0.431181 mrad/cm; predicted=5.952381 mrad/cm; slope/error=17.58821; (slope-predicted)/error=3.783381
-x4_y6_core_delta2_corrected: N=2789, reacty RMS=0.05366531 cm, range=[-0.1024575, 0.08743622] cm, residual RMS=1.224712 mrad
-  slope=1.631322 +/- 0.431181 mrad/cm; predicted=0 mrad/cm; slope/error=3.783381; (slope-predicted)/error=3.783381
-x4_y6_core_delta3_original: N=2420, reacty RMS=0.05305954 cm, range=[-0.09980754, 0.08724249] cm, residual RMS=1.244831 mrad
+x4_y6_core_delta3: N=2420, reacty RMS=0.05305954 cm, range=[-0.09980754, 0.08724249] cm, residual RMS=1.244831 mrad
   slope=9.192866 +/- 0.4389581 mrad/cm; predicted=5.952381 mrad/cm; slope/error=20.94247; (slope-predicted)/error=7.38222
-x4_y6_core_delta3_corrected: N=2420, reacty RMS=0.05305954 cm, range=[-0.09980754, 0.08724249] cm, residual RMS=1.158122 mrad
-  slope=3.240485 +/- 0.4389581 mrad/cm; predicted=0 mrad/cm; slope/error=7.38222; (slope-predicted)/error=7.38222
-x4_y6_core_delta4_original: N=1846, reacty RMS=0.05362763 cm, range=[-0.1009326, 0.08795106] cm, residual RMS=1.140435 mrad
+x4_y6_core_delta4: N=1846, reacty RMS=0.05362763 cm, range=[-0.1009326, 0.08795106] cm, residual RMS=1.140435 mrad
   slope=8.423892 +/- 0.4547132 mrad/cm; predicted=5.952381 mrad/cm; slope/error=18.52573; (slope-predicted)/error=5.435319
-x4_y6_core_delta4_corrected: N=1846, reacty RMS=0.05362763 cm, range=[-0.1009326, 0.08795106] cm, residual RMS=1.055499 mrad
-  slope=2.471511 +/- 0.4547132 mrad/cm; predicted=0 mrad/cm; slope/error=5.435319; (slope-predicted)/error=5.435319
-x4_y6_fp_inner_all_delta_original: N=4660, reacty RMS=0.0498032 cm, range=[-0.1009326, 0.08724249] cm, residual RMS=1.112156 mrad
+x4_y6_fp_inner_all_delta: N=4660, reacty RMS=0.0498032 cm, range=[-0.1009326, 0.08724249] cm, residual RMS=1.112156 mrad
   slope=-1.621024 +/- 0.3263332 mrad/cm; predicted=5.952381 mrad/cm; slope/error=-4.967387; (slope-predicted)/error=-23.20758
-x4_y6_fp_inner_all_delta_corrected: N=4660, reacty RMS=0.0498032 cm, range=[-0.1009326, 0.08724249] cm, residual RMS=1.171596 mrad
-  slope=-7.573404 +/- 0.3263332 mrad/cm; predicted=0 mrad/cm; slope/error=-23.20758; (slope-predicted)/error=-23.20758
