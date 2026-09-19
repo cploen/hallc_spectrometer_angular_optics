@@ -1,0 +1,9 @@
+{
+  "core_file": "05c_core_sample/min10/root/CoreSample_{rungroup}.root",
+  "output": "07_diagnostics/geometry",
+  "foil": 0,
+  "foil_width": 2,
+  "hole_step": 2,
+  "min_events": 30,
+  "fp_fraction": 0.5
+}

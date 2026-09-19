@@ -171,3 +171,16 @@ HMS_6p667GeV/06e_beam_search/*
 !HMS_6p667GeV/06e_beam_search/BEAM_SEARCH_RECAP.md
 !HMS_6p667GeV/07_diagnostics/MATRIX_COMPARISON_RECAP.md
 !HMS_6p667GeV/07_diagnostics/SIEVE_GEOMETRY_RECAP.md
+
+# Compact geometry study: source, reviewed pooled plots and numerical summaries.
+!HMS_6p667GeV/config/geometry_study.json
+!docs/hms_geometry_proof.pdf
+!HMS_6p667GeV/07_diagnostics/geometry/
+HMS_6p667GeV/07_diagnostics/geometry/**
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/manifest.json
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01_theta12p490_foil0/
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01_theta12p490_foil0/slopes.tsv
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01_theta12p490_foil0/terminal.txt
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01_theta12p490_foil0/*_all_delta_*.png
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01_theta12p490_foil0/*_all_delta_*.pdf

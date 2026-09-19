@@ -1,0 +1,138 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{amsmath,booktabs,array}
+\definecolor{navy}{RGB}{30,65,98}
+\definecolor{redproof}{RGB}{160,35,35}
+\setbeamercolor{frametitle}{fg=navy}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{alerted text}{fg=redproof}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill\usebeamercolor[fg]{structure}\insertframenumber\,/\,\inserttotalframenumber\hspace{5mm}\vspace{3mm}}
+\setbeamersize{text margin left=9mm,text margin right=9mm}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\cv}[1]{\mathtt{#1}}
+\title{HMS target-geometry inconsistency}
+\author{}
+\date{}
+\begin{document}
+
+\begin{frame}{Code variables: the geometry inputs}
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}p{.23\textwidth}p{.72\textwidth}@{}}
+\toprule
+Code variable & Physical meaning \\
+\midrule
+\code{reacty} & Laboratory vertical reaction position, read from \code{H.react.y}. Positive upward. \\
+\code{xmis} & HMS vertical mispointing translation. The code places the vertex at \( -\cv{reacty}-\cv{xmis}\) in transport x, positive downward. \\
+\code{zfoil} & Assigned foil position along the laboratory beam direction. \\
+\code{c} & \(\cos(\cv{angle})\), with \code{angle} the spectrometer angle in radians. The code uses \(\cv{zfoil}\,\cv{c}\) as the longitudinal vertex position. \\
+\code{L} & Distance along the spectrometer axis from its target reference plane to the sieve plane. HMS: 168 cm. \\
+\code{xsT} & Nominal transport-x coordinate of the assigned sieve-hole center. Fixed by the hole grid. \\
+\bottomrule
+\end{tabular}
+\vspace{2mm}
+
+All positions and distances here are in cm. The target reference plane is at spectrometer z = 0.
+\end{frame}
+
+\begin{frame}{Code variables: the constructed fit targets}
+\renewcommand{\arraystretch}{1.45}
+\begin{tabular}{@{}p{.23\textwidth}p{.72\textwidth}@{}}
+\toprule
+Code variable & Physical meaning \\
+\midrule
+\code{xptarT} & Desired transport-x slope for the optics fit, \(dx/dz\). Dimensionless, usually reported in mrad. \\
+\code{xtarT} & Corresponding transport-x intercept at the target reference plane, in cm. It need not equal the position at the foil. \\
+\bottomrule
+\end{tabular}
+\vspace{4mm}
+
+These are geometry-derived target values supplied to the fit.
+
+\vspace{3mm}
+\small
+\textbf{Exact code correspondence.} In \code{targetTruth}, the input \code{xs} is the nominal hole coordinate stored as \code{xsT}. The outputs \code{t.xptar} and \code{t.xtar} become \code{xptarT} and \code{xtarT} in the fit tree.
+
+\vspace{3mm}
+The equations below consistently use \code{xsT}, \code{xptarT}, and \code{xtarT}.
+\end{frame}
+
+\begin{frame}{The condition to be satisfied}
+\textbf{Show that:} the constructed slope and intercept describe a straight ray through the assigned sieve-hole center.
+
+\vspace{4mm}
+Starting at the target reference plane, propagation to the sieve adds distance times slope:
+\[
+\underbrace{\cv{xtarT}}_{\text{starting position}}
++\underbrace{\cv{L}\,\cv{xptarT}}_{\text{change in position}}
+=\underbrace{\cv{xsT}}_{\text{hole center}}.
+\]
+\vspace{4mm}
+Thus the required identity is
+\[
+\boxed{\cv{xtarT}+\cv{L}\,\cv{xptarT}-\cv{xsT}=0.}
+\]
+\small
+All three positions must use the same transport coordinate origin. This is the reference ray to the nominal center, before considering finite hole size or scattering.
+\end{frame}
+
+\begin{frame}{The HMS equations implemented in the code}
+The HMS branch of \code{targetTruth} constructs
+\[
+\cv{xptarT}=\frac{\cv{xsT}}{\cv{L}-\cv{zfoil}\,\cv{c}},
+\]
+\[
+\cv{xtarT}=-\cv{reacty}-\cv{xmis}
+-\cv{xptarT}\,\cv{zfoil}\,\cv{c}.
+\]
+\vspace{3mm}
+The slope uses the hole position divided by the foil-to-sieve distance.
+
+\vspace{3mm}
+The intercept also includes the displaced vertex, \(-\cv{reacty}-\cv{xmis}\).
+
+\vfill
+\scriptsize Source: \code{spectrometer\_config.h}, HMS branch of \code{targetTruth}.\\
+Storage mapping: \code{make\_fit\_ntuple\_from\_gmm.C}.
+\end{frame}
+
+\begin{frame}{Direct substitution exposes the contradiction}
+\small
+Substitute the implemented intercept, then the implemented slope:
+\begin{align*}
+&\cv{xtarT}+\cv{L}\,\cv{xptarT}-\cv{xsT}\\[2mm]
+&=-\cv{reacty}-\cv{xmis}
+-\cv{xptarT}\,\cv{zfoil}\,\cv{c}
++\cv{L}\,\cv{xptarT}-\cv{xsT}\\[2mm]
+&=-\cv{reacty}-\cv{xmis}
++\cv{xptarT}(\cv{L}-\cv{zfoil}\,\cv{c})-\cv{xsT}\\[2mm]
+&=-\cv{reacty}-\cv{xmis}+\cv{xsT}-\cv{xsT}\\[2mm]
+&=\boxed{-\cv{reacty}-\cv{xmis}.}
+\end{align*}
+\normalsize
+\alert{The required result is zero. The implemented result is generally nonzero.}
+
+\vspace{2mm}
+The pair reaches \(\cv{xsT}-\cv{reacty}-\cv{xmis}\), rather than \code{xsT}. Equality holds only when \(\cv{reacty}+\cv{xmis}=0\).
+\end{frame}
+
+\begin{frame}{What the contradiction means}
+For the same longitudinal approximation, satisfying the identity requires
+\[
+\boxed{\cv{xptarT}=\frac{\cv{xsT}+\cv{reacty}+\cv{xmis}}
+{\cv{L}-\cv{zfoil}\,\cv{c}}.}
+\]
+Use that same \code{xptarT} in the intercept equation.
+
+\vspace{3mm}
+\textbf{Conceptually:} the numerator must be the displacement from the vertex to the hole. The present numerator includes only the hole position, although the intercept retains the vertex displacement.
+
+\vspace{3mm}
+\small
+\textbf{Scope.} This establishes the inconsistency of the constructed target pair. Its effect on fitted or replayed resolution requires a separate data comparison.
+
+\vspace{3mm}
+\footnotesize
+\textbf{Replay context confirmed by Christine.} The 2024 replay used the same matrix as NPS replay, checked with the afterburner closure test. All zero-order offsets were removed for that replay. The HCANA version remains unchanged. These facts do not change the substitution above.
+\end{frame}
+\end{document}
