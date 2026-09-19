@@ -23,6 +23,8 @@ def main():
     parser.add_argument('--foil', type=float, help='Physical foil position in cm')
     parser.add_argument('--rungroup', action='append', help='Exact name; repeat to select several')
     parser.add_argument('--check', action='store_true', help='Check inputs without running ROOT')
+    parser.add_argument('--central-dense-half', action='store_true',
+                        help='Central hole only; compare full core with highest-score half per delta slice')
     args = parser.parse_args()
     campaign = Path(args.campaign)
     if not campaign.is_dir():
@@ -72,6 +74,8 @@ def main():
     holes = cfg.get('holes') or [[spec.nx//2, spec.ny//2],
         [spec.nx//2-offset, spec.ny//2], [spec.nx//2+offset, spec.ny//2],
         [spec.nx//2, spec.ny//2-offset], [spec.nx//2, spec.ny//2+offset]]
+    if args.central_dense_half:
+        holes = [[spec.nx//2, spec.ny//2]]
     if any(len(h) != 2 or any(type(i) is not int for i in h) or
            not (0 <= h[0] < spec.nx and 0 <= h[1] < spec.ny) for h in holes):
         raise ValueError('Invalid [xscol, yscol] hole indices')
@@ -96,8 +100,11 @@ def main():
     if not root:
         raise RuntimeError('ROOT executable is required')
     out = resolve(cfg.get('output', '07_diagnostics/geometry')) / f'foil_{foil:g}cm'
+    if args.central_dense_half:
+        out = out / 'central_dense_half'
     out.mkdir(parents=True, exist_ok=True)
     manifest = dict(campaign=str(campaign), config=cfg, foil=foil, holes=holes,
+                    central_dense_half=args.central_dense_half,
                     table=str(tables[0]), metadata=str(metadata), jobs=[], status='running')
     (out / 'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
     for row, core, replay, angle in jobs:
@@ -105,7 +112,8 @@ def main():
         dest.mkdir(exist_ok=True)
         hole_string = ';'.join(f'{x},{y}' for x, y in holes)
         values = [str(core), str(replay), str(dest), spec.name, int(row['optics_id']),
-                  angle, foil, hole_string, minimum, fraction, cfg.get('foil_width', 2.)]
+                  angle, foil, hole_string, minimum, fraction, cfg.get('foil_width', 2.),
+                  args.central_dense_half]
         expression = str(PROJECT / 'diagnostics/validation/geometry/core_geometry.C')
         expression += '(' + ','.join(json.dumps(v) for v in values) + ')'
         with (dest/'terminal.txt').open('w') as log:

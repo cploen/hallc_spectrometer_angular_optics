@@ -22,7 +22,7 @@
 
 namespace core_geometry_detail {
 struct Event {
-  double reacty, residual, corrected, predicted;
+  double reacty, residual, corrected, predicted, coreScore;
   std::array<double,4> fp;
   int ndel;
 };
@@ -64,6 +64,21 @@ std::vector<Event> tighter(const std::vector<Event>& events, double fraction) {
     }
     std::sort(distance.begin(),distance.end());
     for(size_t j=0;j<size_t(std::floor(fraction*ids.size()));++j) result.push_back(events[distance[j].second]);
+  }
+  return result;
+}
+std::vector<Event> densestHalf(const std::vector<Event>& events) {
+  std::map<int,std::vector<Event>> slices;
+  for(const auto& e:events) slices[e.ndel].push_back(e);
+  std::vector<Event> result;
+  for(auto& item:slices) {
+    auto& slice=item.second;
+    std::sort(slice.begin(),slice.end(),[](const Event& a,const Event& b){return a.coreScore>b.coreScore;});
+    const double threshold=slice[(slice.size()-1)/2].coreScore;
+    size_t count=0;
+    for(const auto& e:slice) if(e.coreScore>=threshold) {result.push_back(e);++count;}
+    std::cout<<"Densest half: delta slice "<<item.first<<", core_score >= "<<threshold
+             <<", retained "<<count<<" / "<<slice.size()<<" (ties included)\n";
   }
   return result;
 }
@@ -114,7 +129,7 @@ void plot(const std::vector<Event>& events, bool corrected, const std::string& n
 
 void core_geometry(const char* corePath,const char* replayPath,const char* output,const char* arm,
                    int opticsId,double angle,double zfoil,const char* holes,int minimum=30,
-                   double fraction=.5,double foilWidth=2.) {
+                   double fraction=.5,double foilWidth=2.,bool denseHalf=false) {
   using namespace core_geometry_detail;
   try {
     gROOT->SetBatch(true);gStyle->SetOptStat(0);gStyle->SetOptFit(0);
@@ -135,6 +150,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
     auto branch=[&](const std::string& suffix) {return replay?spec.branch(suffix):saved.at(suffix);};
     const std::string cerBranch=replay?spec.cherenkovBranch():"sumnpe";
     require(tree,{"entry","run","core_keep","zfoil","xscol","yscol","ndel","delta","delta_low","delta_high","xfp","xpfp","yfp","ypfp"});
+    if(denseHalf) require(tree,{"core_score"});
     std::vector<std::string> suffix={"react.x","react.y","react.z","gtr.th","gtr.dp",
        "dc.x_fp","dc.xp_fp","dc.y_fp","dc.yp_fp","cal.etottracknorm"};
     if(replay) source->SetBranchStatus("*",0);
@@ -163,6 +179,10 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       const std::array<std::string,4> fpNames={"xfp","xpfp","yfp","ypfp"};
       const std::array<std::string,4> fpSuffix={"dc.x_fp","dc.xp_fp","dc.y_fp","dc.yp_fp"};
       Event e{};e.ndel=int(value(tree,"ndel"));
+      if(denseHalf) {
+        e.coreScore=value(tree,"core_score");
+        if(!std::isfinite(e.coreScore)) throw std::runtime_error("Nonfinite core_score");
+      }
       for(int j=0;j<4;++j) {
         e.fp[j]=value(source,branch(fpSuffix[j]));
         if(!std::isfinite(e.fp[j])||!std::isfinite(value(tree,fpNames[j]))||std::abs(e.fp[j]-value(tree,fpNames[j]))>1e-7)
@@ -206,8 +226,8 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       std::string base="x"+std::to_string(hole.first)+"_y"+std::to_string(hole.second);
       if(events.size()<size_t(minimum)) {std::cout<<base<<": skipped, N="<<events.size()<<" < "<<minimum<<"\n";continue;}
       for(int subset=0;subset<2;++subset) {
-        auto selected=subset?tighter(events,fraction):events;
-        std::string label=subset?"fp_inner":"core";
+        auto selected=subset?(denseHalf?densestHalf(events):tighter(events,fraction)):events;
+        std::string label=subset?(denseHalf?"dense_half":"fp_inner"):"core";
         // Pooled slopes and delta-slice slopes expose kinematic mixing.
         std::map<int,std::vector<Event>> slices;
         slices[-1]=selected;
@@ -218,7 +238,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
           std::string group=gSystem->BaseName(output);group=group.substr(0,group.find('_'));
           std::ostringstream heading;
           heading<<arm<<" "<<group<<", "<<angle<<" deg, foil "<<zfoil<<" cm, hole ("
-            <<hole.first<<", "<<hole.second<<"), "<<(subset?"inner FP core":"core");
+            <<hole.first<<", "<<hole.second<<"), "<<(subset?(denseHalf?"densest half":"inner FP core"):"core");
           if(slice.first>=0) heading<<", delta slice "<<slice.first;
           std::string title=heading.str();
           for(int corrected=0;corrected<2;++corrected) {

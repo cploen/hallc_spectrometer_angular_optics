@@ -152,6 +152,47 @@ Results: [numerical table](../HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/rg01
 
 ## Validation and next step
 
+### Follow-up: densest half of the central-hole core
+
+This is a sieve-density selection, distinct from the inner focal-plane subset.
+Within each delta slice of the retained central-hole core, rank `core_score`
+from highest to lowest and retain the top half, including all ties at the
+threshold. `core_score` is the background-subtracted reconstructed-sieve density
+relative to the peak. The selections retain 93, 161, 246, 189 and 119 events in
+delta slices 0 through 4, respectively, for 808 events total.
+
+```bash
+bash run_geometry_study.sh HMS_6p667GeV --rungroup rg01_theta12p490_foil0 --central-dense-half
+```
+
+The command explicitly selects only the central hole. Results go beneath
+`07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/`.
+It also regenerates the full-core central-hole comparison with the same cuts.
+
+| Selection | Events | Original slope (mrad/cm) | Corrected slope (mrad/cm) |
+|---|---:|---:|---:|
+| Full retained central-hole core | 1584 | 8.7313 +/- 0.6077 | 2.7789 +/- 0.6077 |
+| Densest half, ties included | 808 | 6.7440 +/- 0.4818 | 0.7916 +/- 0.4818 |
+
+The densest-half slope differs from 5.95238 mrad/cm by 1.64 statistical standard
+errors. Its residual standard deviation changes from 0.82537 to 0.74152 mrad
+after correction. This supports agreement with the expected dependence under
+this selection. It does not independently establish the cause, because the
+selection uses reconstructed sieve coordinates and the slope is selection
+dependent. Densest-half results have not been extended to the other holes.
+
+For Charles, share the original and corrected densest-half PDFs, the original
+full-core PDF for comparison, and `docs/hms_geometry_proof.pdf`. All are committed
+with their PNG versions; the numerical tables, terminal output and configuration
+are retained too. ROOT histogram files and delta-slice figures can be regenerated
+with the command above and are not checked in.
+
+Suggested accompanying statement: the target equations have an algebraic
+mismatch. The densest-half central-hole result is consistent with the predicted
+vertex slope within statistical uncertainty, but the difference from the
+full-core result shows that selection matters. No target change or matrix refit
+has been made.
+
 `python3 -m unittest discover -s tests -p test_geometry_study.py` checks synthetic
 reference rays for HMS and SHMS at zero and +8 cm. It verifies known slopes,
 the corrected zero slope, arm selection, and rejection of noncore/other-foil
