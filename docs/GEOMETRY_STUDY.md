@@ -139,3 +139,14 @@ The real zero-foil run completed and representative renderings were inspected.
 Real outer-foil and SHMS data studies have not been run. The next discriminating
 physics comparison would use the original focal-plane-labeled central-hole events
 before sieve-based core selection, which requires a separate scope decision.
+
+## Central-hole ytar comparison
+
+The `--central-dense-half` command also writes `x4_y4_ytar.pdf`, `.png` and
+`.tsv` in the same group output directory. These compare saved replay `ytar`
+for the full core and densest half with identical 60-bin axes and event counts,
+without normalization or fitting. ROOT boxes show entries, mean and standard
+ deviation. The full core (1584 events) has mean -0.1812255 cm and standard
+ deviation 0.1245939 cm; the densest half (808 events) has mean -0.1819888 cm
+and standard deviation 0.1182731 cm. The mean is essentially unchanged, while
+the densest half is slightly narrower.

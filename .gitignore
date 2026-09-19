@@ -191,3 +191,6 @@ HMS_6p667GeV/07_diagnostics/geometry/**
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/terminal.txt
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/*_all_delta*.png
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/*_all_delta*.pdf
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/x4_y4_ytar.pdf
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/x4_y4_ytar.png
+!HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/central_dense_half/rg01_theta12p490_foil0/x4_y4_ytar.tsv

@@ -4,6 +4,7 @@
 #include <TTree.h>
 #include <TLeaf.h>
 #include <TH2D.h>
+#include <TH1D.h>
 #include <TGraph.h>
 #include <TF1.h>
 #include <TFitResult.h>
@@ -24,7 +25,7 @@
 
 namespace core_geometry_detail {
 struct Event {
-  double reacty, residual, predicted, coreScore;
+  double reacty, residual, predicted, coreScore, ytar;
   std::array<double,4> fp;
   int ndel;
 };
@@ -83,6 +84,36 @@ std::vector<Event> densestHalf(const std::vector<Event>& events) {
              <<", retained "<<count<<" / "<<slice.size()<<" (ties included)\n";
   }
   return result;
+}
+void plotYtar(const std::vector<Event>& full,const std::vector<Event>& dense,
+              const std::string& name,const std::string& output,TFile& file) {
+  double low=full.front().ytar,high=low;
+  for(const auto& e:full) {low=std::min(low,e.ytar);high=std::max(high,e.ytar);}
+  double pad=std::max(.01,.05*(high-low));low-=pad;high+=pad;
+  TH1D all((name+"_ytar_core").c_str(),"Full core;ytar (cm);Events",60,low,high);
+  TH1D inner((name+"_ytar_dense_half").c_str(),"Densest half;ytar (cm);Events",60,low,high);
+  for(const auto& e:full) all.Fill(e.ytar);
+  for(const auto& e:dense) inner.Fill(e.ytar);
+  double maximum=1.3*std::max(all.GetMaximum(),inner.GetMaximum());
+  gStyle->SetOptStat(1110);gStyle->SetOptFit(0);
+  TCanvas canvas((name+"_ytar_canvas").c_str(),"",1200,600);canvas.Divide(2,1);
+  int panel=0;
+  for(auto h:{&all,&inner}) {
+    canvas.cd(++panel);gPad->SetLeftMargin(.14);gPad->SetBottomMargin(.14);
+    h->SetMaximum(maximum);h->SetMinimum(0);h->SetLineColor(kBlue+2);h->SetLineWidth(2);
+    h->Draw("HIST");gPad->Update();
+    auto stats=dynamic_cast<TPaveStats*>(h->GetListOfFunctions()->FindObject("stats"));
+    if(stats){stats->SetX1NDC(.56);stats->SetX2NDC(.89);stats->SetY1NDC(.72);stats->SetY2NDC(.89);}
+    gPad->Modified();gPad->Update();
+  }
+  canvas.SaveAs((output+"/"+name+"_ytar.pdf").c_str());
+  canvas.SaveAs((output+"/"+name+"_ytar.png").c_str());
+  file.cd();all.Write();inner.Write();canvas.Write();
+  std::ofstream summary(output+"/"+name+"_ytar.tsv");
+  summary<<"selection\tn\tmean_cm\tstddev_cm\n"<<std::setprecision(10);
+  summary<<"core\t"<<all.GetEntries()<<'\t'<<all.GetMean()<<'\t'<<all.GetStdDev()<<'\n';
+  summary<<"dense_half\t"<<inner.GetEntries()<<'\t'<<inner.GetMean()<<'\t'<<inner.GetStdDev()<<'\n';
+  gStyle->SetOptStat(10);gStyle->SetOptFit(111);
 }
 void plot(const std::vector<Event>& events, const std::string& name,
           const std::string& title, const std::string& output, TFile& file,
@@ -162,7 +193,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
     auto branch=[&](const std::string& suffix) {return replay?spec.branch(suffix):saved.at(suffix);};
     const std::string cerBranch=replay?spec.cherenkovBranch():"sumnpe";
     require(tree,{"entry","run","core_keep","zfoil","xscol","yscol","ndel","delta","delta_low","delta_high","xfp","xpfp","yfp","ypfp"});
-    if(denseHalf) require(tree,{"core_score"});
+    if(denseHalf) require(tree,{"core_score","ytar"});
     std::vector<std::string> suffix={"react.x","react.y","react.z","gtr.th","gtr.dp",
        "dc.x_fp","dc.xp_fp","dc.y_fp","dc.yp_fp","cal.etottracknorm"};
     if(replay) source->SetBranchStatus("*",0);
@@ -193,6 +224,8 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       Event e{};e.ndel=int(value(tree,"ndel"));
       if(denseHalf) {
         e.coreScore=value(tree,"core_score");
+        e.ytar=value(tree,"ytar");
+        if(!std::isfinite(e.ytar)) throw std::runtime_error("Nonfinite ytar");
         if(!std::isfinite(e.coreScore)) throw std::runtime_error("Nonfinite core_score");
       }
       for(int j=0;j<4;++j) {
@@ -238,6 +271,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       if(events.size()<size_t(minimum)) {std::cout<<base<<": skipped, N="<<events.size()<<" < "<<minimum<<"\n";continue;}
       for(int subset=0;subset<2;++subset) {
         auto selected=subset?(denseHalf?densestHalf(events):tighter(events,fraction)):events;
+        if(subset&&denseHalf) plotYtar(events,selected,base,output,result);
         std::string label=subset?(denseHalf?"dense_half":"fp_inner"):"core";
         // Pooled slopes and delta-slice slopes expose kinematic mixing.
         std::map<int,std::vector<Event>> slices;
