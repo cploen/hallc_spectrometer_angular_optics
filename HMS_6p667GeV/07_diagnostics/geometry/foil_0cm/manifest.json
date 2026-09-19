@@ -32,6 +32,7 @@
       6
     ]
   ],
+  "central_dense_half": false,
   "table": "/Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/HMS_6p667GeV/config/rungroups_6p667_inputs.tsv",
   "metadata": "/Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/DATfiles/list_of_optics_run.dat",
   "jobs": [

@@ -8,6 +8,7 @@
 #include <TF1.h>
 #include <TFitResult.h>
 #include <TCanvas.h>
+#include <TLatex.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TError.h>
@@ -109,7 +110,10 @@ void plot(const std::vector<Event>& events, bool corrected, const std::string& n
   for(size_t i=0;i<x.size();++i) hist.Fill(x[i],y[i]);
   TCanvas canvas((name+"_canvas").c_str(),"",1000,750);
   canvas.SetLeftMargin(.15);canvas.SetRightMargin(.14);canvas.SetBottomMargin(.13);
+  canvas.SetTopMargin(.18);
   hist.Draw("COLZ");line.SetLineColor(kRed+1);line.SetLineWidth(2);line.Draw("SAME");
+  TLatex stats;stats.SetNDC();stats.SetTextFont(42);stats.SetTextSize(.029);
+  stats.DrawLatex(.15,.88,Form("Data fit: slope = %.2f #pm %.2f mrad/cm     N = %zu",slope,error,x.size()));
   canvas.SaveAs((output+"/"+name+".pdf").c_str());
   canvas.SaveAs((output+"/"+name+".png").c_str());
   file.cd(); hist.Write();line.Write();canvas.Write();

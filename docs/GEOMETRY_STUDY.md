@@ -80,8 +80,9 @@ Previously rejected events remain absent in both samples.
 
 ROOT `TH2D` histograms contain event counts, with a fitted straight line overlaid.
 Fits use individual events (unweighted ordinary least squares via `TGraph`),
-not histogram-bin centers or profile errors. No theoretical line, predicted
-slope, or statistics box appears on the plots. The terminal reports counts,
+not histogram-bin centers or profile errors. Each plot displays the measured
+slope, its statistical uncertainty and event count above the data. No theoretical
+line or predicted slope appears on the plots. The terminal reports counts,
 vertex range/RMS, slope/error, residual RMS, predicted slope and standardized
 differences. Errors are statistical OLS errors, not selection uncertainties.
 
