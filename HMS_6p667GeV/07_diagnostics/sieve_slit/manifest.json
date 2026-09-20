@@ -1,0 +1,55 @@
+{
+  "status": "complete",
+  "spectrometer": "HMS",
+  "config": {
+    "rungroup_table": "config/rungroups_6p667_inputs.tsv",
+    "core_file": "05c_core_sample/min10/root/CoreSample_{rungroup}.root",
+    "output": "07_diagnostics/sieve_slit",
+    "bins": 100
+  },
+  "config_sha256": "18b0882e37a5a9aa6c50c0d5886f6b4cd6f290366808a6976def61176932c716",
+  "table_sha256": "aea3dcae3e47735d7ea57ea0c7079a6d6f6ab6708fc58057bf7270d11444c500",
+  "script_sha256": "e1dc91d97b51e8a72711d62f0e313e851529110b302beec1b5adcb119899a62e",
+  "inputs": [
+    {
+      "rungroup": "rg01_theta12p490_foil0",
+      "path": "05c_core_sample/min10/root/CoreSample_rg01_theta12p490_foil0.root",
+      "sha256": "4004b5a37e51ff7dc2400c31ecbd0c86755355bb0f5cd7d62ae2a88640d11c32"
+    },
+    {
+      "rungroup": "rg02_theta15p195_foil0",
+      "path": "05c_core_sample/min10/root/CoreSample_rg02_theta15p195_foil0.root",
+      "sha256": "3a1ed0abdc35d9b0d6634945af0ada4764f53fe1270986bc6f0bc2fa28d9b47d"
+    },
+    {
+      "rungroup": "rg03_theta12p490_foilpm8",
+      "path": "05c_core_sample/min10/root/CoreSample_rg03_theta12p490_foilpm8.root",
+      "sha256": "b059ad66ad4c1157deeae922bdc5697f4b282e725ac61a0efcaba239a0ce6e63"
+    },
+    {
+      "rungroup": "rg04_theta15p195_foilpm3",
+      "path": "05c_core_sample/min10/root/CoreSample_rg04_theta15p195_foilpm3.root",
+      "sha256": "eaa22d5325c79c1683fc74afc8931275c68ae1b0de09ed2f0e09f70050d44878"
+    },
+    {
+      "rungroup": "rg05_theta12p495_foilpm3",
+      "path": "05c_core_sample/min10/root/CoreSample_rg05_theta12p495_foilpm3.root",
+      "sha256": "83f221f6ca2d9eb003c91ea3b5df233240a3217930583f1124c9e58132e1135b"
+    },
+    {
+      "rungroup": "rg06_theta15p195_foilpm8",
+      "path": "05c_core_sample/min10/root/CoreSample_rg06_theta15p195_foilpm8.root",
+      "sha256": "21be808562cdc381347430ab5ded823e834cecb2974c9b5324549957621fb202"
+    },
+    {
+      "rungroup": "rg07_theta12p495_foilpm8",
+      "path": "05c_core_sample/min10/root/CoreSample_rg07_theta12p495_foilpm8.root",
+      "sha256": "3867e6dd67426d8bf1a305915ca9a2693d40d4e2a698687c366ea0827b205dad"
+    }
+  ],
+  "versions": {
+    "numpy": "2.3.1",
+    "matplotlib": "3.11.2",
+    "uproot": "5.7.6"
+  }
+}

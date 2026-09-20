@@ -205,3 +205,11 @@ HMS_6p667GeV/07_diagnostics/geometry/**
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0/*__external_offsets_*__fitted_constants_included.txt
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0/*__external_offsets_*__fitted_constants_included.npz
 !HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0/*__external_offsets_*__fitted_constants_included.dat
+
+# Reviewed sieve slit scattering ytar study.
+!HMS_6p667GeV/config/sieve_slit.json
+!HMS_6p667GeV/07_diagnostics/sieve_slit/
+!HMS_6p667GeV/07_diagnostics/sieve_slit/*.png
+!HMS_6p667GeV/07_diagnostics/sieve_slit/*.tsv
+!HMS_6p667GeV/07_diagnostics/sieve_slit/*.json
+!HMS_6p667GeV/07_diagnostics/sieve_slit/*.md

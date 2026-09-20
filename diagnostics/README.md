@@ -18,3 +18,10 @@ diagnostics for each configured fit tree. Products are written under:
 ```
 
 Use `--dry-run` to print commands without running ROOT.
+
+## Sieve slit scattering: target-y distributions
+
+Run `./run_sieve_slit.sh <HMS_or_SHMS_campaign> [--config file] [--check]`.
+The campaign's `config/sieve_slit.json` points to the rungroup table and frozen
+CoreSample files. Results live alongside the other studies in
+`07_diagnostics/sieve_slit`. See the [HMS study and reproduction notes](../HMS_6p667GeV/07_diagnostics/sieve_slit/README.md).

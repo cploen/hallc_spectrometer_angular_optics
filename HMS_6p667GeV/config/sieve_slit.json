@@ -1,0 +1,6 @@
+{
+  "rungroup_table": "config/rungroups_6p667_inputs.tsv",
+  "core_file": "05c_core_sample/min10/root/CoreSample_{rungroup}.root",
+  "output": "07_diagnostics/sieve_slit",
+  "bins": 100
+}
