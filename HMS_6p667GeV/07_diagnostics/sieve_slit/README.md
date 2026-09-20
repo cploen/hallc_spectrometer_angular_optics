@@ -20,12 +20,16 @@ out-of-core population. It is parallel to `geometry` and `compare` in
 - The remaining half of accepted cores is tabulated as `outer_core`; it is
   not counted as out of core. Fit, surplus, and holdout events are all included.
 
-Each run group and foil has three separate PNGs, with identical x limits and
+Each run group and foil has three separate ROOT-rendered PNGs, with identical x limits and
 100 common bins. All labeled holes and delta slices are pooled within that
 foil. Counts are unweighted. `summary.tsv` includes N, mean, population standard
 deviation, median, and 5th/95th percentiles for all five populations.
 `histograms.tsv` stores every bin, including zero counts, for independent replotting.
-No ytar range clipping is applied by this diagnostic.
+No ytar range clipping is applied by this diagnostic. Each run-group/foil ROOT
+file contains five `TH1D` objects (one per tabulated population), three saved
+`TCanvas` objects, and the ROOT version. Histogram moments retain the exact
+event-level sums, so ROOT mean/standard deviation statistics agree with the TSV.
+The `draw_ytar.C` macro renders the PNGs using ROOT, with standard statistics boxes.
 
 ## Findings for HMS 6.667 GeV
 
@@ -47,7 +51,7 @@ but does not establish a sieve-scattering origin.
 
 ## Reproduce
 
-From the repository root, with Python 3.11+ and NumPy, Matplotlib, and uproot:
+From the repository root, with Python 3.11+, NumPy, uproot, and ROOT on `PATH`:
 
 ```bash
 ./run_sieve_slit.sh HMS_6p667GeV --check
@@ -76,9 +80,9 @@ for an end-to-end run.
 The input files are the seven `05c_core_sample/min10/root/CoreSample_*.root`
 files. Preserve these files for exact reproduction; the diagnostic does not
 regenerate the frozen core selection. `manifest.json` records SHA-256 hashes
-of every input, configuration, rungroup table, and plotting source, plus package
+of every input, configuration, rungroup table, and Python/ROOT plotting sources, plus package
 versions. Consult `CORE_SAMPLE.md` for upstream candidate/core production.
-The committed PNGs and TSVs are compact analysis outputs; event ROOT files are
+The committed ROOT histograms/canvases, PNGs, and TSVs are compact analysis outputs; event ROOT files are
 not duplicated in this study directory. Re-running overwrites outputs with the
 same names. A partial `--rungroup` run updates the manifest/tables only for that
 selection; use a separate configured output directory to preserve a full run.

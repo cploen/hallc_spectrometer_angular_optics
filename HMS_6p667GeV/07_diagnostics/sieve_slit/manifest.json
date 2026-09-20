@@ -9,7 +9,8 @@
   },
   "config_sha256": "18b0882e37a5a9aa6c50c0d5886f6b4cd6f290366808a6976def61176932c716",
   "table_sha256": "aea3dcae3e47735d7ea57ea0c7079a6d6f6ab6708fc58057bf7270d11444c500",
-  "script_sha256": "e1dc91d97b51e8a72711d62f0e313e851529110b302beec1b5adcb119899a62e",
+  "script_sha256": "8a214fd4fac2ab0c9945316db9652fac6405ded10365a7cff5fd4e81a319813e",
+  "root_macro_sha256": "2b7abd26ca55952a96f5409b8d1d9aa6de3fec9bdc97ae7972a1278e963b259d",
   "inputs": [
     {
       "rungroup": "rg01_theta12p490_foil0",
@@ -49,7 +50,6 @@
   ],
   "versions": {
     "numpy": "2.3.1",
-    "matplotlib": "3.11.2",
     "uproot": "5.7.6"
   }
 }

@@ -7,10 +7,9 @@ import importlib.metadata
 import json
 from pathlib import Path
 import sys
+import shutil
+import subprocess
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import numpy as np
 import uproot
 
@@ -92,18 +91,21 @@ def main():
         print(f"{spec.name} {row['rungroup']}: {len(data['entry'])} events; {masks['out_of_core'].sum()} out of core", flush=True)
     if args.check:
         return
+    root_executable = shutil.which('root')
+    if not root_executable:
+        raise RuntimeError('ROOT executable is required to draw TH1D histograms')
+    macro = Path(__file__).with_name('draw_ytar.C')
     out = resolve(cfg.get('output', '07_diagnostics/sieve_slit'))
     out.mkdir(parents=True, exist_ok=True)
     summary, histogram = [], []
     manifest = dict(status='running', spectrometer=spec.name, config=cfg,
                     config_sha256=digest(config), table_sha256=digest(table),
-                    script_sha256=digest(Path(__file__)), inputs=[],
-                    versions={p: importlib.metadata.version(p) for p in ['numpy', 'matplotlib', 'uproot']})
+                    script_sha256=digest(Path(__file__)), root_macro_sha256=digest(macro), inputs=[],
+                    versions={p: importlib.metadata.version(p) for p in ['numpy', 'uproot']})
     (out/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
     labels = dict(dense_half='Densest 50% of cores', outer_core='Remaining core events',
                   shoulders='Shoulders / between cores', unsupported='Unsupported holes',
                   out_of_core='All out-of-core events')
-    colors = dict(dense_half='#2166ac', shoulders='#d6604d', out_of_core='#762a83')
     for row, path, data, masks in jobs:
         name = row['rungroup']
         manifest['inputs'].append(dict(rungroup=name, path=cfg['core_file'].format(rungroup=name), sha256=digest(path)))
@@ -117,9 +119,23 @@ def main():
             margin = max((high-low)*.02, .01)
             edges = np.linspace(low-margin, high+margin, bins+1)
             stats = {}
+            root_histograms = {}
             for key, mask in masks.items():
                 y = data['ytar'][selected & mask]
                 counts, _ = np.histogram(y, edges)
+                # Preserve event-level moments, rather than approximating from bin centers.
+                root_histograms[key] = uproot.writing.identify.to_TH1x(
+                    fName=key,
+                    fTitle=f'Sieve slit scattering study - {spec.name}: {labels[key]}',
+                    data=np.r_[0., counts.astype(np.float64), 0.],
+                    fEntries=float(len(y)), fTsumw=float(len(y)), fTsumw2=float(len(y)),
+                    fTsumwx=float(y.sum()), fTsumwx2=float(np.square(y).sum()),
+                    fSumw2=np.r_[0., counts.astype(np.float64), 0.],
+                    fXaxis=uproot.writing.identify.to_TAxis(
+                        fName='xaxis', fTitle='y_{tar} (cm)', fNbins=bins,
+                        fXmin=float(edges[0]), fXmax=float(edges[-1]), fXbins=edges),
+                    fYaxis=uproot.writing.identify.to_TAxis(
+                        fName='yaxis', fTitle='Events / bin', fNbins=1, fXmin=0., fXmax=1.))
                 stats[key] = dict(rungroup=name, zfoil_cm=float(z[0]), population=key, n=len(y),
                                   mean_cm=float(np.mean(y)) if len(y) else '',
                                   std_cm=float(np.std(y)) if len(y) else '',
@@ -130,20 +146,15 @@ def main():
                 for a, b, count in zip(edges[:-1], edges[1:], counts):
                     histogram.append(dict(rungroup=name, zfoil_cm=float(z[0]), population=key,
                                           low_cm=a, high_cm=b, count=int(count)))
-            for key, color in colors.items():
-                y = data['ytar'][selected & masks[key]]
-                fig, ax = plt.subplots(figsize=(9, 5.5), layout='constrained')
-                ax.hist(y, bins=edges, histtype='stepfilled', alpha=.65, color=color)
-                ax.set(xlabel=r'$y_{\mathrm{tar}}$ (cm)', ylabel='Events / bin', xlim=(edges[0], edges[-1]))
-                fig.suptitle(f'Sieve slit scattering study · {spec.name}', fontsize=16)
-                ax.set_title(f'{labels[key]} · foil {z[0]:g} cm\n{name} · all holes and δ slices', fontsize=11)
-                text = f'N = {len(y):,}'
-                if len(y):
-                    text += f"\nMean = {np.mean(y):.3f} cm\nSD = {np.std(y):.3f} cm"
-                ax.text(.98, .96, text, transform=ax.transAxes, ha='right', va='top', fontsize=10)
-                ax.grid(alpha=.2)
-                fig.savefig(out/f'{name}_foil{int(foil)}_{key}.png', dpi=160)
-                plt.close(fig)
+            stem = out/f'{name}_foil{int(foil)}'
+            root_path = stem.with_suffix('.root')
+            with uproot.recreate(root_path) as root_file:
+                for key, hist in root_histograms.items():
+                    root_file[key] = hist
+            context = f'{name} | foil {z[0]:g} cm | all holes and #delta slices'
+            expression = str(macro) + '(' + ','.join(json.dumps(v) for v in
+                [str(root_path), str(stem), context]) + ')'
+            subprocess.run([root_executable, '-l', '-b', '-q', expression], check=True)
     write_table(out/'summary.tsv', summary)
     write_table(out/'histograms.tsv', histogram)
     manifest['status'] = 'complete'

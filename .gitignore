@@ -213,3 +213,4 @@ HMS_6p667GeV/07_diagnostics/geometry/**
 !HMS_6p667GeV/07_diagnostics/sieve_slit/*.tsv
 !HMS_6p667GeV/07_diagnostics/sieve_slit/*.json
 !HMS_6p667GeV/07_diagnostics/sieve_slit/*.md
+!HMS_6p667GeV/07_diagnostics/sieve_slit/*.root
