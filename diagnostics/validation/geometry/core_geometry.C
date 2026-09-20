@@ -5,6 +5,7 @@
 #include <TLeaf.h>
 #include <TH2D.h>
 #include <TH1D.h>
+#include <TLegend.h>
 #include <TGraph.h>
 #include <TF1.h>
 #include <TFitResult.h>
@@ -25,7 +26,7 @@
 
 namespace core_geometry_detail {
 struct Event {
-  double reacty, residual, predicted, coreScore, ytar;
+  double reacty, residual, predicted, coreScore, ytar, ytarT;
   std::array<double,4> fp;
   int ndel;
 };
@@ -88,31 +89,41 @@ std::vector<Event> densestHalf(const std::vector<Event>& events) {
 void plotYtar(const std::vector<Event>& full,const std::vector<Event>& dense,
               const std::string& name,const std::string& output,TFile& file) {
   double low=full.front().ytar,high=low;
-  for(const auto& e:full) {low=std::min(low,e.ytar);high=std::max(high,e.ytar);}
+  for(const auto& e:full) {low=std::min({low,e.ytar,e.ytarT});high=std::max({high,e.ytar,e.ytarT});}
   double pad=std::max(.01,.05*(high-low));low-=pad;high+=pad;
   TH1D all((name+"_ytar_core").c_str(),"Full core;ytar (cm);Events",60,low,high);
   TH1D inner((name+"_ytar_dense_half").c_str(),"Densest half;ytar (cm);Events",60,low,high);
-  for(const auto& e:full) all.Fill(e.ytar);
-  for(const auto& e:dense) inner.Fill(e.ytar);
-  double maximum=1.3*std::max(all.GetMaximum(),inner.GetMaximum());
+  TH1D allTarget((name+"_ytarT_core").c_str(),"",60,low,high);
+  TH1D innerTarget((name+"_ytarT_dense_half").c_str(),"",60,low,high);
+  for(const auto& e:full) {all.Fill(e.ytar);allTarget.Fill(e.ytarT);}
+  for(const auto& e:dense) {inner.Fill(e.ytar);innerTarget.Fill(e.ytarT);}
+  double maximum=1.45*std::max({all.GetMaximum(),inner.GetMaximum(),allTarget.GetMaximum(),innerTarget.GetMaximum()});
   gStyle->SetOptStat(1110);gStyle->SetOptFit(0);
   TCanvas canvas((name+"_ytar_canvas").c_str(),"",1200,600);canvas.Divide(2,1);
+  TLegend legends[2]={TLegend(.17,.75,.43,.89),TLegend(.17,.75,.43,.89)};
   int panel=0;
   for(auto h:{&all,&inner}) {
     canvas.cd(++panel);gPad->SetLeftMargin(.14);gPad->SetBottomMargin(.14);
     h->SetMaximum(maximum);h->SetMinimum(0);h->SetLineColor(kBlue+2);h->SetLineWidth(2);
     h->Draw("HIST");gPad->Update();
+    auto target=panel==1?&allTarget:&innerTarget;
+    target->SetLineColor(kRed+1);target->SetLineWidth(2);target->SetStats(false);
+    target->Draw("HIST SAME");
+    auto& legend=legends[panel-1];legend.SetBorderSize(0);legend.SetTextSize(.035);
+    legend.AddEntry(h,"ytar","l");legend.AddEntry(target,"ytarT","l");legend.Draw();
     auto stats=dynamic_cast<TPaveStats*>(h->GetListOfFunctions()->FindObject("stats"));
     if(stats){stats->SetX1NDC(.56);stats->SetX2NDC(.89);stats->SetY1NDC(.72);stats->SetY2NDC(.89);}
     gPad->Modified();gPad->Update();
   }
   canvas.SaveAs((output+"/"+name+"_ytar.pdf").c_str());
   canvas.SaveAs((output+"/"+name+"_ytar.png").c_str());
-  file.cd();all.Write();inner.Write();canvas.Write();
+  file.cd();all.Write();inner.Write();allTarget.Write();innerTarget.Write();canvas.Write();
   std::ofstream summary(output+"/"+name+"_ytar.tsv");
   summary<<"selection\tn\tmean_cm\tstddev_cm\n"<<std::setprecision(10);
   summary<<"core\t"<<all.GetEntries()<<'\t'<<all.GetMean()<<'\t'<<all.GetStdDev()<<'\n';
   summary<<"dense_half\t"<<inner.GetEntries()<<'\t'<<inner.GetMean()<<'\t'<<inner.GetStdDev()<<'\n';
+  summary<<"core_ytarT\t"<<allTarget.GetEntries()<<'\t'<<allTarget.GetMean()<<'\t'<<allTarget.GetStdDev()<<'\n';
+  summary<<"dense_half_ytarT\t"<<innerTarget.GetEntries()<<'\t'<<innerTarget.GetMean()<<'\t'<<innerTarget.GetStdDev()<<'\n';
   gStyle->SetOptStat(10);gStyle->SetOptFit(111);
 }
 void plot(const std::vector<Event>& events, const std::string& name,
@@ -172,7 +183,7 @@ void plot(const std::vector<Event>& events, const std::string& name,
 
 void core_geometry(const char* corePath,const char* replayPath,const char* output,const char* arm,
                    int opticsId,double angle,double zfoil,const char* holes,int minimum=30,
-                   double fraction=.5,double foilWidth=2.,bool denseHalf=false) {
+                   double fraction=.5,double foilWidth=2.,bool denseHalf=false,const char* afterburnerPath="") {
   using namespace core_geometry_detail;
   try {
     gROOT->SetBatch(true);gStyle->SetOptStat(10);gStyle->SetOptFit(111);
@@ -180,6 +191,13 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
     gStyle->SetTitleFontSize(.035);
     auto spec=hallc::profileForName(arm);
     if(spec.name.empty()) throw std::runtime_error("Unknown spectrometer");
+    std::map<Long64_t,std::pair<double,double>> afterburner;
+    if(std::string(afterburnerPath).size()) {
+      std::ifstream input(afterburnerPath);Long64_t entry;double xp,y;
+      if(!input) throw std::runtime_error("Cannot open afterburner predictions");
+      while(input>>entry>>xp>>y) afterburner[entry]={xp,y};
+      if(afterburner.empty()) throw std::runtime_error("Empty afterburner predictions");
+    }
     TFile core(corePath,"READ");
     std::unique_ptr<TFile> replay;
     if(!gSystem->AccessPathName(replayPath)) replay.reset(TFile::Open(replayPath,"READ"));
@@ -193,7 +211,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
     auto branch=[&](const std::string& suffix) {return replay?spec.branch(suffix):saved.at(suffix);};
     const std::string cerBranch=replay?spec.cherenkovBranch():"sumnpe";
     require(tree,{"entry","run","core_keep","zfoil","xscol","yscol","ndel","delta","delta_low","delta_high","xfp","xpfp","yfp","ypfp"});
-    if(denseHalf) require(tree,{"core_score","ytar"});
+    if(denseHalf) require(tree,{"core_score","ytar","xbpm_tar"});
     std::vector<std::string> suffix={"react.x","react.y","react.z","gtr.th","gtr.dp",
        "dc.x_fp","dc.xp_fp","dc.y_fp","dc.yp_fp","cal.etottracknorm"};
     if(replay) source->SetBranchStatus("*",0);
@@ -240,12 +258,19 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
            value(source,cerBranch)>2&&value(source,branch("cal.etottracknorm"))>.65&&
            std::abs(value(source,branch("react.z"))-zfoil)<foilWidth)) {++rejected;continue;}
       double reactx=value(source,branch("react.x")),xptar=value(source,branch("gtr.th"));
+      if(!afterburner.empty()) {
+        auto found=afterburner.find(entry);
+        if(found==afterburner.end()) throw std::runtime_error("Missing afterburner event");
+        xptar=found->second.first;e.ytar=found->second.second;
+      }
       e.reacty=value(source,branch("react.y"));
       if(!std::isfinite(reactx)||!std::isfinite(e.reacty)||!std::isfinite(xptar))
         throw std::runtime_error("Nonfinite replay geometry");
       const double xsT=spec.xs(hole.first);
-      // xbpm affects only the y targets, which this x study does not use.
-      const auto truth=hallc::targetTruth(spec,angle,zfoil,xsT,spec.ys(hole.second),delta,reactx,e.reacty,0.);
+      // Use the saved event beam coordinate for the ytarT overlay.
+      const auto truth=hallc::targetTruth(spec,angle,zfoil,xsT,spec.ys(hole.second),delta,reactx,e.reacty,denseHalf?value(tree,"xbpm_tar"):0.);
+      e.ytarT=truth.ytar;
+      if(denseHalf&&!std::isfinite(e.ytarT)) throw std::runtime_error("Nonfinite ytarT");
       e.residual=1000*(xptar-truth.xptar);
       e.predicted=spec.shms()?0.:1000/(spec.sieveDistance-zfoil*c);
       double expectedClosure=spec.shms()?0.:-e.reacty-spec.xMis(angle);
@@ -282,6 +307,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
           std::string name=base+"_"+label+"_"+(slice.first<0?"all_delta":"delta"+std::to_string(slice.first));
           std::string group=gSystem->BaseName(output);group=group.substr(0,group.find('_'));
           std::ostringstream heading;
+          if(!afterburner.empty()) heading<<"GMM afterburner: ";
           heading<<arm<<" "<<group<<", "<<angle<<" deg, foil "<<zfoil<<" cm, hole ("
             <<hole.first<<", "<<hole.second<<"), "<<(subset?(denseHalf?"densest half":"inner FP core"):"core");
           if(slice.first>=0) heading<<", delta slice "<<slice.first;

@@ -27,11 +27,11 @@ void fixture(const char* path, bool shms) {
  TFile file(path,"RECREATE");TTree tree("CoreSample","");
  double entry=0,run=1,core_keep=1,zfoil=0,xscol=shms?5:4,yscol=xscol,ndel=0;
  double delta=0,delta_low=-10,delta_high=10,xfp=0,xpfp=0,yfp=0,ypfp=0;
- double reactx=0,reacty=0,reactz=0,xptar=0,sumnpe=5,etracknorm=1,core_score=0,ytar=0;
+ double reactx=0,reacty=0,reactz=0,xptar=0,sumnpe=5,etracknorm=1,core_score=0,ytar=0,xbpm_tar=0;
 #define B(v) tree.Branch(#v,&v);
  B(entry) B(run) B(core_keep) B(zfoil) B(xscol) B(yscol) B(ndel)
  B(delta) B(delta_low) B(delta_high) B(xfp) B(xpfp) B(yfp) B(ypfp)
- B(reactx) B(reacty) B(reactz) B(xptar) B(sumnpe) B(etracknorm) B(core_score) B(ytar)
+ B(reactx) B(reacty) B(reactz) B(xptar) B(sumnpe) B(etracknorm) B(core_score) B(ytar) B(xbpm_tar)
  double angle=12.49*acos(-1.)/180., L=shms?253.:168.;
  double xmis=shms?-.126:.1*(2.37-.086*12.49+.0012*12.49*12.49);
  for(double foil:{-8.,0.,8.}) for(int i=-100;i<=100;++i) {

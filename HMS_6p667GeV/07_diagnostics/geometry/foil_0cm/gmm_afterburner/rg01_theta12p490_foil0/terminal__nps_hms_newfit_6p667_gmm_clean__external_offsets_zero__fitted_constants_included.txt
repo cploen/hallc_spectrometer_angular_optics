@@ -1,0 +1,25 @@
+
+Processing /Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/diagnostics/validation/geometry/core_geometry.C("/Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/HMS_6p667GeV/05c_core_sample/min10/root/CoreSample_rg01_theta12p490_foil0.root","/volatile/hallc/nps/cploen/ROOTfiles/OPTICS/angular_sandbox/2024_replay_matrix_zero_offsets_6p667/hadd_rungroups_6p667/nps_hms_optics_6p667_rg01_theta12p490_foil0.root","/Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0","HMS",666701,12.49,0,"4,4",30,0.5,2,true,"/Users/christine/.codex/.chatgpt-projects/g-p-680be63e67b48191a251ae0adfb21ae2/work/hallc-core-campaign/HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0/predictions.tsv")...
+Using saved replay values from CoreSample; source replay comparison unavailable. Quality-cut exclusions=0
+Maximum target-identity algebra discrepancy=0 cm
+Predictions assume reconstructed angles follow the reference ray. Core selection can bias slopes.
+Errors are ordinary least-squares statistical errors; no selection systematic is included.
+x4_y4_core_all_delta: N=1584, reacty RMS=0.05333308 cm, range=[-0.1030855, 0.08860381] cm, residual RMS=1.392014 mrad
+  slope=9.000125 +/- 0.6159635 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.61146; (slope-predicted)/error=4.947929
+x4_y4_core_delta0: N=183, reacty RMS=0.05174256 cm, range=[-0.1006551, 0.08580057] cm, residual RMS=1.969011 mrad
+  slope=4.512028 +/- 2.808579 mrad/cm; predicted=5.952381 mrad/cm; slope/error=1.606516; (slope-predicted)/error=-0.5128407
+x4_y4_core_delta1: N=314, reacty RMS=0.05501108 cm, range=[-0.09967255, 0.08860381] cm, residual RMS=1.597419 mrad
+  slope=10.66918 +/- 1.528974 mrad/cm; predicted=5.952381 mrad/cm; slope/error=6.978002; (slope-predicted)/error=3.084945
+x4_y4_core_delta2: N=482, reacty RMS=0.05278475 cm, range=[-0.0993766, 0.08595277] cm, residual RMS=1.227546 mrad
+  slope=8.352523 +/- 0.9906466 mrad/cm; predicted=5.952381 mrad/cm; slope/error=8.431385; (slope-predicted)/error=2.422803
+x4_y4_core_delta3: N=372, reacty RMS=0.05395078 cm, range=[-0.1030855, 0.0859064] cm, residual RMS=1.15965 mrad
+  slope=10.35239 +/- 0.9793073 mrad/cm; predicted=5.952381 mrad/cm; slope/error=10.57114; (slope-predicted)/error=4.492982
+x4_y4_core_delta4: N=233, reacty RMS=0.05203002 cm, range=[-0.09841716, 0.08614306] cm, residual RMS=1.04946 mrad
+  slope=8.394918 +/- 1.206701 mrad/cm; predicted=5.952381 mrad/cm; slope/error=6.956917; (slope-predicted)/error=2.024145
+Densest half: delta slice 0, core_score >= 0.8249194, retained 93 / 183 (ties included)
+Densest half: delta slice 1, core_score >= 0.8547786, retained 161 / 314 (ties included)
+Densest half: delta slice 2, core_score >= 0.8580519, retained 246 / 482 (ties included)
+Densest half: delta slice 3, core_score >= 0.8201271, retained 189 / 372 (ties included)
+Densest half: delta slice 4, core_score >= 0.810554, retained 119 / 233 (ties included)
+x4_y4_dense_half_all_delta: N=808, reacty RMS=0.05412199 cm, range=[-0.1006551, 0.08860381] cm, residual RMS=0.8616123 mrad
+  slope=7.076962 +/- 0.502299 mrad/cm; predicted=5.952381 mrad/cm; slope/error=14.08914; (slope-predicted)/error=2.238867

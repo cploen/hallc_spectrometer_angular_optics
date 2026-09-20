@@ -39,7 +39,7 @@ def evaluate(poly,x,offset):
     return value+np.asarray(offset)/[1000,100,1000]
 
 
-def reconstruct(a,rows,angle,offset,xmis=None):
+def reconstruct(a,rows,angle,offset,xmis=None,return_target=False):
     """HCANA ExtTarCor convention: saved vertex; >=1, <=5 updates, 2 mrad stop."""
     theta=np.deg2rad(angle)
     if xmis is None:
@@ -56,6 +56,8 @@ def reconstruct(a,rows,angle,offset,xmis=None):
         if not active.any():break
     xy=np.column_stack((xtar+168*result[:,0],100*result[:,1]+168*result[:,2]))
     if not np.isfinite(xy).all():raise ValueError('Nonfinite afterburner result; no events silently discarded')
+    if return_target:
+        return xy,iterations,active,result,xtar
     return xy,iterations,active
 
 

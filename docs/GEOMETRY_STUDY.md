@@ -150,3 +150,49 @@ without normalization or fitting. ROOT boxes show entries, mean and standard
  deviation 0.1245939 cm; the densest half (808 events) has mean -0.1819888 cm
 and standard deviation 0.1182731 cm. The mean is essentially unchanged, while
 the densest half is slightly narrower.
+
+## GMM matrix afterburner, fixed central-hole samples
+
+Command (Python requires the existing NumPy/uproot analysis environment):
+
+```bash
+python3 geometry_afterburner.py HMS_6p667GeV --rungroup rg01_theta12p490_foil0
+```
+
+The matrix path, checksum, documented invalid-row exclusion and zero external
+additions come from `config/comparison.json`. This is the historical 6.667 GMM
+matrix, not a new refit. The existing `sieve_afterburner.reconstruct` routine
+returns its target predictions using the same fixed saved vertex and xtar
+iteration. It does not rerun tracking, recompute reaction coordinates or momentum,
+or redefine cores. Full/dense event IDs and original `core_score` remain fixed.
+
+The original matrix reproduces saved xptar to a maximum difference of
+2.83e-14 mrad and ytar to 7.22e-16 cm on these 1584 events.
+
+| Selection | Original slope | GMM slope | Original ytar mean / SD (cm) | GMM ytar mean / SD (cm) |
+|---|---:|---:|---:|---:|
+| Full core, 1584 | 8.731 +/- 0.608 | 9.000 +/- 0.616 | -0.18123 / 0.12459 | -0.18708 / 0.12999 |
+| Densest half, 808 | 6.744 +/- 0.482 | 7.077 +/- 0.502 | -0.18199 / 0.11827 | -0.18752 / 0.12272 |
+
+Slopes are mrad/cm. The geometrical prediction remains 5.95238 mrad/cm.
+The GMM matrix moves the ytar mean closer to ytarT (about -0.1858 cm), but
+slightly broadens the distribution. It does not remove the xptar dependence.
+Slope differences use overlapping identical events; the separate slope errors
+must not be treated as independent errors on the difference.
+
+Outputs are in
+`HMS_6p667GeV/07_diagnostics/geometry/foil_0cm/gmm_afterburner/rg01_theta12p490_foil0/`.
+The manifest records matrix provenance and convergence. `event_comparison.npz`
+retains event IDs, dense membership and paired old/GMM predictions. All afterburner products now include this filename suffix before the extension:
+
+```
+__nps_hms_newfit_6p667_gmm_clean__external_offsets_zero__fitted_constants_included
+```
+
+The plot prefixes are `x4_y4_core_all_delta`, `x4_y4_dense_half_all_delta`,
+and `x4_y4_ytar`, each with PDF/PNG versions. The same naming applies to tables,
+manifest, terminal output, event arrays and the matrix snapshot. The manifest
+records the numerical active zero-order coefficients and checksum. External
+additions are zero; the solved matrix constants remain included. `ytarT` is unchanged and appears in red on the ytar plots.
+
+This comparison shows the nonzero slope survives this specific historical GMM SVD fit. It does not establish that every possible SVD fit must retain it. A constant addition alone cannot remove a slope at fixed inputs and event selection.
