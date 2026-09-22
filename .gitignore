@@ -8,6 +8,12 @@ archive/
 __pycache__/
 *.py[cod]
 
+# Coordinate model is source code, not a campaign output (case-insensitive Macs).
+!systems_simulation/hms_sieve/
+!systems_simulation/hms_sieve/**
+systems_simulation/hms_sieve/**/__pycache__/
+systems_simulation/hms_sieve/build/
+
 # Development backups
 *.bak*
 *.before_*

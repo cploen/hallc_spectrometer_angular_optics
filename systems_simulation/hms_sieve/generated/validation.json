@@ -1,0 +1,188 @@
+{
+  "status": "independent_geometry_checked_geant4_runtime_pending",
+  "data_events_used": 0,
+  "matrix_evaluations": 0,
+  "displayed_setting": "HMS_12p490_code_defaults",
+  "config_sha256": "4d4e997bc029694c9ef1c1e0fddfa89c5ace65066c52196eed4beeb622d5fac5",
+  "reference_rays": 168,
+  "max_reference_residual_cm": 1.7763568394002505e-15,
+  "max_fit_residual_cm": 0.3483060120000019,
+  "actual_replay_rerun": false,
+  "physical_survey_certified": false,
+  "settings": {
+    "HMS_12p490_code_defaults": {
+      "A_endpoint": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          0.0,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          1.7763568394002505e-15,
+          1.7763568394002505e-15
+        ],
+        "max_after_offset_cm": [
+          1.7763568394002505e-15,
+          1.7763568394002505e-15
+        ],
+        "max_zero_beam_after_offset_cm": [
+          1.7763568394002505e-15,
+          8.881784197001252e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.0,
+          0.0
+        ],
+        "max_angle_difference_mrad": [
+          0.0,
+          0.0
+        ]
+      },
+      "B_fit_target": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          -0.14830601200000001,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          0.3483060120000019,
+          0.0021475015209091453
+        ],
+        "max_after_offset_cm": [
+          0.20000000000000204,
+          0.0021475015209091453
+        ],
+        "max_zero_beam_after_offset_cm": [
+          9.71445146547012e-16,
+          8.881784197001252e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.016983049817421214,
+          0.00010410203678024033
+        ],
+        "max_angle_difference_mrad": [
+          2.1743362271046234,
+          0.013369455268863462
+        ]
+      },
+      "C_HCANA_coordinate_step": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          0.0,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          0.0027826665415169316,
+          1.7763568394002505e-15
+        ],
+        "max_after_offset_cm": [
+          0.0027826665415169316,
+          1.7763568394002505e-15
+        ],
+        "max_zero_beam_after_offset_cm": [
+          1.7763568394002505e-15,
+          8.881784197001252e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.002782666541518819,
+          2.220446049250313e-16
+        ],
+        "max_angle_difference_mrad": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "HMS_15p195_code_defaults": {
+      "A_endpoint": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          0.0,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          1.7763568394002505e-15,
+          1.7763568394002505e-15
+        ],
+        "max_after_offset_cm": [
+          1.7763568394002505e-15,
+          1.7763568394002505e-15
+        ],
+        "max_zero_beam_after_offset_cm": [
+          1.7763568394002505e-15,
+          8.881784197001252e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.0,
+          0.0
+        ],
+        "max_angle_difference_mrad": [
+          0.0,
+          0.0
+        ]
+      },
+      "B_fit_target": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          -0.13402956300000002,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          0.3340295630000014,
+          0.0027165247601530496
+        ],
+        "max_after_offset_cm": [
+          0.2000000000000014,
+          0.0027165247601530496
+        ],
+        "max_zero_beam_after_offset_cm": [
+          2.1094237467877974e-15,
+          4.440892098500626e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.016089459090242397,
+          0.00012991798312267377
+        ],
+        "max_angle_difference_mrad": [
+          2.0840387810062975,
+          0.016897748366481724
+        ]
+      },
+      "C_HCANA_coordinate_step": {
+        "rays": 84,
+        "sieve_registration_offset_cm": [
+          0.0,
+          0.0
+        ],
+        "max_raw_residual_cm": [
+          0.0033656593375148702,
+          1.7763568394002505e-15
+        ],
+        "max_after_offset_cm": [
+          0.0033656593375148702,
+          1.7763568394002505e-15
+        ],
+        "max_zero_beam_after_offset_cm": [
+          1.7763568394002505e-15,
+          8.881784197001252e-16
+        ],
+        "max_target_intercept_difference_cm": [
+          0.003365659337514426,
+          2.220446049250313e-16
+        ],
+        "max_angle_difference_mrad": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "source_sha256": {
+    "spectrometer_config.h": "cf1ebfb6059a2b4940be8e4f8e798109149dbb1e098e708faaa2322bd60a2f94",
+    "spectrometer_profiles.def": "7ba1b787230ea26ec7f790094c59260359dfcb25de7e8592ddba93f7fe502eba",
+    "sieve_afterburner.py": "dde81120299cfe9bdf085bb313d7a84123d09c87bc6a33560ac37fd2f12991bb",
+    "systems_simulation/hms_sieve/geometry.py": "9e2e8b26cccfeda0a6ef6cb31a1c1c4645aaa37ab5c2acce619e85861ee2ae23",
+    "systems_simulation/hms_sieve/comparisons.py": "f1fa89c45ee4395f8f8aa7669d7a0209e7b930efb38edba1925c8a2c3647a3d3",
+    "systems_simulation/hms_sieve/build_geometry.py": "e8c59edadc6200b07785dd2f9193906acef0b4a1545d16255f8719c403954f98"
+  }
+}

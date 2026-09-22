@@ -1,0 +1,1474 @@
+{
+  "schema": "hms_geometry_scene_v1",
+  "purpose": "Code-convention benchmark, not an as-surveyed or historical-replay geometry",
+  "length_unit": "cm",
+  "world_frame": "LAB",
+  "scenario": {
+    "name": "HMS_12p490_code_defaults",
+    "central_angle_magnitude_deg": 12.49,
+    "central_angle_source": "DATfiles/list_of_optics_run.dat:63-67 (run 1544)",
+    "signed_angle_rule": "HMS negative geographic angle; THcHallCSpectrometer::ReadDatabase",
+    "out_of_plane_deg": 0.0,
+    "out_of_plane_status": "explicit in-plane benchmark; actual replay value OPEN",
+    "pointing_mode": "transport_components",
+    "pointing_status": "fit/ExtTarCor interpretation; Podd LabToTransport interpretation is a separate comparison",
+    "mispointing_model": "HMS_code_defaults",
+    "mispointing_status": "Code defaults only; select explicit_translation and supply cm components per setting to test an alignment adjustment. Not a survey.",
+    "nominal_target_lab_cm": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "nominal_target_status": "coordinate origin by definition, not surveyed beam position",
+    "foil_centers_lab_z_cm": [
+      0.0
+    ],
+    "foil_status": "run 1544 nominal position; shape, thickness, and tilt OPEN",
+    "pointing_translation_cm": null
+  },
+  "selected_setting": "HMS_12p490_code_defaults",
+  "display": {
+    "status": "drawing extents only, not physical apertures or foil dimensions",
+    "axis_length_cm": 15.0,
+    "plane_half_extent_cm": 12.0,
+    "beam_z_range_cm": [
+      -20.0,
+      190.0
+    ],
+    "ray_vertex_lab_cm": [
+      0.2,
+      0.2,
+      0.0
+    ],
+    "ray_hole": [
+      6,
+      6
+    ],
+    "ray_status": "Deliberate displaced geometric test, not event data"
+  },
+  "pointing_cm": [
+    0.14830601200000001,
+    0.06821202,
+    0.0
+  ],
+  "frames": [
+    {
+      "name": "LAB",
+      "origin_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "axes_lab": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "name": "HMS_TRANSPORT",
+      "origin_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "axes_lab": [
+        [
+          -0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.9763337680888527,
+          0.0,
+          0.216269214844421
+        ],
+        [
+          -0.216269214844421,
+          0.0,
+          0.9763337680888527
+        ]
+      ]
+    },
+    {
+      "name": "SIEVE_LOCAL",
+      "origin_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "axes_lab": [
+        [
+          -0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.9763337680888527,
+          0.0,
+          0.216269214844421
+        ],
+        [
+          -0.216269214844421,
+          0.0,
+          0.9763337680888527
+        ]
+      ]
+    }
+  ],
+  "planes": [
+    {
+      "name": "lab_Z0",
+      "origin_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "normal_lab": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "HMS_target_z0",
+      "origin_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "normal_lab": [
+        -0.216269214844421,
+        0.0,
+        0.9763337680888527
+      ]
+    },
+    {
+      "name": "HCANA_sieve_zL",
+      "origin_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "normal_lab": [
+        -0.216269214844421,
+        0.0,
+        0.9763337680888527
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "name": "LAB_x",
+      "start_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "end_lab_cm": [
+        15.0,
+        0.0,
+        0.0
+      ],
+      "color": "#cc3333",
+      "group": "lab_axes",
+      "style": "solid"
+    },
+    {
+      "name": "LAB_y",
+      "start_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "end_lab_cm": [
+        0.0,
+        15.0,
+        0.0
+      ],
+      "color": "#27864a",
+      "group": "lab_axes",
+      "style": "solid"
+    },
+    {
+      "name": "LAB_z",
+      "start_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "end_lab_cm": [
+        0.0,
+        0.0,
+        15.0
+      ],
+      "color": "#215cbb",
+      "group": "lab_axes",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_TRANSPORT_x",
+      "start_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "end_lab_cm": [
+        0.06659769851555218,
+        -15.148306012,
+        0.014752160008351941
+      ],
+      "color": "#cc3333",
+      "group": "hms_axes",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_TRANSPORT_y",
+      "start_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "end_lab_cm": [
+        14.711604219848343,
+        -0.14830601200000001,
+        3.258790382674667
+      ],
+      "color": "#27864a",
+      "group": "hms_axes",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_TRANSPORT_z",
+      "start_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "end_lab_cm": [
+        -3.1774405241507626,
+        -0.14830601200000001,
+        14.659758681341142
+      ],
+      "color": "#215cbb",
+      "group": "hms_axes",
+      "style": "solid"
+    },
+    {
+      "name": "SIEVE_LOCAL_x",
+      "start_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "end_lab_cm": [
+        -36.26663039534718,
+        -15.148306012,
+        164.03882519893563
+      ],
+      "color": "#cc3333",
+      "group": "sieve_axes",
+      "style": "solid"
+    },
+    {
+      "name": "SIEVE_LOCAL_y",
+      "start_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "end_lab_cm": [
+        -21.62162387401439,
+        -0.14830601200000001,
+        167.28286342160195
+      ],
+      "color": "#27864a",
+      "group": "sieve_axes",
+      "style": "solid"
+    },
+    {
+      "name": "SIEVE_LOCAL_z",
+      "start_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "end_lab_cm": [
+        -39.51066861801349,
+        -0.14830601200000001,
+        178.68383172026842
+      ],
+      "color": "#215cbb",
+      "group": "sieve_axes",
+      "style": "solid"
+    },
+    {
+      "name": "laboratory_beam_axis",
+      "start_lab_cm": [
+        0,
+        0,
+        -20.0
+      ],
+      "end_lab_cm": [
+        0,
+        0,
+        190.0
+      ],
+      "color": "#555555",
+      "group": "beam",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_central_axis",
+      "start_lab_cm": [
+        2.2292898469597624,
+        -0.14830601200000001,
+        -9.748585520880177
+      ],
+      "end_lab_cm": [
+        -38.429322543791386,
+        -0.14830601200000001,
+        173.80216287982415
+      ],
+      "color": "#215cbb",
+      "group": "hms_axis",
+      "style": "solid"
+    },
+    {
+      "name": "lab_Z0_reference_plane_edge0",
+      "start_lab_cm": [
+        -12.0,
+        -12.0,
+        0.0
+      ],
+      "end_lab_cm": [
+        12.0,
+        -12.0,
+        0.0
+      ],
+      "color": "#808080",
+      "group": "lab_plane",
+      "style": "solid"
+    },
+    {
+      "name": "lab_Z0_reference_plane_edge1",
+      "start_lab_cm": [
+        12.0,
+        -12.0,
+        0.0
+      ],
+      "end_lab_cm": [
+        12.0,
+        12.0,
+        0.0
+      ],
+      "color": "#808080",
+      "group": "lab_plane",
+      "style": "solid"
+    },
+    {
+      "name": "lab_Z0_reference_plane_edge2",
+      "start_lab_cm": [
+        12.0,
+        12.0,
+        0.0
+      ],
+      "end_lab_cm": [
+        -12.0,
+        12.0,
+        0.0
+      ],
+      "color": "#808080",
+      "group": "lab_plane",
+      "style": "solid"
+    },
+    {
+      "name": "lab_Z0_reference_plane_edge3",
+      "start_lab_cm": [
+        -12.0,
+        12.0,
+        0.0
+      ],
+      "end_lab_cm": [
+        -12.0,
+        -12.0,
+        0.0
+      ],
+      "color": "#808080",
+      "group": "lab_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_target_z0_reference_plane_edge0",
+      "start_lab_cm": [
+        -11.64940751855068,
+        11.851693988,
+        -2.5804784181247
+      ],
+      "end_lab_cm": [
+        -11.64940751855068,
+        -12.148306012,
+        -2.5804784181247
+      ],
+      "color": "#215cbb",
+      "group": "target_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_target_z0_reference_plane_edge1",
+      "start_lab_cm": [
+        -11.64940751855068,
+        -12.148306012,
+        -2.5804784181247
+      ],
+      "end_lab_cm": [
+        11.782602915581785,
+        -12.148306012,
+        2.609982738141404
+      ],
+      "color": "#215cbb",
+      "group": "target_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_target_z0_reference_plane_edge2",
+      "start_lab_cm": [
+        11.782602915581785,
+        -12.148306012,
+        2.609982738141404
+      ],
+      "end_lab_cm": [
+        11.782602915581785,
+        11.851693988,
+        2.609982738141404
+      ],
+      "color": "#215cbb",
+      "group": "target_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HMS_target_z0_reference_plane_edge3",
+      "start_lab_cm": [
+        11.782602915581785,
+        11.851693988,
+        2.609982738141404
+      ],
+      "end_lab_cm": [
+        -11.64940751855068,
+        11.851693988,
+        -2.5804784181247
+      ],
+      "color": "#215cbb",
+      "group": "target_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HCANA_sieve_zL_projection_plane_edge0",
+      "start_lab_cm": [
+        -47.98263561241341,
+        11.851693988,
+        161.44359462080257
+      ],
+      "end_lab_cm": [
+        -47.98263561241341,
+        -12.148306012,
+        161.44359462080257
+      ],
+      "color": "#a0522d",
+      "group": "sieve_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HCANA_sieve_zL_projection_plane_edge1",
+      "start_lab_cm": [
+        -47.98263561241341,
+        -12.148306012,
+        161.44359462080257
+      ],
+      "end_lab_cm": [
+        -24.550625178280946,
+        -12.148306012,
+        166.63405577706868
+      ],
+      "color": "#a0522d",
+      "group": "sieve_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HCANA_sieve_zL_projection_plane_edge2",
+      "start_lab_cm": [
+        -24.550625178280946,
+        -12.148306012,
+        166.63405577706868
+      ],
+      "end_lab_cm": [
+        -24.550625178280946,
+        11.851693988,
+        166.63405577706868
+      ],
+      "color": "#a0522d",
+      "group": "sieve_plane",
+      "style": "solid"
+    },
+    {
+      "name": "HCANA_sieve_zL_projection_plane_edge3",
+      "start_lab_cm": [
+        -24.550625178280946,
+        11.851693988,
+        166.63405577706868
+      ],
+      "end_lab_cm": [
+        -47.98263561241341,
+        11.851693988,
+        161.44359462080257
+      ],
+      "color": "#a0522d",
+      "group": "sieve_plane",
+      "style": "solid"
+    },
+    {
+      "name": "A_endpoint",
+      "start_lab_cm": [
+        0.2,
+        0.19999999999999998,
+        6.938893903907228e-18
+      ],
+      "end_lab_cm": [
+        -33.29076507021235,
+        -5.228306012,
+        164.6980137657814
+      ],
+      "color": "#008b8b",
+      "group": "rays",
+      "style": "solid"
+    },
+    {
+      "name": "B_fit_target",
+      "start_lab_cm": [
+        0.2,
+        0.20130791382310673,
+        6.938893903907228e-18
+      ],
+      "end_lab_cm": [
+        -33.29003083172279,
+        -4.88,
+        164.69817640809376
+      ],
+      "color": "#d000a8",
+      "group": "rays",
+      "style": "solid"
+    },
+    {
+      "name": "C_HCANA_coordinate_step",
+      "start_lab_cm": [
+        0.2,
+        0.20139723012058255,
+        6.938893903907228e-18
+      ],
+      "end_lab_cm": [
+        -33.29076507021235,
+        -5.226908781879417,
+        164.6980137657814
+      ],
+      "color": "#d17900",
+      "group": "rays",
+      "style": "solid"
+    }
+  ],
+  "markers": [
+    {
+      "name": "nominal_target_center_lab",
+      "position_lab_cm": [
+        0,
+        0,
+        0
+      ],
+      "color": "#000000",
+      "group": "origins"
+    },
+    {
+      "name": "HMS_object_origin_code_scenario",
+      "position_lab_cm": [
+        0.06659769851555218,
+        -0.14830601200000001,
+        0.014752160008351941
+      ],
+      "color": "#215cbb",
+      "group": "origins"
+    },
+    {
+      "name": "foil_center_Zlab_0cm",
+      "position_lab_cm": [
+        0,
+        0,
+        0.0
+      ],
+      "color": "#222222",
+      "group": "foils"
+    },
+    {
+      "name": "nominal_hole_0_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        10.011693988,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        10.011693988,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        10.011693988,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        10.011693988,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        10.011693988,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        10.011693988,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        10.011693988,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        10.011693988,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_0_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        10.011693988,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        7.471693988,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        7.471693988,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        7.471693988,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        7.471693988,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        7.471693988,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        7.471693988,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        7.471693988,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        7.471693988,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_1_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        7.471693988,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        4.931693988,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        4.931693988,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        4.931693988,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "blocked_label_2_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        4.931693988,
+        163.70923091551273
+      ],
+      "color": "#888888",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        4.931693988,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        4.931693988,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        4.931693988,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        4.931693988,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_2_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        4.931693988,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        2.391693988,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        2.391693988,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        2.391693988,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        2.391693988,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        2.391693988,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        2.391693988,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        2.391693988,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        2.391693988,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_3_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        2.391693988,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        -0.14830601200000001,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        -0.14830601200000001,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        -0.14830601200000001,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        -0.14830601200000001,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        -0.14830601200000001,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        -0.14830601200000001,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -0.14830601200000001,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        -0.14830601200000001,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_4_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        -0.14830601200000001,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        -2.688306012,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        -2.688306012,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        -2.688306012,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        -2.688306012,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        -2.688306012,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "blocked_label_5_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        -2.688306012,
+        164.36841948235852
+      ],
+      "color": "#888888",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -2.688306012,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        -2.688306012,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_5_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        -2.688306012,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        -5.228306012,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        -5.228306012,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        -5.228306012,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        -5.228306012,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        -5.228306012,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        -5.228306012,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -5.228306012,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        -5.228306012,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_6_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        -5.228306012,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        -7.768306012,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        -7.768306012,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        -7.768306012,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        -7.768306012,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        -7.768306012,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        -7.768306012,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -7.768306012,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        -7.768306012,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_7_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        -7.768306012,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_0",
+      "position_lab_cm": [
+        -42.218361045616824,
+        -10.308306012000001,
+        162.72044806524403
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_1",
+      "position_lab_cm": [
+        -40.730428383049414,
+        -10.308306012000001,
+        163.05004234866692
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_2",
+      "position_lab_cm": [
+        -39.242495720482005,
+        -10.308306012000001,
+        163.37963663208984
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_3",
+      "position_lab_cm": [
+        -37.75456305791459,
+        -10.308306012000001,
+        163.70923091551273
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_4",
+      "position_lab_cm": [
+        -36.26663039534718,
+        -10.308306012000001,
+        164.03882519893563
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_5",
+      "position_lab_cm": [
+        -34.77869773277977,
+        -10.308306012000001,
+        164.36841948235852
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_6",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -10.308306012000001,
+        164.6980137657814
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_7",
+      "position_lab_cm": [
+        -31.802832407644942,
+        -10.308306012000001,
+        165.02760804920433
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "nominal_hole_8_8",
+      "position_lab_cm": [
+        -30.314899745077533,
+        -10.308306012000001,
+        165.35720233262722
+      ],
+      "color": "#a0522d",
+      "group": "holes"
+    },
+    {
+      "name": "A_endpoint_sieve_intersection",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -5.228306012,
+        164.6980137657814
+      ],
+      "color": "#008b8b",
+      "group": "intersections"
+    },
+    {
+      "name": "B_fit_target_sieve_intersection",
+      "position_lab_cm": [
+        -33.29003083172279,
+        -4.88,
+        164.69817640809376
+      ],
+      "color": "#d000a8",
+      "group": "intersections"
+    },
+    {
+      "name": "C_HCANA_coordinate_step_sieve_intersection",
+      "position_lab_cm": [
+        -33.29076507021235,
+        -5.226908781879417,
+        164.6980137657814
+      ],
+      "color": "#d17900",
+      "group": "intersections"
+    },
+    {
+      "name": "synthetic_ray_vertex",
+      "position_lab_cm": [
+        0.2,
+        0.2,
+        0.0
+      ],
+      "color": "#008b8b",
+      "group": "ray_vertex"
+    }
+  ],
+  "physical_foil_solid": null,
+  "physical_sieve_solid": null
+}

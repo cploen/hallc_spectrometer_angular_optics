@@ -1,0 +1,190 @@
+{
+  "schema": "hms_coordinate_audit_v1",
+  "purpose": "Code-convention benchmark, not an as-surveyed or historical-replay geometry",
+  "length_unit": "cm",
+  "angle_unit": "deg",
+  "sieve": {
+    "projection_distance_cm": 168.0,
+    "projection_distance_status": "reconstruction reference plane; physical face assignment OPEN",
+    "nx": 9,
+    "ny": 9,
+    "pitch_x_cm": 2.54,
+    "pitch_y_cm": 1.524,
+    "nominal_grid_source": "spectrometer_profiles.def; spectrometer_config.h::xs/ys",
+    "blocked_label_pairs": [
+      [
+        2,
+        3
+      ],
+      [
+        5,
+        5
+      ]
+    ],
+    "blocked_status": "campaign label mask; drawing-to-TRANSPORT orientation not independently verified",
+    "assembly_distance_reported_cm": 166.4,
+    "assembly_distance_reference": null,
+    "physical_front_face_cm": null,
+    "physical_center_cm": null,
+    "thickness_cm": 3.175,
+    "outer_vertical_cm": 25.4,
+    "outer_horizontal_cm": 20.955,
+    "hole_diameter_cm": null,
+    "central_hole_diameter_cm": null,
+    "bore_directions": null,
+    "material_solid_enabled": false
+  },
+  "actual_replay": {
+    "hcana_commit": null,
+    "podd_commit": null,
+    "matrix_sha256": null,
+    "mispointing_x_cm": null,
+    "mispointing_y_cm": null,
+    "theta_central_offset_rad": null,
+    "phi_lab_deg": null,
+    "phi_offset_rad": null,
+    "theta_offset_rad": null,
+    "oopcentral_offset_rad": null,
+    "beam_provider": null,
+    "lab_x_from_raster_x": null
+  },
+  "validation": {
+    "foil_test_z_cm": [
+      -8.0,
+      0.0,
+      8.0
+    ],
+    "holes": [
+      [
+        4,
+        4
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        4,
+        6
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        8,
+        8
+      ]
+    ],
+    "displacements_lab_xy_cm": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.2
+      ],
+      [
+        0.2,
+        0.0
+      ],
+      [
+        -0.2,
+        -0.2
+      ]
+    ],
+    "displacement_status": "deliberate test inputs, not measured beam offsets",
+    "fit_benchmark_lab_x_equals_minus_xbpm": true,
+    "fit_benchmark_status": "explicit hypothesis for synthetic comparison only; actual provider sign OPEN",
+    "offset_anchor": {
+      "lab_vertex_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hole": [
+        4,
+        4
+      ],
+      "scope": "One constant sieve-plane registration offset per construction and setting; no per-foil/hole/beam refitting."
+    },
+    "matrix_interface": "C receives exact A p_old=p_new, yt/100 and q; no matrix, data, or reconstructed vertex is used."
+  },
+  "display": {
+    "status": "drawing extents only, not physical apertures or foil dimensions",
+    "axis_length_cm": 15.0,
+    "plane_half_extent_cm": 12.0,
+    "beam_z_range_cm": [
+      -20.0,
+      190.0
+    ],
+    "ray_vertex_lab_cm": [
+      0.2,
+      0.2,
+      0.0
+    ],
+    "ray_hole": [
+      6,
+      6
+    ],
+    "ray_status": "Deliberate displaced geometric test, not event data"
+  },
+  "default_setting": "HMS_12p490_code_defaults",
+  "settings": {
+    "HMS_12p490_code_defaults": {
+      "name": "HMS_12p490_code_defaults",
+      "central_angle_magnitude_deg": 12.49,
+      "central_angle_source": "DATfiles/list_of_optics_run.dat:63-67 (run 1544)",
+      "signed_angle_rule": "HMS negative geographic angle; THcHallCSpectrometer::ReadDatabase",
+      "out_of_plane_deg": 0.0,
+      "out_of_plane_status": "explicit in-plane benchmark; actual replay value OPEN",
+      "pointing_mode": "transport_components",
+      "pointing_status": "fit/ExtTarCor interpretation; Podd LabToTransport interpretation is a separate comparison",
+      "mispointing_model": "HMS_code_defaults",
+      "mispointing_status": "Code defaults only; select explicit_translation and supply cm components per setting to test an alignment adjustment. Not a survey.",
+      "nominal_target_lab_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "nominal_target_status": "coordinate origin by definition, not surveyed beam position",
+      "foil_centers_lab_z_cm": [
+        0.0
+      ],
+      "foil_status": "run 1544 nominal position; shape, thickness, and tilt OPEN",
+      "pointing_translation_cm": null
+    },
+    "HMS_15p195_code_defaults": {
+      "name": "HMS_15p195_code_defaults",
+      "central_angle_magnitude_deg": 15.195,
+      "central_angle_source": "DATfiles/list_of_optics_run.dat:99-102 (run 5168 nominal setting)",
+      "signed_angle_rule": "HMS negative geographic angle; THcHallCSpectrometer::ReadDatabase",
+      "out_of_plane_deg": 0.0,
+      "out_of_plane_status": "explicit in-plane benchmark; actual replay value OPEN",
+      "pointing_mode": "transport_components",
+      "pointing_status": "fit/ExtTarCor interpretation; Podd LabToTransport interpretation is a separate comparison",
+      "mispointing_model": "HMS_code_defaults",
+      "mispointing_status": "Code defaults only; select explicit_translation and supply cm components per setting to test an alignment adjustment. Not a survey.",
+      "nominal_target_lab_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "nominal_target_status": "coordinate origin by definition, not surveyed beam position",
+      "foil_centers_lab_z_cm": [
+        0.0
+      ],
+      "foil_status": "run 5168 nominal center; dimensions and survey OPEN",
+      "pointing_translation_cm": null
+    }
+  }
+}

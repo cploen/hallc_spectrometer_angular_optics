@@ -1,0 +1,9 @@
+# File-only smoke test; no events and no material interactions.
+# The Geant4 VRML driver writes g4_XX.wrl to the current directory.
+/vis/open VRML2FILE
+/vis/scene/create HMS_sieve_coordinate_audit
+/vis/scene/add/userAction HMS_coordinate_scene
+/vis/sceneHandler/attach
+/vis/viewer/set/viewpointVector 1 1 1
+/vis/viewer/set/upVector 0 1 0
+/vis/viewer/flush

@@ -2,6 +2,13 @@
 
 Semi-automated preparation of HMS and SHMS sieve data for optics-matrix fitting.
 
+For the separate **HMS sieve-slit geometry simulation**, start with its
+[file guide and overview](systems_simulation/hms_sieve/README.md):
+[testing and reproduction](systems_simulation/hms_sieve/TESTING.md),
+[iFarm setup and execution](systems_simulation/hms_sieve/IFARM.md), and
+[next steps](systems_simulation/hms_sieve/NEXT_STEPS.md).
+Its coordinate tests use deterministic rays and need neither sieve data nor ROOT.
+
 For the September 2026 core-selection, foil-balancing, elastic-net and beam-search
 work, start with the [HMS 6.667 analysis index](HMS_6p667GeV/ANALYSIS_INDEX.md):
 ordered commands, stage recaps, documentation and remaining input requirements.
