@@ -1,0 +1,13 @@
+condition	converged	delta	effective_n	fraction_weight_below_half	gradient	iterations	loss	model	rank	sigma	target
+317850.91017227824	True					0	squared	all_core_squared_equalfoil	210		xptar
+317850.91017227824	True					0	squared	all_core_squared_equalfoil	210		ytar
+317850.91017227824	True					0	squared	all_core_squared_equalfoil	210		yptar
+317850.91017227824	True	1.5	190976.23130632399	0.007700160701806366	2.6357746038997472e-09	7	pseudo_huber	all_core_huber_equalfoil	210	0.0015594506687234898	xptar
+317850.91017227824	True	1.5	190118.47782286763	0.010228235210764122	1.2108882726003056e-09	8	pseudo_huber	all_core_huber_equalfoil	210	0.0014065767929086611	ytar
+317850.91017227824	True	1.5	190675.16030646072	0.0061285678860466385	5.9147641406776625e-09	6	pseudo_huber	all_core_huber_equalfoil	210	0.0010830157770033327	yptar
+189420.19381166855	True					0	squared	all_supported_squared_equalfoil	210		xptar
+189420.19381166855	True					0	squared	all_supported_squared_equalfoil	210		ytar
+189420.19381166855	True					0	squared	all_supported_squared_equalfoil	210		yptar
+189420.19381166855	True	1.5	236087.478380037	0.0642006459426726	3.806579065522083e-09	17	pseudo_huber	all_supported_huber_equalfoil	210	0.0015594506687234898	xptar
+189420.19381166855	True	1.5	241063.4628198096	0.013446205086798547	6.074659058930601e-09	15	pseudo_huber	all_supported_huber_equalfoil	210	0.0014065767929086611	ytar
+189420.19381166855	True	1.5	240756.35048051176	0.019009890997174	1.3709356384033843e-08	23	pseudo_huber	all_supported_huber_equalfoil	210	0.0010830157770033327	yptar

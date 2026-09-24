@@ -23,6 +23,11 @@ the GMM workflow available for comparison.
 For a frozen five-matrix comparison on protected and surplus events, see
 [Matrix comparison](docs/MATRIX_COMPARISON.md).
 
+For smooth Huber regression replacing foil balancing while expanding the
+training sample, see [Huber expansion](docs/HUBER_EXPANSION.md).
+The follow-up [equal-foil Huber study](docs/HUBER_FOIL_WEIGHTS.md) retains all
+eligible events and gives each foil the same total base weight.
+
 For quick GMM-versus-beam sieve plots from existing replay files, see
 [Sieve afterburner](docs/SIEVE_AFTERBURNER.md).
 

@@ -20,6 +20,16 @@ historical reproduction also requires the saved code/configuration and inputs.
 
 ## Sequence and documentation inventory
 
+Latest addition (24 September): [smooth Huber and sample expansion results](../docs/HUBER_RESULTS_20260924.md)
+and [reproduction](../docs/HUBER_EXPANSION.md). Actual frozen-data fits compare
+68,535 balanced cores with up to 396,320 supported development events. Pooled
+gains do not establish improvement across the foil/delta acceptance.
+
+Follow-up: [equal-foil weighting results](../docs/HUBER_FOIL_RESULTS_20260924.md)
+and [reproduction](../docs/HUBER_FOIL_WEIGHTS.md). Four fits retain all eligible
+cores or cores plus shoulders with 20% base weight per foil. Core-only gains
+are small; shoulder-inclusive fits retain an angular core/shoulder tradeoff.
+
 1. **Select local cores; recover sparse edge holes (`core` → `min10`).**
    [Design/commands](../CORE_SAMPLE.md) · [decisions/QA](05c_core_sample/CORE_SAMPLE_RECAP.md) ·
    [code](../core_sample.py).
