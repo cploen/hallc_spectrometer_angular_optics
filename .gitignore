@@ -13,6 +13,9 @@ __pycache__/
 !systems_simulation/hms_sieve/**
 systems_simulation/hms_sieve/**/__pycache__/
 systems_simulation/hms_sieve/build/
+!systems_simulation/hms_sieve_scattering/
+!systems_simulation/hms_sieve_scattering/**
+systems_simulation/hms_sieve_scattering/**/__pycache__/
 
 # Development backups
 *.bak*

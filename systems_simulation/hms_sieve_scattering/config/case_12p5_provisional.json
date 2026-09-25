@@ -1,0 +1,85 @@
+{
+  "schema": "hms_sieve_scattering_case_v1",
+  "case_id": "HMS_12p5_Carbon0p5_provisional",
+  "purpose": "Provisional upstream beam-target-sieve scattering case; not a run-matched acceptance simulation",
+  "units": {
+    "length": "cm",
+    "angle": "deg",
+    "mass_areal_density": "g/cm2",
+    "density": "g/cm3"
+  },
+  "coordinate_reference": {
+    "config": "../../hms_sieve/config/geometry.json",
+    "sha256": "4d4e997bc029694c9ef1c1e0fddfa89c5ace65066c52196eed4beeb622d5fac5",
+    "policy": "Keep this closed-tested coordinate benchmark immutable; apply this case as an overlay."
+  },
+  "setting": {
+    "nominal_central_angle_deg": 12.5,
+    "candidate_runs_deg": [12.49, 12.495],
+    "angle_status": "12.5 deg nominal; candidate runs need their active replay angles before run-specific comparison",
+    "out_of_plane_deg": 0.0,
+    "pointing_mode": "transport_components",
+    "mispointing_model": "HMS_code_defaults",
+    "mispointing_status": "Apply source-code default translation at 12.5 deg as a provisional starting geometry, not as a surveyed or replay-measured alignment.",
+    "additional_run_adjustment_cm": null,
+    "additional_run_adjustment_status": "TBD from selected run/replay or independent alignment; never absorb beam centroid into this field."
+  },
+  "beam": {
+    "target_centroid_lab_xy_mm": [0.22, -0.31],
+    "centroid_status": "Provisional values from the supplied email; confirm applicability to selected run. BPM x sign is flipped to match the stated lab convention.",
+    "intrinsic_sigma_lab_xy_mm": [null, null],
+    "intrinsic_sigma_status": "Obtain spot-check harp widths at the beginning of the selected pass.",
+    "raster_distribution": "uniform rectangular",
+    "raster_half_width_xy_mm": [1.0, 1.0],
+    "time_dependence": "omitted for this time-integrated first study; raster phase/correlation not modeled"
+  },
+  "target": {
+    "name": "Carbon 0.5%",
+    "nominal_center_lab_z_cm": 0.0,
+    "composition": "99.95% carbon per TGT-RPT-22-003; remaining composition unspecified",
+    "areal_density_g_cm2": 0.1749,
+    "areal_density_uncertainty_g_cm2": 0.00035,
+    "areal_density_source": "TGT-RPT-22-003 Rev. 0, 2022-06-06, section 4.4",
+    "thickness_cm": 0.08128,
+    "thickness_in": 0.032,
+    "thickness_status": "PROVISIONAL GUESS: borrowed from the thinner of the two dummy-foil certificate thicknesses cited in TGT-RPT-22-003; not a measured Carbon 0.5% thickness.",
+    "alternative_dummy_thickness_in": 0.05,
+    "effective_density_g_cm3": 2.151820866141732,
+    "effective_density_formula": "reported areal density / provisional thickness; preserves the report's Carbon 0.5% areal density",
+    "transverse_dimensions_cm": null,
+    "tilt_deg": null
+  },
+  "sieve": {
+    "drawing": "6732-C-5681, HMS slit chamber sieve slit detail",
+    "plate_envelope_horizontal_cm": 20.955,
+    "plate_envelope_vertical_cm": 25.4,
+    "plate_thickness_cm": 3.175,
+    "material": "HD-17 tungsten alloy",
+    "material_density_g_cm3": 17.0,
+    "material_composition_mass_fraction": {
+      "W": 0.90,
+      "Ni": 0.06,
+      "Cu": 0.04
+    },
+    "hole_pattern": {
+      "rows_vertical": 9,
+      "columns_horizontal": 9,
+      "vertical_pitch_cm": 2.54,
+      "horizontal_pitch_cm": 1.524,
+      "large_hole_count": 78,
+      "large_hole_diameter_cm": 0.508,
+      "reduced_center_hole_diameter_cm": 0.254,
+      "blocked_positions_count": 2,
+      "drawing_grid_center_offset_magnitude_cm": 0.635,
+      "drawing_grid_center_offset_direction": "toward top edge in drawing front view; sign in HMS coordinates TBD",
+      "orientation_to_hms_axes": "TBD; retain drawing front-view coordinates until the installed/replay view is verified"
+    },
+    "longitudinal_placement_cm": null,
+    "longitudinal_placement_status": "Keep the tested 168 cm projection plane distinct. The 166.4 cm assembly distance still lacks an identified physical reference point."
+  },
+  "scoring": {
+    "plane": "immediately downstream of sieve material / at Q1 entrance",
+    "record": ["PDG", "track_id", "parent_id", "position", "direction", "momentum", "energy", "process-at-sieve", "step-length-in-sieve"],
+    "scope_limit": "No claim of passage through HMS magnet acceptance or detector-based electron cuts without downstream transport and detector response."
+  }
+}
