@@ -20,6 +20,7 @@
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4Text.hh"
+#include "G4ThreeVector.hh"
 #include "G4UImanager.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4VUserPhysicsList.hh"
@@ -169,6 +170,43 @@ void drawPrimitive(G4VVisManager* vis, const Primitive& item) {
   }
 }
 
+bool isAxis(const std::string& name) {
+  return name == "laboratory_beam_axis" || name == "HMS_central_axis" ||
+         starts(name, "LAB_") || starts(name, "HMS_TRANSPORT_") ||
+         starts(name, "SIEVE_LOCAL_");
+}
+
+void drawAxisArrow(G4VVisManager* vis, const Primitive& item) {
+  const G4ThreeVector start(item.a.x(), item.a.y(), item.a.z());
+  const G4ThreeVector end(item.b.x(), item.b.y(), item.b.z());
+  const G4ThreeVector delta = end - start;
+  if (delta.mag2() == 0) return;
+  const G4ThreeVector direction = delta.unit();
+  G4ThreeVector side = direction.cross(G4ThreeVector(0, 1, 0));
+  if (side.mag2() < 1.e-12) side = direction.cross(G4ThreeVector(1, 0, 0));
+  side = side.unit();
+
+  const bool beam = item.name == "laboratory_beam_axis";
+  const bool hmsAxis = item.name == "HMS_central_axis";
+  const double fraction = beam ? .55 : hmsAxis ? .75 : .90;
+  const double headLength = (beam || hmsAxis ? 5.0 : 1.8) * cm;
+  const double halfWidth = (beam || hmsAxis ? 2.0 : .7) * cm;
+  const G4ThreeVector tip = start + fraction * delta;
+  const G4ThreeVector base = tip - headLength * direction;
+  const G4ThreeVector left = base + halfWidth * side;
+  const G4ThreeVector right = base - halfWidth * side;
+
+  G4Polyline arrow;
+  arrow.push_back(G4Point3D(tip.x(), tip.y(), tip.z()));
+  arrow.push_back(G4Point3D(left.x(), left.y(), left.z()));
+  arrow.push_back(G4Point3D(tip.x(), tip.y(), tip.z()));
+  arrow.push_back(G4Point3D(right.x(), right.y(), right.z()));
+  G4VisAttributes attributes(item.colour);
+  attributes.SetLineWidth(2.0);
+  arrow.SetVisAttributes(attributes);
+  vis->Draw(arrow);
+}
+
 class CoordinateDrawing final : public G4VUserVisAction {
  public:
   CoordinateDrawing(const Scene& scene, hms_display::Layer layer)
@@ -188,6 +226,7 @@ class CoordinateDrawing final : public G4VUserVisAction {
     for (const auto& item : scene_.objects) {
       if (primitiveLayer(item.name) != layer_) continue;
       drawPrimitive(vis, item);
+      if (isAxis(item.name)) drawAxisArrow(vis, item);
       if (layer_ == Layer::lab || layer_ == Layer::hms || layer_ == Layer::sieve) {
         const std::string frame = layer_ == Layer::lab ? "LAB " :
                                   layer_ == Layer::hms ? "HMS " : "SIEVE ";

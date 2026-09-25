@@ -62,6 +62,11 @@ its compact naming rows sit above the main axes. Run `view_geometry.mac` to retu
 to the clean geometry view. The other geometry presets include short plane/axis
 names. Individual named Geant4 models can be switched without resetting the other layers:
 
+The beam and HMS central-axis lines have small arrowheads pointing downstream.
+Plane outlines remain unarrowed, so the line direction distinguishes axes from
+the projection/reference planes. The coordinate-frame triads also show arrows
+along their positive axes when enabled.
+
 ```text
 /vis/scene/activateModel HMS_lab_frame true
 /vis/scene/activateModel HMS_transport_frame false
