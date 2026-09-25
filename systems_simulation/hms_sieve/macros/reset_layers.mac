@@ -1,0 +1,10 @@
+# Reset layer visibility without changing the camera or any geometry.
+/vis/viewer/set/autoRefresh false
+/vis/scene/activateModel HMS_base true
+/vis/scene/activateModel HMS_labels false
+/vis/scene/activateModel HMS_lab_frame false
+/vis/scene/activateModel HMS_transport_frame false
+/vis/scene/activateModel HMS_sieve_frame false
+/vis/scene/activateModel HMS_code_names false
+/vis/scene/activateModel HMS_branch_names false
+/vis/scene/activateModel HMS_rays false

@@ -10,8 +10,12 @@ Geant4, a matrix, or experimental data.
 
 Last local verification (2026-09-22): 11 tests passed with no skips, including
 compiled fit-source parity. Regeneration into a separate directory was
-byte-identical to the committed baseline artifacts. Native Geant4 and iFarm
-execution remain unverified.
+byte-identical to the committed baseline artifacts. The user subsequently
+reported 11 tests passing with no skips on iFarm at `7fff412`, plus a successful
+native Geant4 build, VRML export and Qt/OpenGL display on 2026-09-24. The exact
+reported environment and limits are in [IFARM_VALIDATION.md](IFARM_VALIDATION.md).
+The layered update passes 15 local tests on 2026-09-24: the original 11 plus
+four annotation checks. Native validation of the new layers is still pending.
 
 ## Run the coordinate tests
 
@@ -23,8 +27,9 @@ c++ --version
 python3 -m unittest discover -s systems_simulation/hms_sieve/tests -v
 ```
 
-Expected for the committed baseline: **11 tests, OK, no skips**. The source
-parity test skips if no compiler or parent optics header is found. A skipped
+Expected for this revision: **15 tests, OK, no skips** (11 coordinate checks and
+four visualization-metadata checks). The source parity test skips if no compiler
+or parent optics header is found. A skipped
 test is incomplete source validation, even if unittest prints OK. A compiler
 failure is a failure, not a skip. `CXX` can name a different compiler executable
 (for example `CXX=g++`); do not put flags or a shell command in that variable.
@@ -78,4 +83,5 @@ The equations and declared geometric inputs are internally checked, including
 agreement with the existing C++ fit construction. This does not certify a
 surveyed apparatus, physical hole dimensions, historical replay parameters,
 or a Geant4 build. Native compilation and visual inspection are separate checks
-in [IFARM.md](IFARM.md) and remain outstanding in the committed baseline.
+in [IFARM.md](IFARM.md). They passed for the reported `7fff412` baseline; the
+new layers must be checked independently using [VIEWER.md](VIEWER.md).

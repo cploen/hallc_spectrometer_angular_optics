@@ -39,11 +39,12 @@ The center foil is a reference marker only. No guessed carbon slab dimensions
 or thickness are introduced. Beam rays are geometric references and do not
 constitute a model of electron scattering at the target.
 
-The local environment has no usable GEANT4 runtime. The deterministic coordinate
-tests pass; CMake stops at the missing Geant4 package. Native compilation and
-inspection of the generated coordinate primitives remain to be performed in a
-GEANT4-enabled environment such as iFarm. No GDML or material apertures are
-constructed at this stage. No physics or yield validation is claimed.
+The user reports successful native Geant4 compilation and viewing on iFarm
+at baseline `7fff412`, together with all 11 deterministic tests passing; see
+[IFARM_VALIDATION.md](IFARM_VALIDATION.md). The new layered annotations still
+require native validation. Neither display result resolves the physical
+geometry questions above. No GDML or material apertures are constructed at
+this stage, and no physics or yield validation is claimed.
 
 The geometry supports a separate explicit translation for each setting. This
 is an adjustment parameter, with its frame and provenance recorded, not evidence

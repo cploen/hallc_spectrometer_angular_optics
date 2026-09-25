@@ -9,9 +9,11 @@ The source audit, parameter model, ray comparisons, and visualization input
 are implemented. Eleven automated tests pass, including a compiled check
 against the actual `spectrometer_config.h`. Across two nominal settings,
 168 endpoint-defined rays close within **1.78e-15 cm (1.78e-14 mm)**.
-**Native Geant4 compilation and display remain unverified:** local CMake stops
-at the missing `Geant4Config.cmake`. This stage therefore has not met the full
-Geant4 display requirement.
+The user reports successful native Geant4 compilation, Qt/OpenGL viewing,
+VRML export and all 11 deterministic tests on iFarm at baseline commit
+`7fff412` on 2026-09-24. See the [validation record](IFARM_VALIDATION.md).
+The layered annotation update still requires native iFarm validation; it
+preserves the baseline geometry and coordinate equations.
 
 ## File guide
 
@@ -20,6 +22,8 @@ Geant4 display requirement.
 | Understand the model, frames and three constructions | This README; [quantity/source audit](GEOMETRY_AUDIT.md) |
 | Run tests and reproduce the committed artifacts | [TESTING.md](TESTING.md) |
 | Transfer to iFarm, build, and display/export | [IFARM.md](IFARM.md) |
+| Select a clean view, annotation layers, and naming conventions | [VIEWER.md](VIEWER.md) |
+| Check what has actually run on iFarm | [IFARM_VALIDATION.md](IFARM_VALIDATION.md) |
 | Continue the work and identify the remaining gates | [NEXT_STEPS.md](NEXT_STEPS.md) |
 | Distinguish established inputs from unresolved geometry | [OPEN_GEOMETRY.md](OPEN_GEOMETRY.md); [source inspection status](SOURCES.md) |
 | Change a setting's angle or mispointing | [config/geometry.json](config/geometry.json); parameter section below |
@@ -120,7 +124,10 @@ configuration/source hashes and numerical results.
 
 Use [IFARM.md](IFARM.md) for transfer, environment requirements, native build,
 file export and interactive viewing. The viewer draws coordinate primitives
-and runs no events; native execution remains unverified.
+and runs no events. Baseline native execution is documented in
+[IFARM_VALIDATION.md](IFARM_VALIDATION.md); use [VIEWER.md](VIEWER.md) for the
+annotation controls. Historical generated reports retain their original local
+runtime status; the dated validation record records the subsequent iFarm result.
 
 ## Gate before material scattering or acceptance claims
 
@@ -130,8 +137,8 @@ inherited audit evidence, local implementation, and unavailable drawings.
 [OPEN_GEOMETRY.md](OPEN_GEOMETRY.md) lists the unresolved values and the evidence
 needed to resolve them.
 
-Before a physical scattering model: run and inspect the native viewer; obtain
-the mechanical drawing/survey defining plate faces, bores and installed
+Before a physical scattering model: obtain the mechanical drawing/survey
+defining plate faces, bores and installed
 orientation; establish foil dimensions and placement; identify the actual
 HCANA/Podd revisions, pointing meanings, beam-provider conventions and relevant
 parameter overrides for each setting. Geometry closure alone cannot establish

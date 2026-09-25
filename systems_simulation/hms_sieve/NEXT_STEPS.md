@@ -4,14 +4,18 @@
 
 The deterministic coordinate model, source audit, per-setting translations,
 A/B/C comparisons, numerical outputs and SVG exist. Eleven coordinate/source
-tests pass. **The overall geometry milestone remains incomplete because native
-Geant4 build/display validation is outstanding.** Do not treat compilation alone
-as evidence of physical alignment or scattering.
+tests passed on the baseline, including the user-reported iFarm run at
+`7fff412`. Native build, Qt/OpenGL display and VRML export also succeeded there;
+see [IFARM_VALIDATION.md](IFARM_VALIDATION.md). Do not treat those checks as
+evidence of physical alignment or scattering.
 
-1. **Run and inspect the native viewer.** Follow IFARM.md. Record versions and
-   commands, preserve the exported scene/image, and check axis directions,
-   origins, both target reference planes, hole labels and displayed ray
-   intersections. Resolve any implementation mismatch before physics work.
+1. **Validate the layered viewer update on iFarm.** Follow [IFARM.md](IFARM.md)
+   and [VIEWER.md](VIEWER.md). Record the new commit and environment. Inspect
+   the clean default view, each independently selected frame, variable/branch
+   naming views and optional A/B/C layers. Check that switching annotations
+   leaves origins, planes, holes and rays fixed. Inspect labels in Qt/OpenGL;
+   VRML export does not support `G4Text`. The prior native validation applies
+   to the baseline viewer, not automatically to these new controls.
 2. **Trace remaining coordinate code with explicit inputs.** Recover the exact
    HCANA/Podd sources needed to verify the inherited ExtTarCor/ReactionPoint
    statements and pointing-vector call path. Extend synthetic tests only from
@@ -35,5 +39,5 @@ as evidence of physical alignment or scattering.
 
 For any later CAD view, consume `generated/scene.json` or the validated geometry
 module. Do not maintain a second set of geometry constants. Document the scope
-of each completed check and update the status in the README and numerical report
-generator when the corresponding gate is actually satisfied.
+and commit of each completed check in the validation record. Keep historical
+generated numerical artifacts distinct from later viewer-validation evidence.

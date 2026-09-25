@@ -2,9 +2,11 @@
 
 [Overview and file guide](README.md) · [Testing](TESTING.md) · [Next steps](NEXT_STEPS.md)
 
-These commands use the full repository layout. **They have not been executed
-on iFarm, and the native viewer has not yet compiled/run locally.** No particular
-iFarm module name, Geant4 installation path or display service is assumed.
+These commands use the full repository layout. The user reports successful
+baseline testing, native compilation, VRML export and Qt/OpenGL display on
+iFarm with commit `7fff412`; see [IFARM_VALIDATION.md](IFARM_VALIDATION.md).
+The new layered annotation controls still require a native check. Use
+[VIEWER.md](VIEWER.md) for the view macros and layer controls.
 
 ## Transfer the committed work
 
@@ -45,11 +47,16 @@ result, including any skipped tests.
 
 ## Configure and build Geant4 viewing support
 
-Activate an existing Geant4 environment using the setup instructions for that
-installation. Obtain the actual directory containing `Geant4Config.cmake`;
-replace the placeholder in the command below. CMake 3.16+ and Geant4 visualization
-libraries are required. A build without OpenGL can use the file renderer if its
-Geant4 installation provides `VRML2FILE`.
+The following module worked in the reported iFarm validation:
+
+```sh
+module load geant4/11.2.1
+geant4-config --version
+```
+
+The reported version was `11.2.1`. CMake found Geant4 automatically after the
+module was loaded. CMake 3.16+ and Geant4 visualization libraries are required.
+A build without OpenGL can use the `VRML2FILE` renderer.
 
 From the repository root:
 
@@ -57,16 +64,16 @@ From the repository root:
 hms_repo_dir=$PWD
 hms_build_dir=$(mktemp -d)
 cmake -S "$hms_repo_dir/systems_simulation/hms_sieve" -B "$hms_build_dir" \
-  -DGeant4_DIR=/actual/directory/containing/Geant4Config.cmake \
   -DHMS_WITH_INTERACTIVE=OFF
 cmake --build "$hms_build_dir" --parallel 2
 ```
 
-`Geant4_DIR` takes the **directory**, not the filename. If the installation's
-setup already makes Geant4 discoverable to CMake, omit that option. Keep build
+If another environment does not make Geant4 discoverable, pass
+`-DGeant4_DIR=/actual/directory/containing/Geant4Config.cmake`, replacing the
+placeholder with the directory containing that file. `Geant4_DIR` takes the
+**directory**, not the filename. Keep build
 and generated output directories on a filesystem writable from the host where
-you run these commands. No scheduler or site-specific environment setup is
-invented here.
+you run these commands.
 
 ## File export and visual inspection
 
@@ -83,7 +90,10 @@ ls -l g4_*.wrl
 
 Expected: exit status zero, a message identifying the loaded coordinate
 primitives, and a nonempty `g4_*.wrl` file. Transfer the VRML file to a machine
-with a compatible viewer if needed. Creating a file alone does not complete
+with a compatible viewer if needed. The baseline produced a 42K file containing
+114 coordinate primitives. `VRML2FILE` does not implement `G4Text`; missing text
+labels in that export are a driver limitation. Use Qt/OpenGL for annotation
+inspection. Creating a file alone does not complete
 visual validation: inspect the axes, two target planes, sieve grid and A/B/C
 rays against the committed SVG and scene coordinates.
 
@@ -115,4 +125,5 @@ acceptance/scattering.
 
 Record the commit, configuration hash, host, compiler/CMake/Geant4 versions,
 commands, output filenames, and visual-check result. Update the native-runtime
-status only after actual success; see [NEXT_STEPS.md](NEXT_STEPS.md).
+record for the new layered version only after actual success; see
+[NEXT_STEPS.md](NEXT_STEPS.md).

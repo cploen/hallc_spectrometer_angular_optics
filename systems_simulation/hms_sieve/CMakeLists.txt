@@ -16,6 +16,9 @@ target_compile_features(hms_geometry_viewer PRIVATE cxx_std_17)
 target_link_libraries(hms_geometry_viewer PRIVATE ${Geant4_LIBRARIES})
 target_compile_definitions(hms_geometry_viewer PRIVATE
   HMS_WITH_INTERACTIVE=$<BOOL:${HMS_WITH_INTERACTIVE}>)
-foreach(macro view.mac export_vrml.mac)
+foreach(macro view.mac export_vrml.mac reset_layers.mac
+    view_geometry.mac view_frames.mac view_lab_frame.mac view_hms_frame.mac
+    view_sieve_frame.mac view_hcana.mac view_branches.mac view_aliases.mac
+    view_rays.mac view_everything.mac)
   configure_file(macros/${macro} ${CMAKE_CURRENT_BINARY_DIR}/${macro} COPYONLY)
 endforeach()

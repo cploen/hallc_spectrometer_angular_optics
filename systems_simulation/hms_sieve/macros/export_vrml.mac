@@ -1,8 +1,13 @@
-# File-only smoke test; no events and no material interactions.
-# The Geant4 VRML driver writes g4_XX.wrl to the current directory.
+# Geometry-only file export: existing primitives, including frames and A/B/C.
+# VRML2FILE does not implement G4Text. Inspect naming layers in Qt/OpenGL.
+# The driver writes g4_XX.wrl to the current directory.
 /vis/open VRML2FILE
 /vis/scene/create HMS_sieve_coordinate_audit
-/vis/scene/add/userAction HMS_coordinate_scene
+/vis/scene/add/userAction HMS_base
+/vis/scene/add/userAction HMS_lab_frame
+/vis/scene/add/userAction HMS_transport_frame
+/vis/scene/add/userAction HMS_sieve_frame
+/vis/scene/add/userAction HMS_rays
 /vis/sceneHandler/attach
 /vis/viewer/set/viewpointVector 1 1 1
 /vis/viewer/set/upVector 0 1 0

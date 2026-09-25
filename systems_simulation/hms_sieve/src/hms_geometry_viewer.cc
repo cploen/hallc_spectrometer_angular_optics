@@ -5,8 +5,9 @@
 // API references: Geant4 G4VisManager.hh (RegisterRunDurationUserVisAction),
 // G4VisCommandsSceneAdd.cc (/vis/scene/add/userAction), and the visualization
 // chapter of the Geant4 Application Developers Guide. Native build/runtime
-// verification requires a Geant4 installation; Python closure tests do not
-// establish that the Geant4 viewer has run.
+// baseline viewer ran on iFarm (see IFARM_VALIDATION.md). This layered revision
+// still needs its own native smoke test; Python tests do not validate rendering.
+#include "annotation_layout.hh"
 #include "G4Box.hh"
 #include "G4Circle.hh"
 #include "G4Colour.hh"
@@ -128,45 +129,153 @@ class DisplayOnlyPhysics final : public G4VUserPhysicsList {
   void SetCuts() override {}
 };
 
+// Fixed screen offsets below are typography, not physical geometry parameters.
+void label3D(G4VVisManager* vis, const std::string& label, const G4Point3D& position,
+             const G4Colour& colour, double dx = 6, double dy = 0,
+             G4Text::Layout layout = G4Text::left) {
+  G4Text text(label, position);
+  text.SetScreenSize(13.0);
+  text.SetLayout(layout);
+  text.SetOffset(dx, dy);
+  G4VisAttributes attributes(colour);
+  text.SetVisAttributes(attributes);
+  vis->Draw(text);
+}
+
+void label2D(G4VVisManager* vis, const std::string& label, double x, double y,
+             const G4Colour& colour = G4Colour(0.15, 0.15, 0.15), double size = 13) {
+  G4Text text(label, G4Point3D(x, y, 0));
+  text.SetScreenSize(size);
+  text.SetLayout(G4Text::left);
+  G4VisAttributes attributes(colour);
+  text.SetVisAttributes(attributes);
+  vis->Draw2D(text);  // Normalized screen coordinates, independent of camera.
+}
+
+void drawPrimitive(G4VVisManager* vis, const Primitive& item) {
+  G4VisAttributes attributes(item.colour);
+  attributes.SetLineWidth(2.0);
+  if (item.kind == "line") {
+    G4Polyline line;
+    line.push_back(item.a); line.push_back(item.b);
+    line.SetVisAttributes(attributes);
+    vis->Draw(line);
+  } else {
+    G4Circle marker(item.a);
+    marker.SetScreenSize(6.0);
+    marker.SetFillStyle(G4Circle::filled);
+    marker.SetVisAttributes(attributes);
+    vis->Draw(marker);
+  }
+}
+
 class CoordinateDrawing final : public G4VUserVisAction {
  public:
-  explicit CoordinateDrawing(const Scene& scene) : scene_(scene) {}
+  CoordinateDrawing(const Scene& scene, hms_display::Layer layer)
+      : scene_(scene), layer_(layer) {}
   void Draw() override {
+    using namespace hms_display;
     auto* vis = G4VVisManager::GetConcreteInstance();
     if (!vis) return;
+    if (layer_ == Layer::code || layer_ == Layer::branches) {
+      drawNames(vis);
+      return;
+    }
+    if (layer_ == Layer::labels) {
+      drawPlaneNames(vis);
+      return;
+    }
     for (const auto& item : scene_.objects) {
-      G4VisAttributes attributes(item.colour);
-      attributes.SetLineWidth(2.0);  // Screen styling, not a physical dimension.
-      if (item.kind == "line") {
-        G4Polyline line;
-        line.push_back(item.a); line.push_back(item.b);
-        line.SetVisAttributes(attributes);
-        vis->Draw(line);
-      } else {
-        G4Circle marker(item.a);
-        marker.SetScreenSize(6.0);
-        marker.SetFillStyle(G4Circle::filled);
-        marker.SetVisAttributes(attributes);
-        vis->Draw(marker);
+      if (primitiveLayer(item.name) != layer_) continue;
+      drawPrimitive(vis, item);
+      if (layer_ == Layer::lab || layer_ == Layer::hms || layer_ == Layer::sieve) {
+        const std::string frame = layer_ == Layer::lab ? "LAB " :
+                                  layer_ == Layer::hms ? "HMS " : "SIEVE ";
+        std::string axis(1, item.name.back());
+        if (layer_ == Layer::lab) axis[0] = static_cast<char>(axis[0] - 'a' + 'A');
+        const double offset = layer_ == Layer::lab ? 20 : layer_ == Layer::hms ? 0 : -18;
+        label3D(vis, frame + axis, item.b, item.colour, 5, offset);
       }
-      // Keep the 81-hole grid legible: label its central marker and all named
-      // axes, origins, rays, and one edge of each reference-plane outline.
-      const bool isHole = item.name.find("nominal_hole_") == 0;
-      const bool isEdge = item.name.find("_edge") != std::string::npos;
-      if ((isHole && item.name != "nominal_hole_4_4") ||
-          (isEdge && item.name.find("_edge0") == std::string::npos)) continue;
-      std::string label = item.name;
-      if (isEdge) label.erase(label.size() - 6);
-      std::replace(label.begin(), label.end(), '_', ' ');
-      G4Text text(label, item.b);
-      text.SetScreenSize(12.0);
-      text.SetLayout(G4Text::left);
-      text.SetVisAttributes(attributes);
-      vis->Draw(text);
+      if (layer_ == Layer::rays && item.kind == "line") {
+        const int n = item.name[0] - 'A';
+        G4Point3D middle((item.a.x()+item.b.x())/2, (item.a.y()+item.b.y())/2,
+                         (item.a.z()+item.b.z())/2);
+        label3D(vis, item.name.substr(0,1), middle, item.colour, 6, 22-22*n);
+      }
+    }
+    if (layer_ == Layer::base) {
+      label2D(vis, "HMS sieve-slit study | synthetic geometry", -.96, -.88);
+      label2D(vis, "Nominal centers and projection planes; physical faces OPEN", -.96, -.95, G4Colour(.4,.4,.4), 12);
+    }
+    if (layer_ == Layer::rays) {
+      // Connect existing sieve intersection markers. These are residual
+      // annotations, not new rays, displaced points, or revised constructions.
+      const auto& a = object("A_endpoint_sieve_intersection");
+      for (const auto* name : {"B_fit_target_sieve_intersection", "C_HCANA_coordinate_step_sieve_intersection"}) {
+        const auto& other = object(name);
+        G4Polyline connector;
+        connector.push_back(a.a); connector.push_back(other.a);
+        G4VisAttributes attributes(G4Colour(.5,.5,.5));
+        connector.SetVisAttributes(attributes);
+        vis->Draw(connector);
+      }
+      label2D(vis, "A: endpoint ray", .10, -.58, object("A_endpoint").colour);
+      label2D(vis, "B: fit target construction", .10, -.66, object("B_fit_target").colour);
+      label2D(vis, "C: HCANA coordinate step (analytic inputs)", .10, -.74,
+              object("C_HCANA_coordinate_step").colour);
+      label2D(vis, "Dots: sieve intersections; gray: residual connectors", .10, -.82, G4Colour(.4,.4,.4), 12);
     }
   }
  private:
+  const Primitive& object(const std::string& name) const {
+    for (const auto& item : scene_.objects) if (item.name == name) return item;
+    throw std::runtime_error("Annotation requires scene primitive: " + name);
+  }
+
+  void drawPlaneNames(G4VVisManager* vis) const {
+    const auto& lab = object("lab_Z0_reference_plane_edge2");
+    const auto& hms = object("HMS_target_z0_reference_plane_edge2");
+    const auto& sieve = object("HCANA_sieve_zL_projection_plane_edge2");
+    // Short labels, with different screen offsets at the nearby target planes.
+    label3D(vis, "Lab Z=0", lab.b, lab.colour, 6, 28);
+    label3D(vis, "HMS z=0 [T]", hms.b, hms.colour, 6, 0);
+    label3D(vis, "Projection plane [S]", sieve.b, sieve.colour, -6, 12, G4Text::right);
+    const auto& beam = object("laboratory_beam_axis");
+    const auto& axis = object("HMS_central_axis");
+    label3D(vis, "Beam", beam.b, beam.colour, -6, 12, G4Text::right);
+    label3D(vis, "HMS axis", axis.b, axis.colour, -6, -18, G4Text::right);
+  }
+
+  void drawNames(G4VVisManager* vis) const {
+    using namespace hms_display;
+    const bool code = layer_ == Layer::code;
+    const double x = code ? -.96 : .08;
+    label2D(vis, code ? "Code names / concepts" : "ROOT aliases (= same stored quantity)", x, .92,
+            G4Colour(.1,.1,.1), 15);
+    label2D(vis, "Naming key only; no saved event values are loaded", x, .84, G4Colour(.4,.4,.4), 12);
+    double y = .73;
+    for (const auto& q : quantities) {
+      label2D(vis, code ? codeLabel(q) : aliasLabel(q), x, y);
+      y -= .082;
+    }
+    if (code) {
+      label2D(vis, "Constructed quantities (not saved aliases)", x, -.30, G4Colour(.5,0,.4), 14);
+      label2D(vis, "[T] xtarT, ytarT, xptarT, yptarT: construction B", x, -.39);
+      label2D(vis, "[S] xsT, ysT: assigned nominal hole center", x, -.47);
+      label2D(vis, "ztarT: nominal foil Z; distinct from reactz / ztar", x, -.55);
+      label2D(vis, "Nominal foil/hole + beam inputs -> B targets", x, -.66, G4Colour(.4,.4,.4), 12);
+    } else {
+      label2D(vis, "[T] target plane/direction; [S] sieve projection", x, -.30, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "[V] lab reaction coordinates; [R] raster/BPM", x, -.38, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "V and R are different inputs; provider mapping OPEN", x, -.46, G4Colour(.4,.4,.4), 12);
+    }
+    // [T]/[S] are anchored to the SAME planes for both naming layers. No
+    // branch name is attached to an A/B/C endpoint as if it were a saved event.
+    // V and R deliberately have no invented stored-vertex/BPM-plane marker.
+  }
+
   const Scene& scene_;
+  hms_display::Layer layer_;
 };
 
 void command(const std::string& value) {
@@ -197,12 +306,17 @@ int main(int argc, char** argv) {
     run->SetUserInitialization(new VacuumWorld(scene.worldHalfSize()));
     run->SetUserInitialization(new DisplayOnlyPhysics());
     run->Initialize();
-    CoordinateDrawing drawing(scene);  // Alive until after the vis manager.
+    std::vector<std::unique_ptr<CoordinateDrawing>> drawings;  // Outlive vis manager.
+    for (const auto& layer : hms_display::layers)
+      drawings.push_back(std::make_unique<CoordinateDrawing>(scene, layer.layer));
     auto vis = std::make_unique<G4VisExecutive>("warnings");
     vis->Initialize();
-    vis->RegisterRunDurationUserVisAction("HMS_coordinate_scene", &drawing, scene.extent());
+    for (std::size_t i = 0; i < hms_display::layers.size(); ++i)
+      vis->RegisterRunDurationUserVisAction(hms_display::layers[i].name, drawings[i].get(), scene.extent());
     std::cout << "Drawing " << scene.objects.size() << " coordinate primitives from " << argv[1]
-              << "\nLAB X/Y/Z, input cm; code-convention benchmark, not surveyed solids.\n";
+              << "\nLAB X/Y/Z, input cm; code-convention benchmark, not surveyed solids.\n"
+              << "Layers: HMS_base, HMS_labels, HMS_lab_frame, HMS_transport_frame,\n"
+                 "        HMS_sieve_frame, HMS_code_names, HMS_branch_names, HMS_rays.\n";
     command(std::string("/control/execute ") + argv[2]);
 #if HMS_WITH_INTERACTIVE
     if (ui) ui->SessionStart();
