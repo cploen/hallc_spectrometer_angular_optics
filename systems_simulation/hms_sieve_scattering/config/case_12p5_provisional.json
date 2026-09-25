@@ -25,10 +25,18 @@
     "additional_run_adjustment_status": "TBD from selected run/replay or independent alignment; never absorb beam centroid into this field."
   },
   "beam": {
+    "source_plane_lab_z_cm": -5.0,
+    "source_plane_status": "Provisional: 5 cm upstream of the lab target plane; source travels along +lab Z",
+    "incident_energy_GeV": 10.6,
+    "event_count": 10000,
+    "current_A": null,
+    "current_weight_status": "Unit event weights for the first timing/process-ID run; scale yields by measured beam current later",
     "target_centroid_lab_xy_mm": [0.22, -0.31],
     "centroid_status": "Provisional values from the supplied email; confirm applicability to selected run. BPM x sign is flipped to match the stated lab convention.",
     "intrinsic_sigma_lab_xy_mm": [null, null],
     "intrinsic_sigma_status": "Obtain spot-check harp widths at the beginning of the selected pass.",
+    "intrinsic_sigma_used_lab_xy_mm": [0.0, 0.0],
+    "intrinsic_sigma_used_status": "Provisional zero-width Gaussian contribution until pass-matched harp widths are supplied; raster remains enabled.",
     "raster_distribution": "uniform rectangular",
     "raster_half_width_xy_mm": [1.0, 1.0],
     "time_dependence": "omitted for this time-integrated first study; raster phase/correlation not modeled"
@@ -46,6 +54,8 @@
     "alternative_dummy_thickness_in": 0.05,
     "effective_density_g_cm3": 2.151820866141732,
     "effective_density_formula": "reported areal density / provisional thickness; preserves the report's Carbon 0.5% areal density",
+    "simulation_patch_half_width_cm": [2.0, 2.0],
+    "simulation_patch_status": "Oversized transport patch to contain the provisional beam distribution; not a claim about the physical foil outline",
     "transverse_dimensions_cm": null,
     "tilt_deg": null
   },
@@ -74,8 +84,24 @@
       "drawing_grid_center_offset_direction": "toward top edge in drawing front view; sign in HMS coordinates TBD",
       "orientation_to_hms_axes": "TBD; retain drawing front-view coordinates until the installed/replay view is verified"
     },
-    "longitudinal_placement_cm": null,
-    "longitudinal_placement_status": "Keep the tested 168 cm projection plane distinct. The 166.4 cm assembly distance still lacks an identified physical reference point."
+    "longitudinal_placement_cm": 168.0,
+    "longitudinal_placement_status": "PROVISIONAL physical plate center at the established 168 cm analysis plane; replace if a survey/drawing gives a different reference",
+    "hole_positions_drawing_to_hms": "PROVISIONAL: drawing horizontal maps to HMS x and drawing vertical maps to HMS y; vertical offset points toward drawing top",
+    "blocked_positions_grid_indices": [[2, 3], [5, 5]]
+  },
+  "q1_entrance": {
+    "source": "Hall C Standard Equipment Manual, HMS Q1 magnet parameters",
+    "vacuum_vessel_inner_radius_cm": 20.05,
+    "inner_pole_radius_cm": 25.0,
+    "actual_magnet_length_cm": 234.0,
+    "scoring_plane_hms_z_cm": 169.6875,
+    "scoring_plane_status": "PROVISIONAL: 0.1 cm downstream of the sieve downstream face; used as the Q1 entrance scoring aperture because its surveyed longitudinal location is not specified in this case",
+    "aperture_status": "Sensitive scoring aperture uses the documented Q1 vacuum-vessel inner radius; not a magnetic acceptance boundary and no Q1 field is modeled"
+  },
+  "momentum_selection": {
+    "hms_central_momentum_GeV_c": 6.667,
+    "delta_half_width": 0.20,
+    "delta_definition": "(p_at_Q1_GeV_c - hms_central_momentum_GeV_c) / hms_central_momentum_GeV_c"
   },
   "scoring": {
     "plane": "immediately downstream of sieve material / at Q1 entrance",
