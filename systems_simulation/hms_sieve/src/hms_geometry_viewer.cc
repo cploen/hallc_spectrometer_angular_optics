@@ -204,8 +204,8 @@ class CoordinateDrawing final : public G4VUserVisAction {
       }
     }
     if (layer_ == Layer::base) {
-      label2D(vis, "HMS sieve-slit study | synthetic geometry", -.96, -.88);
-      label2D(vis, "Nominal centers and projection planes; physical faces OPEN", -.96, -.95, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "HMS sieve-slit study | schematic geometry", -.96, -.88);
+      label2D(vis, "Nominal centers and projection planes", -.96, -.95, G4Colour(.4,.4,.4), 12);
     }
     if (layer_ == Layer::rays) {
       // Connect existing sieve intersection markers. These are residual
@@ -252,7 +252,7 @@ class CoordinateDrawing final : public G4VUserVisAction {
     const double x = code ? -.96 : .08;
     label2D(vis, code ? "Code names / concepts" : "ROOT aliases (= same stored quantity)", x, .92,
             G4Colour(.1,.1,.1), 15);
-    label2D(vis, "Naming key only; no saved event values are loaded", x, .84, G4Colour(.4,.4,.4), 12);
+    label2D(vis, "Naming key", x, .84, G4Colour(.4,.4,.4), 12);
     double y = .73;
     for (const auto& q : quantities) {
       label2D(vis, code ? codeLabel(q) : aliasLabel(q), x, y);
@@ -263,11 +263,11 @@ class CoordinateDrawing final : public G4VUserVisAction {
       label2D(vis, "[T] xtarT, ytarT, xptarT, yptarT: construction B", x, -.39);
       label2D(vis, "[S] xsT, ysT: assigned nominal hole center", x, -.47);
       label2D(vis, "ztarT: nominal foil Z; distinct from reactz / ztar", x, -.55);
-      label2D(vis, "Nominal foil/hole + beam inputs -> B targets", x, -.66, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "Construction B: fit-side HMS target coordinates", x, -.66, G4Colour(.4,.4,.4), 12);
     } else {
       label2D(vis, "[T] target plane/direction; [S] sieve projection", x, -.30, G4Colour(.4,.4,.4), 12);
       label2D(vis, "[V] lab reaction coordinates; [R] raster/BPM", x, -.38, G4Colour(.4,.4,.4), 12);
-      label2D(vis, "V and R are different inputs; provider mapping OPEN", x, -.46, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "V and R are different inputs; provider mapping TBD", x, -.46, G4Colour(.4,.4,.4), 12);
     }
     // [T]/[S] are anchored to the SAME planes for both naming layers. No
     // branch name is attached to an A/B/C endpoint as if it were a saved event.

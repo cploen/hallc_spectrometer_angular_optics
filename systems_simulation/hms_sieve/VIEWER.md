@@ -95,10 +95,11 @@ direction convention; `[S]` identifies the sieve projection plane. The tags
 identify plane/direction concepts; the geometric planes are shown in
 `view_geometry.mac` and the frame views.
 
-`[V]` means lab reaction coordinates; `[R]` means raster/BPM quantities. Their
-provider mapping/reference remains OPEN. No saved reaction point or BPM plane
-is fabricated just to attach a label. The scene contains **no saved event
-values**: ROOT branches are a naming key, not assignments to the synthetic rays.
+`[V]` means lab reaction coordinates; `[R]` means raster/BPM quantities. The
+raster/BPM reference and its mapping into the geometry are TBD. No saved reaction
+point or BPM plane is fabricated just to attach a label. The scene contains **no
+saved event values**: ROOT branches are a naming key, not assignments to the
+schematic rays.
 
 Keep these distinctions:
 

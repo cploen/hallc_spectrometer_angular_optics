@@ -50,8 +50,8 @@ inline constexpr std::array<QuantityName, 11> quantities{{
   {"V", "reactx", "H.react.x", "reaction lab X"},
   {"V", "reacty", "H.react.y", "reaction lab Y"},
   {"V", "reactz = ztar", "H.react.z", "reaction lab Z"},
-  {"R", "xbpm_tar", "H.rb.raster.fr_xbpm_tar", "raster/BPM X; reference OPEN"},
-  {"R", "ybpm_tar", "H.rb.raster.fr_ybpm_tar", "raster/BPM Y; reference OPEN"}
+  {"R", "xbpm_tar", "H.rb.raster.fr_xbpm_tar", "raster/BPM X; reference TBD"},
+  {"R", "ybpm_tar", "H.rb.raster.fr_ybpm_tar", "raster/BPM Y; reference TBD"}
 }};
 
 inline std::string codeLabel(const QuantityName& q) {
