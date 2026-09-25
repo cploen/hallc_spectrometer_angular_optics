@@ -1,7 +1,7 @@
 # Preset for an existing viewer: start with view.mac, then execute this file.
 # Resets layers only; preserves the camera and all input coordinates.
 /control/execute reset_layers.mac
-/vis/scene/activateModel HMS_labels true
+/vis/scene/activateModel HMS_base false
 /vis/scene/activateModel HMS_code_names true
 /vis/viewer/set/autoRefresh true
 /vis/viewer/refresh

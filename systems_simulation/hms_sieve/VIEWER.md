@@ -43,22 +43,23 @@ These presets operate on the already-open viewer. They reset visibility, then
 enable the named layers; they preserve your camera/orbit. Start with `view.mac`,
 not a preset, when launching a new process.
 
-| Preset macro | Visible content in addition to base geometry |
+| Preset macro | Visible content |
 |---|---|
-| `view_geometry.mac` | Short plane/axis names; clean default |
-| `view_lab_frame.mac` | LAB triad |
-| `view_hms_frame.mac` | HMS TRANSPORT triad |
-| `view_sieve_frame.mac` | Sieve-local triad |
-| `view_frames.mac` | All three triads |
-| `view_hcana.mac` | Code naming key, including constructed quantities |
-| `view_branches.mac` | Direct code-to-ROOT aliases |
-| `view_aliases.mac` | Code and ROOT naming keys side by side |
-| `view_rays.mac` | A/B/C rays, intersection markers, residual connectors |
+| `view_geometry.mac` | Base geometry and short plane/axis names; clean default |
+| `view_lab_frame.mac` | Base geometry, short names and LAB triad |
+| `view_hms_frame.mac` | Base geometry, short names and HMS TRANSPORT triad |
+| `view_sieve_frame.mac` | Base geometry, short names and sieve-local triad |
+| `view_frames.mac` | Base geometry, short names and all three triads |
+| `view_hcana.mac` | Naming key only: HCANA code names and constructed quantities |
+| `view_branches.mac` | Naming key only: direct code-to-ROOT aliases |
+| `view_aliases.mac` | Naming keys only: code and ROOT names side by side |
+| `view_rays.mac` | Base geometry, short names, A/B/C rays and intersection markers |
 | `view_everything.mac` | All layers; useful for inventory, not the clean overview |
 
-Every preset includes the short plane/axis names. Hide those separately if
-desired. Individual named Geant4 models can be switched without resetting the
-other layers:
+The naming-key presets hide the 3D geometry and plane labels so the screen-space
+text remains legible. Run `view_geometry.mac` to restore the geometric context.
+The other presets include the base geometry and short plane/axis names. Individual
+named Geant4 models can be switched without resetting the other layers:
 
 ```text
 /vis/scene/activateModel HMS_lab_frame true
@@ -86,11 +87,13 @@ that command. Use the specific model names or `view_geometry.mac` instead.
 ## How to read the names
 
 The naming keys stay in screen space instead of accumulating long labels at
-nearby 3D endpoints. Each alias row is generated from one shared quantity record:
+nearby 3D endpoints. Use `view_aliases.mac` for a clean naming-only page, then
+`view_geometry.mac` to return to the coordinate drawing. Each alias row is generated from one shared quantity record:
 for example, `xtar = H.gtr.x`. **`=` means the same stored quantity**, not agreement
 between different ray constructions. `[T]` identifies the HMS target plane and
-direction convention; `[S]` identifies the sieve projection plane. Those tags
-appear on the same geometric concepts in both naming views.
+direction convention; `[S]` identifies the sieve projection plane. The tags
+identify plane/direction concepts; the geometric planes are shown in
+`view_geometry.mac` and the frame views.
 
 `[V]` means lab reaction coordinates; `[R]` means raster/BPM quantities. Their
 provider mapping/reference remains OPEN. No saved reaction point or BPM plane

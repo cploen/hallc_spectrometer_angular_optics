@@ -45,12 +45,12 @@ class VisualizationTests(unittest.TestCase):
             'reactx':'H.react.x','reacty':'H.react.y','reactz = ztar':'H.react.z',
             'xbpm_tar':'H.rb.raster.fr_xbpm_tar','ybpm_tar':'H.rb.raster.fr_ybpm_tar'})
 
-    def test_presets_switch_layers_without_geometry_or_camera_changes(self):
+    def test_presets_switch_layers_without_camera_changes(self):
         expected={
             'geometry':{'HMS_labels'}, 'frames':{'HMS_labels','HMS_lab_frame','HMS_transport_frame','HMS_sieve_frame'},
             'lab_frame':{'HMS_labels','HMS_lab_frame'}, 'hms_frame':{'HMS_labels','HMS_transport_frame'},
-            'sieve_frame':{'HMS_labels','HMS_sieve_frame'},'hcana':{'HMS_labels','HMS_code_names'},
-            'branches':{'HMS_labels','HMS_branch_names'},'aliases':{'HMS_labels','HMS_code_names','HMS_branch_names'},
+            'sieve_frame':{'HMS_labels','HMS_sieve_frame'},'hcana':{'HMS_code_names'},
+            'branches':{'HMS_branch_names'},'aliases':{'HMS_code_names','HMS_branch_names'},
             'rays':{'HMS_labels','HMS_rays'},'everything':set(self.layers)-{'HMS_base'}}
         def apply(name,state):
             for raw in (HERE/'macros'/name).read_text().splitlines():
@@ -68,7 +68,8 @@ class VisualizationTests(unittest.TestCase):
         for name,on in expected.items():
             state={name:True for name in self.layers}
             apply('view_'+name+'.mac',state)
-            self.assertEqual({key for key,value in state.items() if value},on|{'HMS_base'})
+            expected_visible=on if name in {'hcana','branches','aliases'} else on|{'HMS_base'}
+            self.assertEqual({key for key,value in state.items() if value},expected_visible)
         cmake=(HERE/'CMakeLists.txt').read_text()
         for name in expected: self.assertIn('view_'+name+'.mac',cmake)
 
