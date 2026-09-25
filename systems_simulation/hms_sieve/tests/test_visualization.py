@@ -50,7 +50,7 @@ class VisualizationTests(unittest.TestCase):
             'geometry':{'HMS_labels'}, 'frames':{'HMS_labels','HMS_lab_frame','HMS_transport_frame','HMS_sieve_frame'},
             'lab_frame':{'HMS_labels','HMS_lab_frame'}, 'hms_frame':{'HMS_labels','HMS_transport_frame'},
             'sieve_frame':{'HMS_labels','HMS_sieve_frame'},'hcana':{'HMS_code_names'},
-            'branches':{'HMS_branch_names'},'aliases':{'HMS_code_names','HMS_branch_names'},
+            'branches':{'HMS_branch_names'},'aliases':{'HMS_base','HMS_code_names','HMS_branch_names'},
             'rays':{'HMS_labels','HMS_rays'},'everything':set(self.layers)-{'HMS_base'}}
         def apply(name,state):
             for raw in (HERE/'macros'/name).read_text().splitlines():
@@ -68,7 +68,7 @@ class VisualizationTests(unittest.TestCase):
         for name,on in expected.items():
             state={name:True for name in self.layers}
             apply('view_'+name+'.mac',state)
-            expected_visible=on if name in {'hcana','branches','aliases'} else on|{'HMS_base'}
+            expected_visible=on if name in {'hcana','branches'} else on|{'HMS_base'}
             self.assertEqual({key for key,value in state.items() if value},expected_visible)
         cmake=(HERE/'CMakeLists.txt').read_text()
         for name in expected: self.assertIn('view_'+name+'.mac',cmake)

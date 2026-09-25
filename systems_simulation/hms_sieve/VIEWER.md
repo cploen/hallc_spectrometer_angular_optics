@@ -52,14 +52,15 @@ not a preset, when launching a new process.
 | `view_frames.mac` | Base geometry, short names and all three triads |
 | `view_hcana.mac` | Naming key only: HCANA code names and constructed quantities |
 | `view_branches.mac` | Naming key only: direct code-to-ROOT aliases |
-| `view_aliases.mac` | Naming keys only: code and ROOT names side by side |
+| `view_aliases.mac` | Base geometry plus code and ROOT naming keys side by side |
 | `view_rays.mac` | Base geometry, short names, A/B/C rays and intersection markers |
 | `view_everything.mac` | All layers; useful for inventory, not the clean overview |
 
-The naming-key presets hide the 3D geometry and plane labels so the screen-space
-text remains legible. Run `view_geometry.mac` to restore the geometric context.
-The other presets include the base geometry and short plane/axis names. Individual
-named Geant4 models can be switched without resetting the other layers:
+`view_hcana.mac` and `view_branches.mac` show naming keys alone. The combined
+`view_aliases.mac` keeps the base geometry visible and hides the long plane labels;
+its compact naming rows sit above the main axes. Run `view_geometry.mac` to return
+to the clean geometry view. The other geometry presets include short plane/axis
+names. Individual named Geant4 models can be switched without resetting the other layers:
 
 ```text
 /vis/scene/activateModel HMS_lab_frame true
@@ -87,8 +88,8 @@ that command. Use the specific model names or `view_geometry.mac` instead.
 ## How to read the names
 
 The naming keys stay in screen space instead of accumulating long labels at
-nearby 3D endpoints. Use `view_aliases.mac` for a clean naming-only page, then
-`view_geometry.mac` to return to the coordinate drawing. Each alias row is generated from one shared quantity record:
+nearby 3D endpoints. Use `view_aliases.mac` to see the keys beside the coordinate
+drawing, or `view_geometry.mac` to return to the clean geometry view. Each alias row is generated from one shared quantity record:
 for example, `xtar = H.gtr.x`. **`=` means the same stored quantity**, not agreement
 between different ray constructions. `[T]` identifies the HMS target plane and
 direction convention; `[S]` identifies the sieve projection plane. The tags

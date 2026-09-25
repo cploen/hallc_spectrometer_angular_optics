@@ -253,17 +253,18 @@ class CoordinateDrawing final : public G4VUserVisAction {
     label2D(vis, code ? "Code names / concepts" : "ROOT aliases (= same stored quantity)", x, .92,
             G4Colour(.1,.1,.1), 15);
     label2D(vis, "Naming key", x, .84, G4Colour(.4,.4,.4), 12);
+    // Keep the two naming columns compact and above the main horizontal axes.
     double y = .73;
     for (const auto& q : quantities) {
       label2D(vis, code ? codeLabel(q) : aliasLabel(q), x, y);
-      y -= .082;
+      y -= .055;
     }
     if (code) {
-      label2D(vis, "Constructed quantities (not saved aliases)", x, -.30, G4Colour(.5,0,.4), 14);
-      label2D(vis, "[T] xtarT, ytarT, xptarT, yptarT: construction B", x, -.39);
-      label2D(vis, "[S] xsT, ysT: assigned nominal hole center", x, -.47);
-      label2D(vis, "ztarT: nominal foil Z; distinct from reactz / ztar", x, -.55);
-      label2D(vis, "Construction B: fit-side HMS target coordinates", x, -.66, G4Colour(.4,.4,.4), 12);
+      label2D(vis, "Constructed quantities (not saved aliases)", x, .10, G4Colour(.5,0,.4), 14);
+      label2D(vis, "[T] xtarT, ytarT, xptarT, yptarT: construction B", x, .04);
+      label2D(vis, "[S] xsT, ysT: assigned nominal hole center", x, -.02);
+      label2D(vis, "ztarT: nominal foil Z; distinct from reactz / ztar", x, -.08);
+      label2D(vis, "Construction B: fit-side HMS target coordinates", x, -.14, G4Colour(.4,.4,.4), 12);
     } else {
       label2D(vis, "[T] target plane/direction; [S] sieve projection", x, -.30, G4Colour(.4,.4,.4), 12);
       label2D(vis, "[V] lab reaction coordinates; [R] raster/BPM", x, -.38, G4Colour(.4,.4,.4), 12);
