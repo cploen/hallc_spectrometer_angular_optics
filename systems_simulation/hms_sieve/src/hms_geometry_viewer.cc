@@ -172,8 +172,9 @@ void drawPrimitive(G4VVisManager* vis, const Primitive& item) {
 
 bool isAxis(const std::string& name) {
   return name == "laboratory_beam_axis" || name == "HMS_central_axis" ||
-         starts(name, "LAB_") || starts(name, "HMS_TRANSPORT_") ||
-         starts(name, "SIEVE_LOCAL_");
+         hms_display::starts(name, "LAB_") ||
+         hms_display::starts(name, "HMS_TRANSPORT_") ||
+         hms_display::starts(name, "SIEVE_LOCAL_");
 }
 
 void drawAxisArrow(G4VVisManager* vis, const Primitive& item) {
