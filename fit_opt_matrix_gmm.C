@@ -540,7 +540,7 @@ void fit_opt_matrix_gmm(
 	  yfptrue.push_back( yfp );
 	  xpfptrue.push_back( xpfp );
 	  ypfptrue.push_back( ypfp );
-	  xtartrue.push_back( xtarT );//used to be xtar
+	  xtartrue.push_back( xtar );
 	  xptartrue.push_back( xptarT );
 	  ytartrue.push_back( ytarT );
 	  yptartrue.push_back( yptarT );
