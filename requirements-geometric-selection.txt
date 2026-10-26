@@ -1,0 +1,5 @@
+# PyROOT and HCANA come from the existing Hall C runtime, not this pip file.
+numpy>=1.20
+scipy>=1.7
+matplotlib>=3.4
+scikit-learn>=0.24

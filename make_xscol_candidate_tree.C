@@ -623,9 +623,10 @@ void make_xscol_candidate_tree(Int_t nrun = 1544,
     return;
   }
 
-  TTree* T = (TTree*)fin->Get("T");
+  TTree* T = dynamic_cast<TTree*>(fin->Get("T"));
+  if (!T) T = dynamic_cast<TTree*>(fin->Get("Tout"));
   if (!T) {
-    cout << "ERROR: cannot find tree T in " << inputroot << endl;
+    cout << "ERROR: cannot find tree T/Tout in " << inputroot << endl;
     return;
   }
 

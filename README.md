@@ -2,6 +2,11 @@
 
 Semi-automated preparation of HMS and SHMS sieve data for optics-matrix fitting.
 
+For the **provisional geometric X/Y alternative**, including fresh campaign
+setup, unsplit X relabeling, manual corrections and the normal GMM-to-SVD flow,
+see [Geometric selection](GEOMETRIC_SELECTION.md). The original workflow below
+remains available.
+
 For the separate **HMS sieve-slit geometry simulation**, start with its
 [file guide and overview](systems_simulation/hms_sieve/README.md):
 [testing and reproduction](systems_simulation/hms_sieve/TESTING.md),

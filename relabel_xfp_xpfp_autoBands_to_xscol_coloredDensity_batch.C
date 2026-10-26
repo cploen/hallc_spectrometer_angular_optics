@@ -819,9 +819,10 @@ void relabel_xfp_xpfp_autoBands_to_xscol_coloredDensity_batch_oneDelta(Int_t nru
     return;
   }
 
-  TTree* T = (TTree*)fin->Get("T");
+  TTree* T = dynamic_cast<TTree*>(fin->Get("T"));
+  if (!T) T = dynamic_cast<TTree*>(fin->Get("Tout"));
   if (!T) {
-    cout << "ERROR: tree T not found in " << inputTree << endl;
+    cout << "ERROR: tree T/Tout not found in " << inputTree << endl;
     return;
   }
 

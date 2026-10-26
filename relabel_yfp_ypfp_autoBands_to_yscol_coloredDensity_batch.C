@@ -582,9 +582,10 @@ void relabel_yfp_ypfp_autoBands_to_yscol_coloredDensity_batch_oneDelta(
     return;
   }
 
-  TTree* T = (TTree*)fin->Get("T");
+  TTree* T = dynamic_cast<TTree*>(fin->Get("T"));
+  if (!T) T = dynamic_cast<TTree*>(fin->Get("Tout"));
   if (!T) {
-    cout << "ERROR: tree T not found in " << inputTree << endl;
+    cout << "ERROR: tree T/Tout not found in " << inputTree << endl;
     return;
   }
 

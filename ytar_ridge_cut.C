@@ -944,9 +944,10 @@ void ytar_ridge_cut(Int_t nrun=1544,
     return;
   }
 
-  TTree *T = (TTree*)fin->Get("T");
+  TTree *T = dynamic_cast<TTree*>(fin->Get("T"));
+  if (!T) T = dynamic_cast<TTree*>(fin->Get("Tout"));
   if (!T) {
-    cerr << "ERROR: could not find tree T" << endl;
+    cerr << "ERROR: could not find tree T/Tout" << endl;
     return;
   }
 
