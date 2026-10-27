@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-27",
+  "purpose": "Software checks of saved-membership inspection; not physics validation",
+  "unit_test_command": "MPLBACKEND=Agg python3 -m unittest discover -s tests -p test_joint_surface_viewer.py -v",
+  "unit_tests_passed": 7,
+  "native_render": {
+    "backend": "Agg",
+    "two_planes_rendered_and_visually_inspected": true,
+    "exact_event_pick_after_depth_sort_tested": true,
+    "interactive_Tk_window_tested": false,
+    "image_path": "/private/tmp/joint-surface-native-viewer.png"
+  },
+  "offline_html_export": {
+    "fixture": "Synthetic numeric campaign fixture; 14000 events in one foil",
+    "output_path": "/private/tmp/hallc-viewer-browser-qa.html",
+    "html_bytes": 2331689,
+    "plotted_events": 4000,
+    "full_events": 14000,
+    "full_x_accepted": 13916,
+    "full_y_accepted": 13916,
+    "full_both_accepted": 13916,
+    "external_script_tags": 0,
+    "full_population_counts_checked_against_saved_masks": true,
+    "viewer_javascript_syntax_checked": true,
+    "plotly_javascript_syntax_checked": true,
+    "bundle_url": "https://cdn.jsdelivr.net/npm/plotly.js-gl3d-dist-min@2.35.2/plotly-gl3d.min.js",
+    "bundle_path": "/private/tmp/hallc-plotly-gl3d-2.35.2.min.js",
+    "bundle_sha256": "79694da69e3ae5ef0dcaba96fd5b8fe00b03849388a658a4d2d4d7e978fd8757",
+    "bundle_header": "plotly.js (gl3d - minified) v2.35.2; Copyright 2012-2024, Plotly, Inc.; Licensed under the MIT license",
+    "browser_runtime_tested": false,
+    "browser_runtime_blocker": "Computer-use browser inventory was empty because the Mac was locked. No browser interaction or WebGL rendering could be verified."
+  },
+  "remaining_ifarm_checks": [
+    "Open native Tk window through ssh -Y; rotate both plots and inspect event details",
+    "Check saved-configuration, delta, and color selectors",
+    "Check linked legend visibility for shared X or Y colors",
+    "Open exported self-contained HTML in Firefox and verify WebGL support"
+  ]
+}

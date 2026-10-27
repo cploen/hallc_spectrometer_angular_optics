@@ -26,9 +26,12 @@ systems_simulation/hms_sieve_scattering/**/__pycache__/
 *.root
 *.pdf
 !docs/HMS-Sieve.pdf
+!docs/JOINT_SURFACE_METHOD_GUIDE.pdf
 *.png
 *.jpg
 *.jpeg
+!docs/joint_surface_figures/*.png
+/tmp/pdfs/joint-guide/
 *_C.d
 *_C_ACLiC_dict_rdict.pcm
 

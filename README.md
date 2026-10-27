@@ -2,6 +2,13 @@
 
 Semi-automated preparation of HMS and SHMS sieve data for optics-matrix fitting.
 
+For the **continuous-delta joint-surface farm-test alternative**, start with
+[ifarm setup and execution](JOINT_SURFACE_IFARM.md), the illustrated
+[method and mathematics guide](docs/JOINT_SURFACE_METHOD_GUIDE.pdf), and the
+[native/offline 3D membership viewer](tools/membership_viewer/README.md).
+This path reads original replay and writes the conventional pre-GMM candidate
+trees. It is a separate experiment; full-replay physics validation remains open.
+
 For the **provisional geometric X/Y alternative**, including fresh campaign
 setup, unsplit X relabeling, manual corrections and the normal GMM-to-SVD flow,
 see [Geometric selection](GEOMETRIC_SELECTION.md). The original workflow below

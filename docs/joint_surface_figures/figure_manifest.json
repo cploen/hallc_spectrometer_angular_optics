@@ -1,0 +1,14 @@
+{
+  "source_sha256": {
+    "outputs/provisional_xy_joint_surfaces_20261027/postfit/evaluation/joined_predictions/central1544_A_min10_test.npz": "dc0844fd017584d1885fd4c0fbd5335e425ce454b61aee6b70e7105944bdac0d",
+    "outputs/provisional_xy_joint_surfaces_20261027/postfit/evaluation/joined_predictions/rg07_minus8_A_min10_test.npz": "194dbc6ddf0c1cb40cdb9c75e885c242cab111705013126559457e3ee908cb25",
+    "outputs/provisional_xy_joint_surfaces_20261027/postfit/coordinates/central1544.npz": "23ffbe89058ca17a71b1f46087114d0f0dfe197e97087b82e81f8edeba346560",
+    "outputs/provisional_unanchored_joint_surface_20261027/coverage_relaxation_v1/models/central1544_A_min10.json": "a0aa38400a4753821a673874cbfa785f21a87a715a7b309085f088dd1b7d9b36",
+    "outputs/provisional_xy_joint_surfaces_20261027/plots/worst_low_delta_x_3d.png": "a9135248cd22f00a423c517664ee966cfb345759f402fabcd398a5f3e4403094"
+  },
+  "fit": "Frozen pilot A, minimum count 10",
+  "coordinates": "Measured focal plane; separately identified reconstructed sieve plane",
+  "fitting_performed": false,
+  "central_3d_sampling": "4800 random accepted events per axis plus all rejections; not a density estimate",
+  "other_plots": "All common evaluation events in indicated intervals; no thinning"
+}

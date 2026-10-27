@@ -1,0 +1,7 @@
+# Numerical engine and native membership viewer. ROOT/HCANA/Tk are supplied by
+# the farm environment, not installed through this file.
+numpy>=1.20
+scipy>=1.6
+matplotlib>=3.4
+# Optional offline HTML export: pip install plotly
+# Optional PDF regeneration: pip install reportlab Pillow
