@@ -7,17 +7,19 @@ Plot the unchanged saved replay residual `1000*(xptar-xptarT)` against `reacty`
 assigned foil and hole. The factor 1000 expresses the residual in mrad.
 No predicted slope or vertex term is subtracted from any event.
 
-The HMS target definitions satisfy
+The corrected HMS fit definitions satisfy
 
 ```
-xtarT + L*xptarT - xsT = -reacty - xmis
+xtarT + L*xptarT - xsT = 0
 ```
 
-Under the same longitudinal approximation, a replay angle following the physical
-reference ray would produce a residual slope `1000/(L-zfoil*cos(angle))`.
-At zero foil this is 5.95238 mrad/cm. SHMS targets already include the vertex term,
-so the reference residual slope is zero. The Beamer derivation is in
-[docs/hms_geometry_proof.pdf](hms_geometry_proof.pdf).
+Both HMS and SHMS now include the vertical vertex in the reference ray, so the
+geometric contribution to the residual slope is zero. The former HMS definition
+omitted `reacty + xmis` from the slope numerator and gave
+`1000/(L-zfoil*cos(angle))`, or 5.95238 mrad/cm at the center foil.
+The archived results below and [Beamer derivation](hms_geometry_proof.pdf)
+describe that earlier definition; they have not been regenerated.
+See [the correction and rebuild instructions](../HMS_XPTAR_CORRECTION.md).
 
 The plots contain data histograms, an unconstrained fitted line, ROOT's native
 fit-statistics box, and a subtitle giving the geometry prediction. The fitted

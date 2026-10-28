@@ -272,8 +272,9 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       e.ytarT=truth.ytar;
       if(denseHalf&&!std::isfinite(e.ytarT)) throw std::runtime_error("Nonfinite ytarT");
       e.residual=1000*(xptar-truth.xptar);
-      e.predicted=spec.shms()?0.:1000/(spec.sieveDistance-zfoil*c);
-      double expectedClosure=spec.shms()?0.:-e.reacty-spec.xMis(angle);
+      // Both arms now include the vertical vertex in the reference ray.
+      e.predicted=0.;
+      const double expectedClosure=0.;
       maxClosure=std::max(maxClosure,std::abs(truth.xtar+spec.sieveDistance*truth.xptar-xsT-expectedClosure));
       data[hole].push_back(e);
     }
@@ -288,7 +289,7 @@ void core_geometry(const char* corePath,const char* replayPath,const char* outpu
       <<"\nMaximum target-identity algebra discrepancy="<<maxClosure<<" cm\n"
       <<"Predictions assume reconstructed angles follow the reference ray. Core selection can bias slopes.\n"
       <<"Errors are ordinary least-squares statistical errors; no selection systematic is included.\n";
-    if(spec.shms()) std::cout<<"SHMS targets already include reacty and xmis: predicted residual slope is zero.\n";
+    std::cout<<"The reference ray includes the vertical vertex: predicted geometric residual slope is zero.\n";
     int plots=0;
     for(auto hole:order) {
       auto& events=data[hole];

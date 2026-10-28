@@ -19,6 +19,7 @@ from reallocate_core import load_inputs, checked
 from fit_elastic import matrix_rows, basis, problem, design, write_matrix
 from elastic_net import TARGETS, SCALES
 from huber_optics import FixedBasis, robust_scale
+from spectrometer_config import hms_xptar_truth, HMS_XPTAR_DEFINITION
 
 LADDER = ('balanced', 'half_surplus', 'all_core', 'half_shoulders', 'all_supported')
 
@@ -45,6 +46,7 @@ def load_frozen(campaign):
         if np.any(a['run'] != int(row['optics_id'])): raise ValueError('Wrong run identity')
         meta = inp['meta'][name]
         spec = __import__('spectrometer_config').from_campaign(campaign)
+        if spec.name != 'HMS': raise ValueError('Frozen Huber adapter currently supports HMS only')
         if np.any(a['foil'] < 0) or np.any(a['foil'] >= len(meta['foils'])):
             raise ValueError('Invalid foil index')
         if np.any(a['ndel'] < 0) or np.any(a['ndel'] >= len(meta['edges'])-1):
@@ -67,7 +69,7 @@ def load_frozen(campaign):
         deg = min(abs(meta['angle_deg']), 40.)
         ymis = .1*(.52-.012*deg+.002*deg**2)
         beam = -a['xbpm_tar']
-        a['xptarT'] = a['xsT']/(spec.sieve_distance-a['zfoil']*c)
+        a['xptarT'] = hms_xptar_truth(a['xsT'], a['zfoil'], meta['angle_deg'], a['reacty'])
         a['yptarT'] = (a['ysT']-a['zfoil']*s-beam*c+ymis)/(spec.sieve_distance-a['zfoil']*c)
         a['ytarT'] = a['zfoil']*(s-a['yptarT']*c)+beam*(c+a['yptarT']*s)-ymis
         a['excluded'] = np.array([(int(x),int(y)) in inp['blocked'] for x,y in zip(a['xscol'],a['yscol'])])
@@ -79,6 +81,8 @@ def load_frozen(campaign):
     a = {k:np.concatenate([p[k] for p in pieces]) for k in pieces[0]}
     source = campaign/'06e_beam_search/beam10'
     manifest = json.loads((source/'manifest.json').read_text())
+    if manifest.get('xptar_definition') != HMS_XPTAR_DEFINITION:
+        raise ValueError('Beam reference uses the old HMS xptarT definition; rebuild elastic-net and beam studies first')
     record(source/'manifest.json')
     for rel in ('seed.dat','matrices/svd.dat','matrices/start.dat','matrices/beam.dat','tsv/folds.tsv'):
         record(source/rel, manifest['outputs'][rel])
@@ -208,7 +212,7 @@ def run(campaign, name, threads=4, check=False):
               'core_sample.py','reallocate_core.py','core_balance.py','spectrometer_config.py',
               'spectrometer_config.h','spectrometer_profiles.def','preallocated_svd.py'):
         shutil.copy2(PROJECT/f,out/'code'/f)
-    manifest = dict(schema='huber_expansion_v1',status='running',counts=counts,inputs=hashes,
+    manifest = dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='huber_expansion_v1',status='running',counts=counts,inputs=hashes,
         loss='pseudo_huber',delta=1.5,threads=threads,seed=667,versions={m:importlib.metadata.version(m)
         for m in ('numpy','scipy','uproot','matplotlib','scikit-learn')},
         policy='Fixed threshold 1.5 balanced-training residual MAD scales; no validation tuning; no population weights',
