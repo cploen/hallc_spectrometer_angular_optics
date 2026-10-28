@@ -98,11 +98,21 @@ The folder prefix selects the arm automatically:
 Reporting delta edges and foil positions come from run metadata, not hardcoded
 HMS intervals. A different arm does not reuse an HMS fitted model.
 
-Setup copies only the input table and seed matrix. Relative replay paths are
+Setup copies the input table and seed matrix, plus `core_sample.json`,
+`core_balance.json` and `sieve_mask.json` from the source config when present.
+For `HMS_6p667GeV`, these carry the explicit `min_events: 10` core threshold,
+equal15 policy and blocked holes `(2,3)` and `(5,5)`. Relative replay paths are
 resolved against the source checkout. Old component overrides and cut vetoes
 are archived as reference material, not activated. The new campaign marker is
 `config/joint_surface_campaign.json`; settings are in
 `config/joint_surface.json`. Existing destination directories are refused.
+
+Run metadata is validated for every campaign optics ID and copied to
+`config/optics.dat`. Setup uses the source campaign's `config/optics.dat` when
+present, otherwise repository `DATfiles/list_of_optics_run.dat`; pass
+`--metadata /path/to/list_of_optics_run.dat` to setup to choose another source.
+The campaign marker records the copied files' hashes. The surface driver uses
+this snapshot by default and refuses a different metadata override.
 
 The plan reads configuration and metadata but does not access replay files or
 write stage outputs. Restrict an initial test to one familiar rungroup:
@@ -124,9 +134,10 @@ python3 run_joint_surface_campaign.py "$C" label --rungroup "$RG"
 python3 run_joint_surface_campaign.py "$C" candidates --rungroup "$RG"
 ```
 
-Add `--dry-run` to print one stage without executing it. Custom metadata can be
-provided with `--metadata /path/to/list_of_optics_run.dat`; use the same file
-for every stage of that campaign.
+Add `--dry-run` to print one stage without executing it. For a new campaign,
+choose custom metadata during setup; every stage then uses its saved snapshot.
+The stage-level `--metadata` option remains available for older campaigns that
+have no snapshot, or for a byte-identical copy of a new campaign's metadata.
 
 1. **ridge:** runs the existing foil-selection macro and writes the conventional
    `01_ytar_cuts/cuts/ytar_ridge_cut_TAG.root`. Inspect the foil polygons before
@@ -334,11 +345,26 @@ The local pilot used previously selected candidate samples. The ifarm replay
 run is the first test before old band selection; no prior-band fallback is used
 if discovery fails. A failure leaves the stage diagnostics and stops the driver.
 
-After inspecting candidates, the unchanged downstream entry points are
-`run_gmm_cleanup_y_all.sh`, `run_gmm_cleanup_x_all.sh`, and
-`run_build_gmm_fit_and_matrix.sh`, as described in the main README. They are
-not executed by this driver. Choose the cleanup policy in the SVD follow-up;
-this branch does not merge the separate density-cleanup implementation.
+For the HMS 6.667 training sample, feed the completed sheet-labeled candidate
+trees directly into the existing density-core selector and frozen allocator:
+
+```bash
+./run_core_sample.sh "$C" min10 --check
+./run_core_sample.sh "$C" min10
+./run_core_balance.sh "$C" min10 equal15
+```
+
+`min10` is an output tag; the threshold comes from `config/core_sample.json`.
+The surface `coverage_min_events` setting is independent of this density-core
+threshold. Setup inherits the existing seed and holdout settings. Core selection
+reserves events before estimating density; equal15 reallocates only development
+cores and preserves the reserved IDs. The core tag saves and hashes
+`metadata/optics.dat`, so allocation needs no earlier SVD diagnostics. Existing
+tags are never replaced. Additional GMM cleanup is not required for this handoff.
+
+Stop after allocation until the chosen `xptarT` correction is consistently
+implemented and verified before ntuple export. These commands do not export
+ntuples or run SVD, elastic net or beam search.
 
 PDF regeneration uses distributed figures and requires ReportLab and Pillow:
 `python3 docs/source/build_joint_surface_guide.py`. The optional scientific

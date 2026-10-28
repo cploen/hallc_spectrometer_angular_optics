@@ -20,14 +20,15 @@ class FrozenTests(unittest.TestCase):
     def test_frozen_roundtrip_and_export(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'HMS_fixture';fixture(p)
+            metadata=p/'config/optics.dat'
+            shutil.copy2(cs.PROJECT/'DATfiles/list_of_optics_run.dat',metadata)
             with patch('core_sample.plot_slice'):
                 cs.run(p,'frozen')
             parent=p/'05c_core_sample/frozen'
-            (parent/'metadata').mkdir()
-            shutil.copy2(cs.PROJECT/'DATfiles/list_of_optics_run.dat',parent/'metadata/optics.dat')
             m=json.loads((parent/'manifest.json').read_text())
-            m['outputs']['metadata/optics.dat']=cs.digest(parent/'metadata/optics.dat')
-            (parent/'manifest.json').write_text(json.dumps(m))
+            self.assertEqual((parent/'metadata/optics.dat').read_bytes(),metadata.read_bytes())
+            self.assertEqual(m['outputs']['metadata/optics.dat'],cs.digest(metadata))
+            self.assertEqual(m['inputs'][str(metadata.resolve())],cs.digest(metadata))
             (p/'config/sieve_mask.json').write_text(json.dumps(dict(blocked=[[2,3],[5,5]])))
             (p/'config/oldfit.dat').write_text('! fixture\n 0 0 0 0 10000\n ----\n')
             with patch('core_sample.select_slice',side_effect=AssertionError('Density rerun forbidden')):

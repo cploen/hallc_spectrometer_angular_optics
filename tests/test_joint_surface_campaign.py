@@ -1,4 +1,5 @@
 """Targeted campaign configuration and global-label controls (no ROOT)."""
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -51,29 +52,69 @@ class CampaignTests(unittest.TestCase):
                                  'test\t99002\t12.5\t0\t1\t123\t/not/mounted/replay.root\n')
                 (source / 'config/oldfit.dat').write_text('seed\n')
                 (source / 'config/pre_gmm_veto.tsv').write_text('historical reference\n')
-                before = table.read_bytes()
-                create_joint_campaign(source, destination)
+                inherited = {
+                    'core_sample.json': {'min_events': 10, 'seed': 12345, 'holdout': .25},
+                    'core_balance.json': {'balance': {'foil': 'equal', 'hole': 1.5, 'delta': 1.5},
+                                          'qa_min': 10},
+                    'sieve_mask.json': {'blocked': [[2, 3], [5, 5]]},
+                }
+                for name, value in inherited.items():
+                    (source / 'config' / name).write_text(json.dumps(value) + '\n')
+                (source / 'config/optics.dat').write_text('99002,test,12.5,1,1,3,0\n0\n-10,0,22\n')
+                before = {path.relative_to(source): path.read_bytes()
+                          for path in source.rglob('*') if path.is_file()}
+                marker = create_joint_campaign(source, destination)
                 spec, config = load_config(destination)
                 self.assertEqual(spec.name, arm)
                 self.assertEqual(config['global_maps'], {})
+                for name in (*inherited, 'optics.dat'):
+                    expected = before[Path('config') / name]
+                    self.assertEqual((destination / 'config' / name).read_bytes(), expected)
+                    self.assertIn(name, marker['copied_configs'])
+                    self.assertEqual(marker['source_sha256'][name], hashlib.sha256(expected).hexdigest())
                 self.assertFalse((destination / 'config/geometric_selection.json').exists())
                 self.assertFalse((destination / 'config/pre_gmm_veto.tsv').exists())
                 self.assertTrue((destination / 'config/previous_selection_reference/pre_gmm_veto.tsv').exists())
-                metadata = root / (arm + '_metadata.dat')
-                metadata.write_text('99002,test,12.5,1,1,3,0\n0\n-10,0,22\n')
                 result = subprocess.run([sys.executable, str(REPO / 'run_joint_surface_campaign.py'),
-                                         str(destination), '--plan', '--metadata', str(metadata)],
+                                         str(destination), '--plan'],
                                         text=True, capture_output=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn('[candidates]', result.stdout)
+                self.assertIn(str(destination / 'config/optics.dat'), result.stdout)
                 self.assertNotIn('[gmm', result.stdout)
                 self.assertFalse((destination / '00_joint_surface_work').exists())
-                self.assertEqual(table.read_bytes(), before)
+                metadata = root / (arm + '_metadata.dat')
+                metadata.write_text('99002,test,12.5,1,1,3,0\n0\n-10,0,23\n')
+                rejected = subprocess.run([sys.executable, str(REPO / 'run_joint_surface_campaign.py'),
+                                           str(destination), '--plan', '--metadata', str(metadata)],
+                                          text=True, capture_output=True)
+                self.assertNotEqual(rejected.returncode, 0)
+                self.assertIn('snapshot', rejected.stderr.lower())
+                self.assertEqual({path.relative_to(source): path.read_bytes()
+                                  for path in source.rglob('*') if path.is_file()}, before)
                 (destination / 'config/pre_gmm_veto.tsv').write_text('# Legacy cut names are incompatible\nold_cut\n')
                 with self.assertRaisesRegex(ValueError, 'legacy TCutG vetoes'):
                     load_config(destination)
                 with self.assertRaises(FileExistsError):
                     create_joint_campaign(source, destination)
+
+    def test_setup_validates_explicit_metadata_before_creating_destination(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source, destination = root / 'HMS_stable', root / 'HMS_joint'
+            (source / 'config').mkdir(parents=True)
+            (source / 'config/rungroups_trial_inputs.tsv').write_text(
+                'rungroup\toptics_id\tangle\tfoils\tnruns\truns\trootfile\n'
+                'test\t99002\t12.5\t0\t1\t123\t/not/mounted/replay.root\n')
+            (source / 'config/oldfit.dat').write_text('seed\n')
+            (source / 'config/optics.dat').write_text('99001,other,12.5,1,1,3,0\n0\n-10,0,22\n')
+            with self.assertRaises(ValueError):
+                create_joint_campaign(source, destination)
+            self.assertFalse(destination.exists())
+            metadata = root / 'explicit.dat'
+            metadata.write_text('99002,test,12.5,1,1,3,0\n0\n-10,0,22\n')
+            create_joint_campaign(source, destination, metadata=metadata)
+            self.assertEqual((destination / 'config/optics.dat').read_bytes(), metadata.read_bytes())
 
 
 if __name__ == '__main__':

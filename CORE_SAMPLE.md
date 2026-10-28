@@ -52,6 +52,13 @@ and reports exclusions. It writes nothing. Selection reads the campaign table
 04b_candidate_trees_x/root/XscolCandidates_<rungroup>.root  (TXCand)
 ```
 
+Joint-surface candidates use this same interface directly; no GMM cleanup is
+needed. Fresh joint-surface setup inherits the source campaign's core settings,
+allocation policy and blocked-hole mask. See [the surface handoff commands](JOINT_SURFACE_IFARM.md#7-validation-and-the-next-handoff).
+Selection uses `config/optics.dat` when present, otherwise repository run
+metadata, and saves a hashed copy as `metadata/optics.dat` in every new core tag.
+The frozen allocator reads this copy without needing earlier SVD diagnostics.
+
 The default output is `HMS_6p667GeV/05c_core_sample/core/`. The final directory is
 published only after the entire selection and plotting step succeeds.
 
