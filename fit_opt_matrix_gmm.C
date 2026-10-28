@@ -2,6 +2,7 @@
 #include "spectrometer_root.h"
 #include "preallocated_sample.h"
 #include <iostream>
+#include <stdexcept>
 #include <fstream>
 #include <iomanip>
 #include <string>
@@ -160,8 +161,7 @@ void fit_opt_matrix_gmm(
   TH1F *hyptarnew = new TH1F("hyptarnew","yptar new recon ",100,-.1,.1);
   TH1F *hyptarnewdiff = new TH1F("hyptarnewdiff","yptar new diff (mr) ",100,-10,10);
   //
-  ofstream newcoeffsfile; // Open only after exact sample acceptance and before solving.
-  if (!allocated.enabled) newcoeffsfile.open(newcoeffsfilename.c_str());
+  ofstream newcoeffsfile; // Open only after inputs are accepted and the solve completes.
  ifstream oldcoeffsfile(oldcoeffsfilename.c_str());
    if(!oldcoeffsfile.is_open()) {
      cout << " error opening reconstruction coefficient file: " << oldcoeffsfilename.c_str() << endl;
@@ -477,6 +477,15 @@ void fit_opt_matrix_gmm(
     FitTree->SetBranchAddress("ypfp",&ypfp);
     FitTree->SetBranchAddress("xfp",&xfp);
     FitTree->SetBranchAddress("yfp",&yfp);
+    // Old ntuples must be rebuilt; do not fit a mixture of xptarT conventions.
+    const bool checkHmsXptar = !spec.shms();
+    Double_t xsieveTrue=0., reactyTrue=0.;
+    if (checkHmsXptar) {
+      if (!FitTree->GetBranch("xsT") || !FitTree->GetBranch("reactycalc"))
+        throw std::runtime_error("Missing HMS vertex geometry: rebuild the fit ntuples with corrected xptarT");
+      FitTree->SetBranchAddress("xsT", &xsieveTrue);
+      FitTree->SetBranchAddress("reactycalc", &reactyTrue);
+    }
     //
 
     vector<Int_t > Ztar_Cnts;
@@ -504,6 +513,14 @@ void fit_opt_matrix_gmm(
   Long64_t nentries = FitTree->GetEntries();
   for (int i = 0; i < nentries; i++) {
     FitTree->GetEntry(i);
+    if (checkHmsXptar) {
+      const Double_t degree=TMath::Min(TMath::Abs(CentAngle),50.);
+      const Double_t xmis=.1*(2.37-.086*degree+.0012*degree*degree);
+      const Double_t expected=(xsieveTrue+reactyTrue+xmis)/
+          (168.-ztarT*TMath::Cos(CentAngle*TMath::Pi()/180.));
+      if (!std::isfinite(expected) || !std::isfinite(xptarT) || TMath::Abs(xptarT-expected)>1e-12)
+        throw std::runtime_error("Stale or inconsistent HMS xptarT: rebuild the fit ntuples before fitting");
+    }
     //
     if (TMath::Abs(delta) < 100. ) {
       Double_t ytartemp = 0.0,yptartemp=0.0,xptartemp=0.0,deltatemp=0.0;
@@ -628,7 +645,6 @@ void fit_opt_matrix_gmm(
     cout << "PREALLOCATED ACCEPTANCE VERIFIED: " << nfit << " events; no solve or matrix output" << endl;
     return;
   }
-  if (allocated.enabled) newcoeffsfile.open(newcoeffsfilename.c_str());
   if (nfit <= 0) {
     cout << " ERROR: no events collected for SVD fit." << endl;
     return;
@@ -701,6 +717,8 @@ void fit_opt_matrix_gmm(
   char coeffstring[100];
   Double_t tt;
   cout << "writing new coeffs file" << endl;
+  newcoeffsfile.open(newcoeffsfilename.c_str());
+  if (!newcoeffsfile) throw std::runtime_error("Cannot open fitted matrix output");
   //newcoeffsfile << "! new fit to "<<endl;//+fname << endl;
   //newcoeffsfile << " ---------------------------------------------" << endl;
   for( int icoeff_fit=0; icoeff_fit<num_recon_terms_fit; icoeff_fit++ ){

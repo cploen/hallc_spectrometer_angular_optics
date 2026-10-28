@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import uproot
 from core_sample import PROJECT, digest, read_tsv, write_tsv
-from spectrometer_config import from_campaign, run_metadata
+from spectrometer_config import from_campaign, run_metadata, hms_xptar_truth, HMS_XPTAR_DEFINITION
 from preallocated_svd import verify_build
 from elastic_net import DEFAULTS, TARGETS, SCALES, validate, folds_for, tune
 
@@ -140,6 +140,11 @@ def load_sample(campaign, tag, sample):
                           ('xsT', np.array([spec.xs(int(i)) for i in a['xscol']])),
                           ('ysT', np.array([spec.ys(int(i)) for i in a['yscol']]))]:
             if not np.allclose(a[k], values, rtol=0, atol=1e-8): raise ValueError(f'{name}: truth geometry mismatch')
+        if 'reactycalc' not in a:
+            raise ValueError(f'{name}: missing reactycalc; rebuild the fit ntuples with corrected HMS xptarT')
+        expected_xptar = hms_xptar_truth(a['xsT'], a['ztarT'], meta['angle_deg'], a['reactycalc'])
+        if not np.allclose(a['xptarT'], expected_xptar, rtol=1e-12, atol=1e-13):
+            raise ValueError(f'{name}: stale or inconsistent HMS xptarT; rebuild the fit ntuples')
         a['quality'] = mask['quality'][idx]
         if not np.isin(a['quality'], [0, 1, 2]).all(): raise ValueError('Unknown quality code')
         a['excluded'] = np.array([(int(x), int(y)) in blocked for x, y in zip(a['xscol'], a['yscol'])])
@@ -222,7 +227,7 @@ def fit(campaign, tag, name):
         for file in ('fit_elastic.py', 'elastic_net.py', 'elastic_diagnostics.py', 'run_elastic.sh',
                      'spectrometer_config.py', 'spectrometer_profiles.def', 'core_sample.py', 'preallocated_svd.py'):
             shutil.copy2(PROJECT/file, stage/'code'/file)
-        report = dict(schema='elastic_v1', campaign=campaign.name, sample=tag, config=cfg, config_source=config_source,
+        report = dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='elastic_v1', campaign=campaign.name, sample=tag, config=cfg, config_source=config_source,
                       training=len(y), choices=result['choices'], svd=result['svd_info'], inputs=hashes,
                       versions={m: importlib.metadata.version(m) for m in ('numpy', 'scipy', 'scikit-learn', 'uproot', 'matplotlib')})
         (stage/'RESULTS.md').write_text(report_text(report))

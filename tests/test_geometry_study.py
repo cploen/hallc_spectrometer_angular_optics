@@ -65,7 +65,7 @@ void fixture(const char* path, bool shms) {
                     self.assertEqual(len(rows),2)
                     for row in rows:
                         self.assertEqual(int(row['n']),201 if row['subset']=='core' else 101)
-                        expected=0 if arm=='SHMS' else 1000/(168-foil*math.cos(math.radians(12.49)))
+                        expected=0.
                         self.assertAlmostEqual(float(row['slope_mrad_per_cm']),expected,places=6)
                         self.assertAlmostEqual(float(row['predicted_slope']),expected,places=6)
 
