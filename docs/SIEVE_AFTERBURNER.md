@@ -5,6 +5,26 @@ labeling, GMM selection, core selection or fit is run. The default 6.667 setup
 selects exactly 12.490 degrees: rg01/run 1544 (0 cm) and rg03/run 1540 (−8/+8 cm).
 It produces three PNGs per matrix, six total.
 
+For a newly fitted matrix, use the standalone mode. It needs the campaign
+rungroup table, `config/oldfit.dat` and replay files; it does not require a
+beam-search result or `config/comparison.json`:
+
+```bash
+campaign=HMS_6p667GeV_joint_min5
+matrix=/absolute/path/to/your/new_matrix.dat
+./run_sieve.sh "$campaign" sieve_new --matrix "$matrix" --offsets 0 0 0 --check
+./run_sieve.sh "$campaign" sieve_new --matrix "$matrix" --offsets 0 0 0
+```
+
+Replace `matrix` with the actual saved matrix path. Outputs are under
+`$campaign/07_diagnostics/sieve_new/`, with one PNG for each selected foil and
+rungroup. The default angle is 12.490 degrees; repeat with `--angle` and a new
+output name for other configured angles. `--matrix` cannot be combined with
+`--gmm` or `--beam`. Relative matrix paths are relative to the current directory.
+Fitted `00000` coefficients are always included. `--offsets` supplies additional
+external corrections in **xptar mrad, ytar cm, yptar mrad**, and defaults to
+`0 0 0`; do not enter the fitted constant terms again.
+
 ```bash
 ./run_sieve.sh HMS_6p667GeV --check
 ./run_sieve.sh HMS_6p667GeV
@@ -30,6 +50,8 @@ positions come from the existing optics-ID metadata. The GMM matrix comes from
 `06e_beam_search/beam10/matrices/beam.dat`. Optional `--gmm path` and `--beam path`
 let this tool compare other saved matrices without changing campaign defaults.
 Custom relative paths are relative to the current directory.
+Foil metadata use the campaign's `config/optics.dat` snapshot when present,
+otherwise `DATfiles/list_of_optics_run.dat` in the repository.
 
 `config/sieve.json` holds the defaults; `--angle`, `--delta LOW HIGH`, `--cer`,
 `--cal`, `--foil-width` and `--source` override them. Default electron cuts are
@@ -77,6 +99,9 @@ not the legacy corrections used in the residual comparison. GMM and beam already
 include fitted constants and also receive no external addition by default. Explicit `replay_offsets`,
 `gmm_offsets`, `beam_offsets` use [xptar mrad, ytar cm, yptar mrad]. Settings are
 saved in the output manifest. No offset is inferred or fitted to the data.
+In standalone mode, `matrix_offsets` replaces the GMM/beam offsets. The
+`--replay-offsets XP_MRAD Y_CM YP_MRAD` option separately overrides the old-matrix
+closure reference; leave it at zero for the established zero-offset replay.
 
 ## Replay check and products
 

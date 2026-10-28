@@ -1,5 +1,10 @@
 # Fit diagnostics
 
+To apply a new matrix before plotting, use
+[`run_legacy_diagnostics.sh`](../docs/LEGACY_AFTERBURNER.md). It exports the
+existing iterative afterburner predictions into separate TFit trees, then
+runs all three legacy residual macros with zero external offsets by default.
+
 Run from anywhere:
 
 ```bash

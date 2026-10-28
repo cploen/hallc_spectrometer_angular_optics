@@ -101,6 +101,10 @@ gStyle->SetPalette(1,0);
      hroot->Close();
      return;
    }
+   if (!hallc::requireBranches(FitTree, {"ys", "xs", "ysT", "xsT", "xtar", "ztar", "xptar", "yptar", "ytar", "xptarT", "yptarT", "ytarT", "ztarT", "delta", "xpfp", "ypfp", "xfp", "yfp"})) {
+     hroot->Close();
+     return;
+   }
    Double_t  ys,xtar,ztar,xptar,yptar,ytar,delta,xptarT,yptarT,ytarT,ztarT;
    Double_t xfp,xpfp,yfp,ypfp,ysieveT,ysieve,xsieve,xsieveT;
    FitTree->SetBranchAddress("ys",&ysieve);
@@ -192,12 +196,12 @@ gStyle->SetPalette(1,0);
         HList.Add(hZtar[nf]);
     for (Int_t nd=0;nd<ndelcut;nd++) {
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
-      hYDiff_YpTrue[nf][nd]  = new TH2F(Form("hYDiff_YTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Yptar_true (rad); Ytar_true - Ytar (mr) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,50,-5.,5.);
+      hYDiff_YpTrue[nf][nd]  = new TH2F(Form("hYDiff_YTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Yptar_true (rad); Ytar - Ytar_true (cm) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,50,-5.,5.);
         HList.Add(hYDiff_YpTrue[nf][nd]);
-      hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],DelCent),50,-5.,5.);
+      hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar - Ytar_true (cm)",tnrun.Data(),ztar_foil[nf],DelCent),50,-5.,5.);
         HList.Add(hYDiff_ztar[nf][nd]);
     for (Int_t ns=0;ns<spec.ny;ns++) {
-      hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-5.,5.);
+      hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar - Ytar_true (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-5.,5.);
         HList.Add(hYDiff[nf][nd][ns]);
 */
  for (Int_t nf=0;nf<NumFoil;nf++) {
@@ -207,12 +211,12 @@ gStyle->SetPalette(1,0);
         HList.Add(hZtar[nf]);
     for (Int_t nd=0;nd<ndelcut;nd++) {
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
-      hYDiff_YpTrue[nf][nd]  = new TH2F(Form("hYDiff_YTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Yptar_true (rad); Ytar_true - Ytar (mr) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,100,-1.,1.);
+      hYDiff_YpTrue[nf][nd]  = new TH2F(Form("hYDiff_YTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Yptar_true (rad); Ytar - Ytar_true (cm) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,100,-1.,1.);
         HList.Add(hYDiff_YpTrue[nf][nd]);
-      hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],DelCent),100,-1.,1.);
+      hYDiff_ztar[nf][nd]  = new TH1F(Form("hYDiff_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2fDelCut %3.1f; Ytar - Ytar_true (cm)",tnrun.Data(),ztar_foil[nf],DelCent),100,-1.,1.);
         HList.Add(hYDiff_ztar[nf][nd]);
     for (Int_t ns=0;ns<spec.ny;ns++) {
-      hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar_true - Ytar (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-1.,1.);
+      hYDiff[nf][nd][ns]  = new TH1F(Form("hYDiff_%d_DelCut_%d_Xs_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Ytar - Ytar_true (cm)",tnrun.Data(),ztar_foil[nf],ns,DelCent),50,-1.,1.);
         HList.Add(hYDiff[nf][nd][ns]);
 
     }  }}
@@ -229,8 +233,8 @@ Long64_t nentries = FitTree->GetEntries();
 	 if ( delta >=delcut[nd] && delta <delcut[nd+1]) {
 	hYtar[nf]->Fill(ytar);
 	hZtar[nf]->Fill(ztar);
-	   hYDiff_YpTrue[nf][nd]->Fill(yptarT,(ytar-ytarT-.035));
-            hYDiff_ztar[nf][nd]->Fill((ytar-ytarT+.035));
+	   hYDiff_YpTrue[nf][nd]->Fill(yptarT,(ytar-ytarT));
+            hYDiff_ztar[nf][nd]->Fill((ytar-ytarT));
            for (Int_t ns=0;ns<spec.ny;ns++) {
 	     if ( abs(ysieveT-ys_cent[ns])<.5) hYDiff[nf][nd][ns]->Fill((ytar-ytarT));
 	   }
@@ -288,7 +292,7 @@ Long64_t nentries = FitTree->GetEntries();
 	  candelta->Print(outputpdf2+end);
 
 	//	TCanvas* candel[NumFoil][ndelcut];
-	Double_t Y_offset=0.; // Offset to get delta = 0 ztar=0 to about zero.
+	// Report the actual residual without a plotting offset.
 	for  (Int_t nf=0;nf<NumFoil;nf++) {
 	  Int_t colind = 0;
 	for  (Int_t nd=0;nd<ndelcut;nd++) {
@@ -297,7 +301,7 @@ Long64_t nentries = FitTree->GetEntries();
            for (Int_t ns=0;ns<spec.ny;ns++) {
 	     //   candel[nf][nd]->cd(ns+1);
 	     //  hYDiff[nf][nd][ns]->Draw();
-	     hYDiff_mean[nf][nd][ns]= hYDiff[nf][nd][ns]->GetMean()-Y_offset;
+	     hYDiff_mean[nf][nd][ns]= hYDiff[nf][nd][ns]->GetMean();
 	     hYDiff_sigma[nf][nd][ns]= hYDiff[nf][nd][ns]->GetRMS();
 	     hYDiff_cent[nf][nd][ns]= ys_cent[ns];
 	     hYDiff_centerr[nf][nd][ns]= 0.0001;
