@@ -505,7 +505,8 @@ void make_fit_ntuple_from_gmm(
     yptarT = (ys_cent[yscolT] - ytar_cent) / (zdis_sieve - zf*TMath::Cos(centAngle));
     ytarT  = zf*(TMath::Sin(centAngle) - yptarT*TMath::Cos(centAngle))
            + xbeam*(TMath::Cos(centAngle) + yptarT*TMath::Sin(centAngle)) - y_mis;
-    xptarT = xs_cent[xscolT] / (zdis_sieve - zf*TMath::Cos(centAngle));
+    // Trace the ray from transport-x vertex -reacty-x_mis to the hole center.
+    xptarT = (xs_cent[xscolT] + reacty + x_mis) / (zdis_sieve - zf*TMath::Cos(centAngle));
     xtarT  = -reacty - x_mis - xptarT*zf*TMath::Cos(centAngle);
 
     ysieveT = ys_cent[yscolT];
