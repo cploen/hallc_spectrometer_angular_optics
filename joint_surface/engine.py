@@ -26,7 +26,7 @@ DEFAULT_CONFIG = dict(
     high_order_penalty=.00002, seed_radius=.24, refine_radius=.30,
     coverage_min_events=10, coverage_bin_width=1., coverage_padding=.04,
     maximum_bridge=2., coverage_quantiles=[.005, .995],
-    occupancy_cap=2000, occupancy_min_events=100, mixture_iterations=120,
+    occupancy_cap=None, occupancy_min_events=100, mixture_iterations=120,
     occupancy_likelihood_gain=10., occupancy_min_effective_events=8.,
     occupancy_min_coherent_intervals=2, occupancy_seed=32191,
     model_choice_fraction=.2, model_choice_tolerance=.01,
@@ -46,6 +46,10 @@ def _configuration(config):
         raise ValueError('Coverage bin width must be positive; maximum bridge nonnegative')
     if cfg['coverage_min_events'] < 1:
         raise ValueError('coverage_min_events must be positive')
+    cap = cfg['occupancy_cap']
+    if cap is not None and (isinstance(cap, (bool, np.bool_))
+                            or not isinstance(cap, (int, np.integer)) or cap < 1):
+        raise ValueError('occupancy_cap must be null (all training events) or a positive integer')
     if cfg['max_slots'] < 2 or cfg['max_slots'] != int(cfg['max_slots']):
         raise ValueError('max_slots is a maximum hardware count, integer >=2')
     if not cfg['families'] or any(x not in FAMILIES for x in cfg['families']):
@@ -364,8 +368,11 @@ def _occupancy(model, raw, delta, cfg):
     centers = np.arange(model['count'])
     for sl in range(len(edges)-1):
         ix = np.flatnonzero((nd == sl) & co['finite'])
-        if len(ix) > cfg['occupancy_cap']:
-            ix = rng.choice(ix, cfg['occupancy_cap'], replace=False)
+        # Sparse ridges can lose their population evidence in a capped sample.
+        # Use every eligible training event unless a cap is explicitly chosen.
+        cap = cfg['occupancy_cap']
+        if cap is not None and len(ix) > cap:
+            ix = rng.choice(ix, cap, replace=False)
         if len(ix) < cfg['occupancy_min_events']:
             result[str(sl)] = dict(accepted_indices=[], mixture_model=None, events=len(ix), candidates=[],
                                    error='Fewer than occupancy_min_events finite events')

@@ -15,6 +15,21 @@ prior information, mathematics, boundaries, tunable parameters and pilot results
 The [viewer guide](tools/membership_viewer/README.md) covers native display,
 offline Firefox, sampling and the saved-data format.
 
+### Farm-test correction on `joint-surface-test`
+
+Population testing now uses **all eligible geometry-training events** in each
+reporting interval by default (`occupancy_cap: null`). The previous 2,000-event
+cap discarded enough evidence to miss the sparse outer Y ridge in rg02 over
+delta [-8,0)%. An explicit positive `occupancy_cap` remains available for an
+intentional capped comparison; omit that setting or use `null` for this rerun.
+
+Use top-level `coverage_min_events: 5` for the planned count-sensitivity rerun.
+The counting and delta-gap rules themselves are unchanged. Run in a fresh
+campaign so the old frozen outputs remain available for comparison. The PDF
+version 1 describes the original 2,000-event default; this correction supersedes
+that one population-test setting. A full refit can also choose a different
+family because population densities enter model-choice scoring.
+
 ## 1. Get the branch and check the environment
 
 From an existing clean checkout of this repository:

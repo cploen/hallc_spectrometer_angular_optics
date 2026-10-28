@@ -62,6 +62,31 @@ class JointSurfaceEngineTests(unittest.TestCase):
         self.assertIn(3, occ['2']['accepted_indices'])
         self.assertEqual(self.model['count'], 7)
 
+    def test_default_occupancy_uses_all_training_events(self):
+        cfg = _configuration(self.cfg)
+        self.assertIsNone(cfg['occupancy_cap'])
+        before = json.dumps(self.model, sort_keys=True)
+        co = _coordinates(self.model, self.raw, self.delta)
+        nd = np.searchsorted(self.model['delta_edges'], self.delta, side='right')-1
+        all_events = _occupancy(self.model, self.raw, self.delta, cfg)
+        capped = _occupancy(self.model, self.raw, self.delta,
+                            _configuration(dict(self.cfg, occupancy_cap=2000)))
+        exceeded_cap = False
+        for sl in range(len(self.model['delta_edges'])-1):
+            expected = int(np.sum((nd == sl) & co['finite']))
+            self.assertEqual(all_events[str(sl)]['events'], expected)
+            self.assertEqual(capped[str(sl)]['events'], min(expected, 2000))
+            exceeded_cap |= expected > 2000
+        self.assertTrue(exceeded_cap)
+        self.assertEqual(json.dumps(self.model, sort_keys=True), before)
+
+    def test_occupancy_cap_validation(self):
+        self.assertIsNone(_configuration({'occupancy_cap': None})['occupancy_cap'])
+        self.assertEqual(_configuration({'occupancy_cap': 2000})['occupancy_cap'], 2000)
+        for invalid in [0, -1, True, False, 2.5]:
+            with self.subTest(occupancy_cap=invalid), self.assertRaises(ValueError):
+                _configuration({'occupancy_cap': invalid})
+
     def test_exact_delta_and_nonfinite_reasons(self):
         raw = np.repeat(self.raw[0:1], 4, axis=0); raw[3, 0] = np.nan
         p = predict_axis(self.model, raw, np.array([-10., 10., 22., 0.]))
