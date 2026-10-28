@@ -22,6 +22,7 @@ import numpy as np
 import uproot
 from scipy import ndimage as ndi
 from skimage.segmentation import watershed
+from spectrometer_config import run_metadata
 
 
 PROJECT = Path(__file__).resolve().parent
@@ -374,6 +375,11 @@ def run(campaign, tag, check=False):
         raise ValueError("Empty campaign or duplicate rungroup names")
     if len({row["optics_id"] for row in settings}) != len(settings):
         raise ValueError("Duplicate optics IDs in campaign table")
+    metadata = campaign / "config/optics.dat"
+    if not metadata.exists():
+        metadata = PROJECT / "DATfiles/list_of_optics_run.dat"
+    for row in settings:
+        run_metadata(int(row["optics_id"]), metadata)
     # The available entry key is local to a merged replay. Shared original runs
     # could otherwise put the same physical event in fit and holdout files.
     seen_runs = set()
@@ -412,13 +418,20 @@ def run(campaign, tag, check=False):
     target.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".core_", dir=target.parent))
     try:
-        for sub in ("root", "plots", "tsv", "models", "code"):
+        for sub in ("root", "plots", "tsv", "models", "code", "metadata"):
             (stage / sub).mkdir()
         (stage / "config.json").write_text(json.dumps(cfg, indent=2) + "\n")
         (stage / "code/core_sample.json").write_text(json.dumps(cfg, indent=2) + "\n")
-        shutil.copy2(PROJECT / "core_sample.py", stage / "code/core_sample.py")
+        code = [PROJECT / name for name in
+                ("core_sample.py", "spectrometer_config.py", "spectrometer_profiles.def")]
+        for path in code:
+            shutil.copy2(path, stage / "code" / path.name)
         shutil.copy2(tables[0], stage / tables[0].name)
-        files = [tables[0], PROJECT / "core_sample.py", PROJECT / "core_sample.json"]
+        shutil.copy2(metadata, stage / "metadata/optics.dat")
+        files = [tables[0], PROJECT / "core_sample.json", metadata] + code
+        override = campaign / "config/core_sample.json"
+        if override.exists():
+            files.append(override)
         files += [p for _, paths in sources for p in paths]
         manifest = dict(config=cfg, inputs={str(p.resolve()): digest(p) for p in files},
                         versions={m: importlib.metadata.version(m) for m in

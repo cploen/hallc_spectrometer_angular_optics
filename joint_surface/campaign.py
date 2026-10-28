@@ -311,7 +311,8 @@ def parser():
     value.add_argument('--rungroup', action='append', help='Run only this group; repeatable')
     value.add_argument('--root-python', default=os.environ.get('HALLC_ROOT_PYTHON', sys.executable))
     value.add_argument('--root-command', default='hcana', help='ROOT/HCANA executable used only for foil ridge construction')
-    value.add_argument('--metadata', type=Path, default=REPO / 'DATfiles/list_of_optics_run.dat')
+    value.add_argument('--metadata', type=Path,
+                       help='Defaults to campaign config/optics.dat, then repository metadata')
     return value
 
 
@@ -325,7 +326,13 @@ def main(argv=None):
         campaign = args.campaign.expanduser().resolve()
         spec, config = load_config(campaign)
         groups = load_groups(campaign, args.rungroup)
-        metadata = args.metadata.expanduser().resolve()
+        snapshot = campaign / 'config/optics.dat'
+        metadata = (args.metadata if args.metadata is not None else
+                    snapshot if snapshot.exists() else REPO / 'DATfiles/list_of_optics_run.dat')
+        metadata = metadata.expanduser().resolve()
+        if snapshot.exists() and sha256(metadata) != sha256(snapshot):
+            raise ValueError('--metadata differs from the campaign metadata snapshot config/optics.dat; '
+                             'use a fresh campaign for different metadata')
         stages = STAGES if args.plan else (args.stage,)
         planning = args.plan or args.dry_run
         print(f'Campaign: {campaign} ({spec.name}); continuous-delta joint surfaces', flush=True)
