@@ -7,7 +7,7 @@ import uproot
 from core_sample import write_tsv
 from compare_matrices import read_matrix
 from fit_elastic import design
-from sieve_afterburner import coefficients,evaluate,reconstruct,selected,run,FIELDS,DEFAULTS
+from sieve_afterburner import coefficients,evaluate,reconstruct,selected,run,main,FIELDS,DEFAULTS
 
 
 class SieveTest(unittest.TestCase):
@@ -22,6 +22,9 @@ class SieveTest(unittest.TestCase):
         xy,it,active=reconstruct(a,constant,12.49,[0,0,0],xmis=.1)
         np.testing.assert_allclose(xy[:,0],-a['ry']-.1-.01*a['rz']*np.cos(np.deg2rad(12.49))+1.68)
         np.testing.assert_allclose(xy[:,1],7.04);self.assertTrue(np.all(it==1));self.assertFalse(active.any())
+        shifted,_,_=reconstruct(a,constant,12.49,[2,.3,-1],xmis=.1)
+        np.testing.assert_allclose(shifted[:,0]-xy[:,0],.002*(168-a['rz']*np.cos(np.deg2rad(12.49))))
+        np.testing.assert_allclose(shifted[:,1]-xy[:,1],.3-.168)
 
     def test_cuts(self):
         a=dict(cer=np.array([3,3,2,3,3]),cal=np.ones(5),delta=np.array([0,10,0,0,0]),rz=np.array([-8,-8,-8,0,8]))
@@ -54,6 +57,35 @@ class SieveTest(unittest.TestCase):
             h=np.load(out/'histograms.npz')
             for rg,foils in [('rg0',[0]),('rg8',[-8,8])]:
                 for z in foils:self.assertEqual(h[f'gmm_{rg}_{z}'].sum(),h[f'beam_{rg}_{z}'].sum())
+
+    def test_standalone_matrix_cli_uses_snapshot_and_constants(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            campaign=Path(tmp)/'HMS_joint';config=campaign/'config';config.mkdir(parents=True)
+            (config/'oldfit.dat').write_text('0 0 0 0 00000\n')
+            matrix=campaign/'new.dat';matrix.write_text('.01 .02 .003 0 00000\n')
+            metadata=config/'optics.dat'
+            metadata.write_text('999999,999999,12.49,1,1,2,0\n0\n-10,10\n')
+            (config/'sieve.json').write_text(json.dumps({'xmis':0}))
+            n=12;a={k:np.zeros(n) for k in FIELDS};a.update(cer=np.full(n,5.),cal=np.ones(n))
+            replay=campaign/'replay.root'
+            with uproot.recreate(replay) as f:f.mktree('T',{'H.'+v:a[k] for k,v in FIELDS.items()})
+            write_tsv(config/'rungroups_test_inputs.tsv',[dict(rungroup='rg',optics_id=999999,hms_angle_deg=12.49,rootfile=str(replay))])
+            arguments=['run_sieve.sh',str(campaign),'standalone','--matrix',str(matrix),'--threads','1']
+            with patch('sys.argv',arguments+['--check']):main()
+            self.assertFalse((campaign/'07_diagnostics').exists())
+            with patch('sys.argv',arguments):main()
+            out=campaign/'07_diagnostics/standalone';saved=json.loads((out/'manifest.json').read_text())
+            self.assertEqual(saved['status'],'complete');self.assertTrue(saved['closure_passed'])
+            self.assertEqual(saved['settings']['matrix_offsets'],[0,0,0])
+            self.assertIn(str(metadata.resolve()),saved['inputs'])
+            self.assertEqual(len(list((out/'plots').glob('*.png'))),1)
+            self.assertEqual((out/'matrices/matrix.dat').read_text(),matrix.read_text())
+            with np.load(out/'histograms.npz') as h:
+                expected,_,_=np.histogram2d(np.full(n,2.504),np.full(n,1.68),bins=(h['yedges'],h['xedges']))
+                np.testing.assert_array_equal(h['matrix_rg_0'],expected)
+            self.assertFalse((config/'comparison.json').exists())
+            with patch('sys.argv',arguments+['--gmm',str(matrix)]),self.assertRaises(SystemExit) as error:main()
+            self.assertNotEqual(error.exception.code,0)
 
 
 if __name__=='__main__':unittest.main()

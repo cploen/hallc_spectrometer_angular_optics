@@ -98,6 +98,10 @@ gStyle->SetPalette(1,0);
      hroot->Close();
      return;
    }
+   if (!hallc::requireBranches(FitTree, {"ys", "ysT", "xtar", "ztar", "xptar", "yptar", "ytar", "xptarT", "yptarT", "ytarT", "ztarT", "delta", "xpfp", "ypfp", "xfp", "yfp"})) {
+     hroot->Close();
+     return;
+   }
    Double_t  ys,xtar,ztar,xptar,yptar,ytar,delta,xptarT,yptarT,ytarT,ztarT;
    Double_t xfp,xpfp,yfp,ypfp,ysieveT,ysieve;
    FitTree->SetBranchAddress("ys",&ysieve);
@@ -169,10 +173,10 @@ gStyle->SetPalette(1,0);
         HList.Add(hZtar[nf]);
     for (Int_t nd=0;nd<ndelcut;nd++) {
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
-      hYpDiff_YpTrue[nf][nd]  = new TH2F(Form("hYpDiff_YpTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; YPtar_true (rad); Yptar_true - Yptar (mr) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,80,-20.,20.);
+      hYpDiff_YpTrue[nf][nd]  = new TH2F(Form("hYpDiff_YpTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; YPtar_true (rad); Yptar - Yptar_true (mrad) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,80,-20.,20.);
         HList.Add(hYpDiff_YpTrue[nf][nd]);
     for (Int_t ns=0;ns<spec.ny;ns++) {
-      hYpDiff[nf][nd][ns]  = new TH1F(Form("hYpDiff_%d_DelCut_%d_Ys_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Yptar_true - Yptar (mr)",tnrun.Data(),ztar_foil[nf],ns,DelCent),80,-20.,20.);
+      hYpDiff[nf][nd][ns]  = new TH1F(Form("hYpDiff_%d_DelCut_%d_Ys_%d",nf,nd,ns),Form("Run %s Ztar %3.2f Ys = %d DelCut %3.1f; Yptar - Yptar_true (mrad)",tnrun.Data(),ztar_foil[nf],ns,DelCent),80,-20.,20.);
         HList.Add(hYpDiff[nf][nd][ns]);
     }  }}
     //

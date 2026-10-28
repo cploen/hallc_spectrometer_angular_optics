@@ -98,6 +98,10 @@ gStyle->SetPalette(1,0);
      hroot->Close();
      return;
    }
+   if (!hallc::requireBranches(FitTree, {"ys", "xs", "ysT", "xsT", "xtar", "ztar", "xptar", "yptar", "ytar", "xptarT", "yptarT", "ytarT", "ztarT", "delta", "xpfp", "ypfp", "xfp", "yfp"})) {
+     hroot->Close();
+     return;
+   }
    Double_t  ys,xtar,ztar,xptar,yptar,ytar,delta,xptarT,yptarT,ytarT,ztarT;
    Double_t xfp,xpfp,yfp,ypfp,ysieveT,ysieve,xsieve,xsieveT;
    FitTree->SetBranchAddress("ys",&ysieve);
@@ -203,13 +207,13 @@ gStyle->SetPalette(1,0);
         HList.Add(hZtar[nf]);
     for (Int_t nd=0;nd<ndelcut;nd++) {
       Double_t DelCent=(delcut[nd+1]+delcut[nd])/2;
-      hXpDiff_XpTrue[nf][nd]  = new TH2F(Form("hXpDiff_XpTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Xptar_true (rad); Xptar_true - Xptar (mr) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,80,-20.,20.);
+      hXpDiff_XpTrue[nf][nd]  = new TH2F(Form("hXpDiff_XpTrue_%d_DelCut_%d",nf,nd),Form("Run %s Ztar %3.2f DelCut %3.1f; Xptar_true (rad); Xptar - Xptar_true (mrad) ",tnrun.Data(),ztar_foil[nf],DelCent),90,-.045,.045,80,-20.,20.);
         HList.Add(hXpDiff_XpTrue[nf][nd]);
     for (Int_t nxs=0;nxs<spec.nx;nxs++) {
-      hXpDiff[nf][nd][nxs]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d",nf,nd,nxs),Form("Run %s Ztar %3.2f Xs = %d DelCut %3.1f; Xptar_true - Xptar (mr)",tnrun.Data(),ztar_foil[nf],nxs,DelCent),80,-20.,20.);
+      hXpDiff[nf][nd][nxs]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d",nf,nd,nxs),Form("Run %s Ztar %3.2f Xs = %d DelCut %3.1f; Xptar - Xptar_true (mrad)",tnrun.Data(),ztar_foil[nf],nxs,DelCent),80,-20.,20.);
         HList.Add(hXpDiff[nf][nd][nxs]);
     for (Int_t nys=0;nys<spec.ny;nys++) {
-      hXpDiff_Ys[nf][nd][nxs][nys]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d_Ys_%d",nf,nd,nxs,nys),Form("Run %s Ztar %3.2f Xs = %d  Ys = %d DelCut %3.1f; Xptar_true - Xptar (mr)",tnrun.Data(),ztar_foil[nf],nxs,nys,DelCent),80,-20.,20.);
+      hXpDiff_Ys[nf][nd][nxs][nys]  = new TH1F(Form("hXpDiff_%d_DelCut_%d_Xs_%d_Ys_%d",nf,nd,nxs,nys),Form("Run %s Ztar %3.2f Xs = %d  Ys = %d DelCut %3.1f; Xptar - Xptar_true (mrad)",tnrun.Data(),ztar_foil[nf],nxs,nys,DelCent),80,-20.,20.);
         HList.Add(hXpDiff_Ys[nf][nd][nxs][nys]);
     }
     }	
