@@ -14,7 +14,7 @@ from matplotlib.colors import LogNorm
 from fit_huber import load_frozen
 from reallocate_core import load_inputs
 from core_sample import digest, write_tsv
-from spectrometer_config import from_campaign
+from spectrometer_config import from_campaign, HMS_XPTAR_DEFINITION
 
 MODELS=('balanced_squared_full','all_supported_huber_full')
 TITLES=('Before: balanced SVD','After: expanded smooth Huber')
@@ -55,6 +55,8 @@ def run(campaign,study,output):
     if output.exists(): raise FileExistsError(output)
     manifest=json.loads((study/'manifest.json').read_text())
     if manifest['status']!='complete': raise ValueError('Study is not complete')
+    if manifest.get('xptar_definition') != HMS_XPTAR_DEFINITION:
+        raise ValueError('Saved Huber residuals use the old HMS xptarT definition; rerun the study first')
     saved=study/'residuals.npz'
     if digest(saved)!=manifest['outputs']['residuals.npz']: raise ValueError('Saved residual checksum changed')
     a,inputs,_=load_frozen(campaign)

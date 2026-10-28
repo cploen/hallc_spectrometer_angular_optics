@@ -13,6 +13,7 @@ from fit_elastic import matrix_rows, basis, problem, design, write_matrix
 from fit_huber import load_frozen, sample_ladder, summarize, paired_intervals, coefficients
 from elastic_net import TARGETS, SCALES
 from huber_optics import FixedBasis
+from spectrometer_config import HMS_XPTAR_DEFINITION
 
 REFERENCES=('balanced_squared_full','all_core_squared_full','all_core_huber_full',
             'all_supported_squared_full','all_supported_huber_full')
@@ -53,6 +54,8 @@ def run(campaign,name,source,threads):
     parent=campaign/'06f_huber'/source
     previous=json.loads((parent/'manifest.json').read_text())
     if previous.get('status')!='complete': raise ValueError('Requires completed unweighted study')
+    if previous.get('xptar_definition') != HMS_XPTAR_DEFINITION:
+        raise ValueError('Unweighted Huber reference uses the old HMS xptarT definition; rerun it first')
     a,inputs,archived=load_frozen(campaign)
     for path,sha in previous['inputs'].items():
         if inputs.get(path)!=sha: raise ValueError(f'Source input identity changed: {path}')
@@ -86,7 +89,7 @@ def run(campaign,name,source,threads):
     for file in ('test_huber.py','test_huber_weights.py'):
         shutil.copy2(PROJECT/'tests'/file,out/'code/tests'/file)
     shutil.copy2(parent/'seed.dat',out/'seed.dat')
-    report=dict(schema='huber_equalfoil_v1',status='running',source=source,inputs=inputs,
+    report=dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='huber_equalfoil_v1',status='running',source=source,inputs=inputs,
         counts={k:int(h.sum()) for k,h in train.items()},delta=delta,residual_scales_physical=previous['residual_scales_physical'],
         weight_policy='w_i = N/(K*N_foil); equal total base weight per physical foil, normalized mean one',
         residual_policy='Base weights multiply loss outside pseudo-Huber; threshold fixed in physical residual units',

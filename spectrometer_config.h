@@ -76,12 +76,12 @@ inline Truth targetTruth(const Spectrometer& spec, double angleDeg,
     t.xtar=xv-t.xptar*zv;
     t.ytar=yv-t.yptar*zv;
   } else {
-    // Preserve the pre-switch HMS equations, including beam conventions.
+    // HMS vertex-to-sieve ray; retain the existing longitudinal and beam conventions.
     const double xbeam=-xbpm;
     const double yc=zfoil*s+xbeam*c-ymis;
     t.yptar=(ys-yc)/(L-zfoil*c);
     t.ytar=zfoil*(s-t.yptar*c)+xbeam*(c+t.yptar*s)-ymis;
-    t.xptar=xs/(L-zfoil*c);
+    t.xptar=(xs+reacty+xmis)/(L-zfoil*c);
     t.xtar=-reacty-xmis-t.xptar*zfoil*c;
   }
   return t;

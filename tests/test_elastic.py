@@ -49,6 +49,7 @@ def fixture(root):
                         yt = z*(s-yp*c)-ymis
                         r = dict(entry=entry, foil=zidx, ndel=nd, xscol=x, yscol=y, sample=code,
                                  core_keep=int(quality == 2), xtar=xtar, xptarT=xp, yptarT=yp, ytarT=yt,
+                                 reactycalc=-xtar-.1*(2.37-.086*12.5+.0012*12.5**2)-xp*z*c,
                                  xsT=xs, ysT=ys, xs=xs+rng.normal(0,.2), ys=ys+rng.normal(0,.2), ztarT=float(z),
                                  xfp=100*xp*.2+rng.normal(0,.01), xpfp=xp*1.7+rng.normal(0,.0002),
                                  yfp=yt*.8+rng.normal(0,.01), ypfp=yp*2+rng.normal(0,.0001), delta=-5.+nd*10.)
@@ -129,6 +130,22 @@ class ElasticTests(unittest.TestCase):
             hp.write_bytes(content+b'changed')
             with self.assertRaisesRegex(ValueError,'Frozen input changed'):
                 fe.load_sample(campaign,'balanced','holdout')
+
+    def test_rejects_legacy_xptar_definition(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            campaign = fixture(Path(tmp))
+            build = campaign/'06c_core_ntuple/balanced/fit'
+            path = build/'root/Optics_999_-1_fit_tree_gmm.root'
+            with uproot.open(path) as f:
+                a = f['TFit'].arrays(library='np')
+            a['xptarT'] = a['xsT']/(168-a['ztarT']*np.cos(np.deg2rad(12.5)))
+            with uproot.recreate(path) as f:
+                f.mktree('TFit', a)
+            bm = json.loads((build/'build.json').read_text())
+            bm['outputs']['root/'+path.name] = digest(path)
+            (build/'build.json').write_text(json.dumps(bm))
+            with self.assertRaisesRegex(ValueError, 'stale or inconsistent HMS xptarT'):
+                fe.load_sample(campaign, 'balanced', 'fit')
 
     def test_nonconvergence_not_selected(self):
         rng=np.random.default_rng(123)
