@@ -37,15 +37,16 @@ def check_profiles():
                         assert abs(t.xtar+t.xptar*py.sieve_distance-py.xs(py.nx-1))<1e-13
                         assert abs(t.ytar+t.yptar*py.sieve_distance+cpp.hb(dp)-py.ys(0))<1e-13
                     else:
-                        # Independent pre-switch HMS formula, including its beam convention.
+                        # Independent vertex-to-hole HMS ray, including its beam convention.
                         ymis=.1*(.52-.012*angle+.002*angle*angle)
                         xmis=.1*(2.37-.086*angle+.0012*angle*angle)
                         yp=(py.ys(0)-(z*s-xb*c-ymis))/(168-z*c)
-                        xp=py.xs(py.nx-1)/(168-z*c)
+                        xp=(py.xs(py.nx-1)+ry+xmis)/(168-z*c)
                         assert abs(t.yptar-yp)<1e-14
                         assert abs(t.xptar-xp)<1e-14
                         assert abs(t.ytar-(z*(s-yp*c)-xb*(c+yp*s)-ymis))<1e-13
                         assert abs(t.xtar-(-ry-xmis-xp*z*c))<1e-13
+                        assert abs(t.xtar+t.xptar*168-py.xs(py.nx-1))<1e-13
     for path in ('unknown','SHMSfoo','HMS_parent/SHMS_child'):
         try: from_campaign(path)
         except ValueError: pass
@@ -145,7 +146,7 @@ def check_pipeline():
                 assert max(used)==intervals-1 and min(used)==0,keys
                 plotted.Close()
             if arm=='HMS':
-                # Compare all TFit columns against the unchanged baseline macro.
+                # Only xptarT and its derived xtarT differ from the historical macro.
                 baseline=temp/'baseline.C'
                 baseline.write_text(subprocess.check_output(['git','show','057b908:make_fit_ntuple_from_gmm.C'],cwd=REPO,text=True))
                 oldout=campaign/'baseline';args[10]=str(oldout)
@@ -155,8 +156,21 @@ def check_pipeline():
                 for i in range(ta.GetEntries()):
                     ta.GetEntry(i);tb.GetEntry(i)
                     for branch in ta.GetListOfBranches():
-                        key=branch.GetName();assert math.isclose(getattr(ta,key),getattr(tb,key),rel_tol=1e-13,abs_tol=1e-13),key
+                        key=branch.GetName()
+                        if key=='xptarT':
+                            correction=(ta.reactycalc+cpp.xMis(12.5))/(168-ta.ztarT*math.cos(math.radians(12.5)))
+                            assert math.isclose(ta.xptarT-tb.xptarT,correction,rel_tol=1e-12,abs_tol=1e-13)
+                        elif key=='xtarT':
+                            assert math.isclose(ta.xtarT-tb.xtarT,-(ta.xptarT-tb.xptarT)*ta.ztarT*math.cos(math.radians(12.5)),rel_tol=1e-12,abs_tol=1e-13)
+                        else:
+                            assert math.isclose(getattr(ta,key),getattr(tb,key),rel_tol=1e-13,abs_tol=1e-13),key
                 fa.Close();fb.Close()
+                stale=campaign/'stale_fit'
+                stale_args=svdargs.copy();stale_args[4]=str(oldout/'root');stale_args[5]=str(stale)
+                expression='fit_opt_matrix_gmm('+','.join(json.dumps(x) for x in stale_args)+');'
+                rejected=subprocess.run(['root','-l','-b','-q','-e',f'#include {json.dumps(str(REPO/"fit_opt_matrix_gmm.C"))}','-e',expression],cwd=temp,text=True,capture_output=True,timeout=90)
+                assert 'Stale or inconsistent HMS xptarT' in rejected.stdout+rejected.stderr
+                assert not list((stale/'matrices').glob('*.dat'))
         # An explicit shifted sieve must not produce centered-geometry output.
         metadata.write_text(metadata.read_text().replace(',3,1,9',',3,2,9'))
         shifted=temp/'SHMS_shifted';make_masks(shifted,rows)
@@ -166,4 +180,4 @@ def check_pipeline():
 
 if __name__=='__main__':
     check_profiles();check_pipeline()
-    print('PASS: shared profile parity; independent -10/0/+10 target on both arms; geometry closure; mask-to-TFit integration including SHMS column10 and delta16%; all HMS TFit columns match baseline; toy SVD accounting/output routing; residual interval counts; shifted sieve rejected')
+    print('PASS: shared profile parity; independent -10/0/+10 target on both arms; geometry closure; mask-to-TFit integration including SHMS column10 and delta16%; HMS columns unchanged except corrected xptarT and derived xtarT; toy SVD accounting/output routing; residual interval counts; shifted sieve rejected')

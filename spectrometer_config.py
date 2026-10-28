@@ -37,6 +37,16 @@ class Spectrometer:
         return (index-5)*self.dy if self.name=="SHMS" else (index-4)*0.6*2.54
 
 
+HMS_XPTAR_DEFINITION = "hms_vertex_to_sieve_v1"
+
+
+def hms_xptar_truth(xs, zfoil, angle_deg, reacty):
+    """HMS dx/dz from the vertical vertex to the nominal sieve-hole center (cm)."""
+    degree = min(abs(angle_deg), 50.)
+    x_mis = .1*(2.37-.086*degree+.0012*degree**2)
+    return (xs+reacty+x_mis)/(168.-zfoil*math.cos(math.radians(angle_deg)))
+
+
 def from_campaign(campaign):
     names = {m.group(1) for part in str(campaign).split("/")
              if (m := re.match(r"^(SHMS|HMS)(?:_|$)", part))}

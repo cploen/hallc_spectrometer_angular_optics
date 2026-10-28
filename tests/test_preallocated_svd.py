@@ -19,13 +19,14 @@ class SolverTests(unittest.TestCase):
     def fixture(self,p):
         b=p/'HMS_fixture'; (b/'root').mkdir(parents=True)
         n=18018
-        fields='ys ysT xtar xtarT xptar yptar ytar xptarT yptarT ytarT ztarT delta xpfp ypfp xfp yfp'.split()
+        fields='ys ysT xsT reactycalc xtar xtarT xptar yptar ytar xptarT yptarT ytarT ztarT delta xpfp ypfp xfp yfp'.split()
         a={k:np.zeros(n,np.float64) for k in fields}
         y=np.tile(np.repeat(np.arange(9,dtype=np.int32),1001),2)
         nd=np.repeat(np.arange(2,dtype=np.int32),9009)
         a.update(entry=np.arange(n,dtype=np.int64)+2**54,foil=np.zeros(n,np.int32),ndel=nd,
                  xscol=np.full(n,4,np.int32),yscol=y,sample=np.ones(n,np.int32),core_keep=np.ones(n,np.int32))
         a['delta']=np.where(nd==0,-9.,-7.);a['ysT']=(y-4)*1.524
+        a['reactycalc'][:]=-.1*(2.37-.086*12.49+.0012*12.49**2)
         with uproot.recreate(b/'root/Optics_666701_-1_fit_tree_gmm.root') as f:f.mktree('TFit',a)
         settings=[dict(rungroup='fixture',optics_id=666701)]
         write_tsv(b/'rungroups_fixture_inputs.tsv',settings)

@@ -13,6 +13,7 @@ from core_sample import PROJECT,digest,read_tsv,write_tsv
 from fit_elastic import load_sample,checked,matrix_rows,basis,problem,write_matrix,design
 from elastic_convergence import saved_folds
 from elastic_net import TARGETS
+from spectrometer_config import HMS_XPTAR_DEFINITION
 from beam_search import DEFAULTS,validate,Folds,search,fit_all
 
 SEEDS = dict(xptar=dict(alpha=.00003,l1=.5),ytar=dict(alpha=.00003,l1=.5),
@@ -94,7 +95,7 @@ def run(campaign,tag,name,source,cfg,selectors,check=False):
                      'elastic_refit.py','elastic_convergence.py','elastic_diagnostics.py','preallocated_svd.py',
                      'core_sample.py','spectrometer_config.py','spectrometer_profiles.def','run_beam.sh'):
         shutil.copy2(PROJECT/filename,out/'code'/filename)
-    manifest = dict(schema='beam_v1',status='running',sample=tag,source=source,config=cfg,seeds=selectors,
+    manifest = dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='beam_v1',status='running',sample=tag,source=source,config=cfg,seeds=selectors,
                     inputs=hashes,rcond=parent['rcond'],training=len(folds),qa_min=10,
                     score='pooled mean physical-foil/delta MSE; adaptive development score',
                     versions={m:importlib.metadata.version(m) for m in ('numpy','scipy','threadpoolctl','uproot','matplotlib')})
