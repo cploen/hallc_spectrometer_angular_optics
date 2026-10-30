@@ -140,3 +140,5 @@ For review, expose `plots/*.png`, `tsv/*.tsv`, and `manifest.json`. Keep the
 histogram archive on ifarm for future changes to plot presentation. Other HMS
 campaigns use their own rungroup table, metadata, comparison matrix paths and
 verified offset settings; do not assume 6.667 offsets or angles apply elsewhere.
+
+Nominal HMS hole centers are overlaid as small red open circles. Positions blocked by campaign `config/sieve_mask.json` are omitted from that reference overlay; the mask is hashed in the manifest. This changes the overlay only, not event selection or histogram counts.

@@ -110,12 +110,18 @@ def run(campaign,name,cfg,threads=8,check=False,gmm=None,beam=None,matrix=None):
     if not check and out.exists():raise FileExistsError(f'Output exists: {out}')
     groups,paths,matrices,table=prepare(campaign,cfg,gmm,beam,matrix)
     provenance=[table,*paths.values(),metadata_path(campaign)]
+    spec=from_campaign(campaign)
+    mask=campaign/'config/sieve_mask.json'
+    blocked={tuple(v) for v in json.loads(mask.read_text())['blocked']} if mask.is_file() else set()
+    if mask.is_file():provenance.append(mask)
+    centers=np.array([(spec.ys(y),spec.xs(x)) for x in range(spec.nx) for y in range(spec.ny) if (x,y) not in blocked])
     if matrix is None:provenance.append(campaign/'config/comparison.json')
     yedges=np.linspace(-7,7,281);xedges=np.linspace(-13,13,521)
     hist={};counts={};closure=[]
     manifest=dict(schema='sieve_afterburner_v1',status='running',settings=cfg,threads=threads,
                   inputs={str(p):digest(p) for p in provenance},
                   matrix_paths={m:str(p.resolve()) for m,p in paths.items()},
+                  nominal_markers=dict(style='red open circles',count=len(centers),blocked=sorted(blocked)),
                   offset_convention='External additions [xptar mrad, ytar cm, yptar mrad]; fitted 00000 coefficients retained.',
                   replays=[dict(path=r['rootfile'],entries=r['entries'],size=Path(r['rootfile']).stat().st_size,
                                 mtime_ns=Path(r['rootfile']).stat().st_mtime_ns) for r in groups],
@@ -176,6 +182,7 @@ def run(campaign,name,cfg,threads=8,check=False,gmm=None,beam=None,matrix=None):
             n=counts[rg,z];outside=n-int(h.sum())
             fig,ax=plt.subplots(figsize=(7,8),layout='constrained')
             im=ax.pcolormesh(yedges,xedges,np.ma.masked_equal(h.T,0),norm=LogNorm(1,vmax),cmap='viridis',rasterized=True)
+            if len(centers):ax.scatter(centers[:,0],centers[:,1],s=18,facecolors='none',edgecolors='red',linewidths=.65,zorder=3)
             ax.set(xlabel='Y sieve (cm)',ylabel='X sieve (cm)',aspect='equal',xlim=(-7,7),ylim=(-13,13))
             ax.set_title(f'{m.upper()} | foil {z:+g} cm | θ={cfg["angle"]:g}°\n{cfg["delta"][0]:g}<δ<{cfg["delta"][1]:g}%; N={n:,}; outside frame={outside:,}')
             fig.colorbar(im,ax=ax,label='Events per bin (log scale)')
