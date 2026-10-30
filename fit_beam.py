@@ -92,7 +92,7 @@ def run(campaign,tag,name,source,cfg,selectors,check=False):
     shutil.copy2(campaign/'06d_elastic_net'/source/'seed.dat',out/'seed.dat')
     shutil.copy2(campaign/'06d_elastic_net'/source/'folds.tsv',out/'tsv/folds.tsv')
     for filename in ('fit_beam.py','beam_search.py','beam_diagnostics.py','fit_elastic.py','elastic_net.py',
-                     'elastic_refit.py','elastic_convergence.py','elastic_diagnostics.py','preallocated_svd.py',
+                     'elastic_refit.py','elastic_convergence.py','elastic_diagnostics.py','preallocated_svd.py','mixed_sample.py',
                      'core_sample.py','spectrometer_config.py','spectrometer_profiles.def','run_beam.sh'):
         shutil.copy2(PROJECT/filename,out/'code'/filename)
     manifest = dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='beam_v1',status='running',sample=tag,source=source,config=cfg,seeds=selectors,

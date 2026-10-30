@@ -16,12 +16,15 @@ import uproot
 
 from core_sample import PROJECT, digest, read_tsv
 from preallocated_svd import membership_manifest
+from mixed_sample import mixed_fraction, validate_training, validate_totals
 
 
 def build(campaign, tag, sample):
     source = campaign / "05c_core_sample" / tag
     manifest = json.loads((source / "manifest.json").read_text())
-    balanced = manifest.get('schema') == 'core_balance_v1'
+    mixed = manifest.get('schema') in ('inner10_allocation_v1', 'inner20_allocation_v1')
+    if mixed: mixed_fraction(manifest)
+    balanced = mixed or manifest.get('schema') == 'core_balance_v1'
     if balanced and (manifest.get('mode') != 'event_allocation' or manifest.get('status') != 'quotas_ready' or manifest['totals']['fit'] <= 0):
         raise ValueError('Export requires a positive event-level allocation; preview/zero budget cannot be exported')
     if balanced:
@@ -51,6 +54,7 @@ def build(campaign, tag, sample):
         for sub in ("root", "plots", "logs"):
             (stage / sub).mkdir()
         report = []
+        training_foils, training_quality = [], []
         for row in settings:
             name, run = row["rungroup"], int(row["optics_id"])
             relative = f"root/CoreSample_{name}.root"
@@ -66,8 +70,10 @@ def build(campaign, tag, sample):
                 if not np.array_equal(np.sort(entries), np.sort(expected)) or len(np.unique(entries)) != len(entries):
                     raise ValueError(f'Training mask/selected IDs disagree: {name}')
                 mask_selected=a['sample']==1
-                if np.any(a['quality'][mask_selected]!=2) or np.any(a['balance_excluded'][mask_selected]!=0):
-                    raise ValueError('Noncore or excluded event in training mask')
+                validate_training(a, mask_selected, mixed)
+                if mixed:
+                    training_foils.append(a['zfoil'][mask_selected])
+                    training_quality.append(a['quality'][mask_selected])
             if np.any((a["xscol"] > 8) | (a["yscol"] > 8)):
                 raise ValueError("This TFit adapter uses existing HMS 9x9 geometry; selection itself supports other hole counts")
             if not len(entries):
@@ -77,7 +83,8 @@ def build(campaign, tag, sample):
             # JSON quoting here creates C++ string literals, never shell commands.
             args = [str(run), "-1", json.dumps(tag), json.dumps(str(Path(row["rootfile"]).parent)),
                     '""', '""', "6.0", "0.65", "false", '""', json.dumps(str(stage)),
-                    json.dumps(row["rootfile"]), json.dumps(name), json.dumps(str(mask)), str(code)]
+                    json.dumps(row["rootfile"]), json.dumps(name), json.dumps(str(mask)), str(code),
+                    "true" if mixed else "false", json.dumps(str(source / "metadata/optics.dat"))]
             expression = str(PROJECT / "make_fit_ntuple_from_gmm.C") + "(" + ",".join(args) + ")"
             logfile = stage / "logs" / f"core_{name}.log"
             print(f"Build {name}: {len(entries)} {sample} events", flush=True)
@@ -88,10 +95,20 @@ def build(campaign, tag, sample):
             if result.returncode or not output.exists():
                 raise RuntimeError(f"TFit build failed for {name}:\n{logfile.read_text()[-5000:]}")
             with uproot.open(output) as root:
-                actual = root["TFit"]["entry"].array(library="np")
+                exported = root["TFit"].arrays(library="np")
+                actual = exported["entry"]
             if not np.array_equal(np.sort(entries), np.sort(actual)):
                 raise RuntimeError(f"TFit membership differs from saved {sample} mask for {name}")
+            if mixed:
+                selected = np.flatnonzero(a['sample'] == code)
+                selected = selected[np.argsort(a['entry'][selected])]
+                order = np.argsort(actual)
+                for field in ('quality', 'core_keep', 'core_score'):
+                    if not np.array_equal(exported[field][order], a[field][selected], equal_nan=True):
+                        raise RuntimeError(f'TFit changed {name}/{field}')
             report.append(dict(rungroup=name, entries=len(entries), status="verified"))
+        if mixed and sample == "fit":
+            validate_totals(np.concatenate(training_foils), np.concatenate(training_quality), manifest)
         metadata = source / "metadata/optics.dat"
         build_manifest=dict(sample=sample, groups=report,
             sample_manifest=digest(source / "manifest.json"), metadata=digest(metadata),
@@ -99,14 +116,15 @@ def build(campaign, tag, sample):
             geometry={name: digest(PROJECT / name) for name in
                       ("spectrometer_config.h", "spectrometer_root.h")})
         if balanced and sample=='fit':
-            build_manifest['schema']='core_preallocated_v1'
+            build_manifest['schema']='mixed_preallocated_v1' if mixed else 'core_preallocated_v1'
             shutil.copy2(source/'manifest.json',stage/'allocation_manifest.json')
             shutil.copy2(source/'tsv/selected_ids.tsv',stage/'selected_ids.tsv')
             shutil.copy2(source/'metadata/optics.dat',stage/'optics.dat')
             shutil.copy2(source/'metadata/sieve_mask.json',stage/'sieve_mask.json')
             shutil.copy2(tables[0],stage/tables[0].name)
             shutil.copy2(campaign/'config/oldfit.dat',stage/'oldfit.dat')
-            membership_manifest(stage/'solver_input.tsv',read_tsv(stage/'selected_ids.tsv'),settings,build_manifest['sample_manifest'])
+            if not mixed:
+                membership_manifest(stage/'solver_input.tsv',read_tsv(stage/'selected_ids.tsv'),settings,build_manifest['sample_manifest'])
         # Holdout exports need the same immutable file checks as training exports.
         build_manifest['outputs']={str(p.relative_to(stage)):digest(p) for p in stage.rglob('*') if p.is_file()}
         (stage/'build.json').write_text(json.dumps(build_manifest,indent=2)+'\n')

@@ -177,16 +177,18 @@ def rms_change(value, reference):
     return 100*(value/reference-1) if reference>0 else np.nan
 
 
-def heatmaps(out,p,details):
+def heatmaps(out,p,details,models=MODELS,names=NAMES,pairs=PAIRS,prefix='',absolute_format='.3f'):
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
     local=[r for r in details if r['pool']==p and r['level']=='foil_delta']
+    local=[r for r in local if r['model'] in models]
     if not local:return
     foils=sorted({r['zfoil'] for r in local});deltas=sorted({r['ndel'] for r in local})
     lookup={(r['model'],r['target'],r['zfoil'],r['ndel']):r for r in local}
     for change in (False,True):
-        rows=PAIRS if change else [(m,None) for m in MODELS]
-        fig,grid=plt.subplots(len(rows),4,figsize=(17,3*len(rows)),constrained_layout=True)
+        rows=pairs if change else [(m,None) for m in models]
+        if not rows:continue
+        fig,grid=plt.subplots(len(rows),4,figsize=(17,3*len(rows)),constrained_layout=True,squeeze=False)
         for j,t in enumerate(TARGETS):
             norm=Normalize(-20,20) if change else Normalize(0,max(r['rms'] for r in local if r['target']==t) or 1)
             cmap=plt.get_cmap('RdBu_r' if change else 'viridis').with_extremes(bad='0.9')
@@ -197,14 +199,14 @@ def heatmaps(out,p,details):
                         r=lookup.get((m,t,z,d));b=lookup.get((base,t,z,d))
                         v=rms_change(r['rms'],b['rms']) if change and r and b else (r['rms'] if r and not change else np.nan)
                         values[zi,di]=v
-                        label=f'{v:+.1f}%' if change else f'{v:.3f}'
+                        label=f'{v:+.1f}%' if change else format(v,absolute_format)
                         if not np.isfinite(v):label='—'
                         if r:label+=f"\nN={r['n']}{'*' if r['n']<10 else ''}"
                         rgba=cmap(norm(v)) if np.isfinite(v) else (.9,.9,.9,1)
                         luminance=np.dot(rgba[:3],[.2126,.7152,.0722])
                         ax.text(di,zi,label,ha='center',va='center',fontsize=6,color='black' if luminance>.5 else 'white')
                 im=ax.imshow(values,norm=norm,cmap=cmap,aspect='auto')
-                title=f'{NAMES[m]} vs {NAMES[base]}' if change else NAMES[m]
+                title=f'{names[m]} vs {names[base]}' if change else names[m]
                 ax.set_title(f'{title}\n{LABELS[j]}',fontsize=10)
                 ax.set(xticks=range(len(deltas)),xticklabels=deltas,
                        yticks=range(len(foils)),yticklabels=foils,xlabel='Delta slice',ylabel='Foil (cm)')
@@ -214,7 +216,7 @@ def heatmaps(out,p,details):
                'absolute RMS on identical events; color scale shared vertically')
         fig.suptitle(f'{p}: {title}\n* N<10; no events excluded')
         suffix='change' if change else 'foil_delta'
-        fig.savefig(out/f'plots/{p}_{suffix}.png',dpi=140);plt.close(fig)
+        fig.savefig(out/f'plots/{prefix}{p}_{suffix}.png',dpi=140);plt.close(fig)
 
 
 def plots(out,pool,rr,details):

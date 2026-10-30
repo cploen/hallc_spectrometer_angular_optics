@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <limits>
 
 using namespace std;
 
@@ -43,12 +44,13 @@ struct ColMaskInfo {
   // Only populated by the optional core-sample reader; used to detect stale input.
   Double_t sieveX = 0, sieveY = 0;
   Double_t foilZ = 0, deltaLow = 0, deltaHigh = 0;
-  Int_t core = 0;
+  Int_t core = 0, quality = -1;
+  Double_t coreScore = std::numeric_limits<double>::quiet_NaN();
 };
 
 static void read_core_mask(TString filename, Int_t sample, Int_t run,
                            map<Long64_t, ColMaskInfo>& ymask,
-                           map<Long64_t, ColMaskInfo>& xmask) {
+                           map<Long64_t, ColMaskInfo>& xmask, Bool_t mixed) {
   if (sample < 1 || sample > 3) throw runtime_error("Invalid core sample code");
   TFile file(filename, "READ");
   TTree* tree = dynamic_cast<TTree*>(file.Get("CoreSample"));
@@ -56,6 +58,17 @@ static void read_core_mask(TString filename, Int_t sample, Int_t run,
   for (const char* name : {"entry", "run", "sample", "core_keep", "foil", "ndel",
                            "xscol", "yscol", "xsieve", "ysieve", "zfoil", "delta_low", "delta_high"}) {
     if (!tree->GetBranch(name)) throw runtime_error(string("Missing core branch: ") + name);
+  }
+  if (mixed) {
+    for (const char* name : {"quality", "core_score", "balance_excluded"})
+      if (!tree->GetBranch(name)) throw runtime_error(string("Missing mixed branch: ") + name);
+  }
+  Int_t quality = -1, excluded = 0;
+  Double_t coreScore = std::numeric_limits<double>::quiet_NaN();
+  if (mixed) {
+    tree->SetBranchAddress("quality", &quality);
+    tree->SetBranchAddress("core_score", &coreScore);
+    tree->SetBranchAddress("balance_excluded", &excluded);
   }
   Long64_t entry = -1;
   Int_t sourceRun = -1, assignment = 0, core = 0, foil = -1, ndel = -1, xscol = -1, yscol = -1;
@@ -77,7 +90,10 @@ static void read_core_mask(TString filename, Int_t sample, Int_t run,
   for (Long64_t i = 0; i < tree->GetEntries(); ++i) {
     tree->GetEntry(i);
     if (assignment != sample) continue;
-    if (sourceRun != run || entry < 0 || (sample != 2 && core != 1))
+    const bool inner = mixed && sample == 1 && quality == 1 && core == 0
+        && std::isfinite(coreScore) && coreScore >= .4 && coreScore < .5;
+    if (sourceRun != run || entry < 0 || (sample != 2 && core != 1 && !inner)
+        || (mixed && sample == 1 && (excluded || !(inner || (quality == 2 && core == 1)))))
       throw runtime_error("Invalid identity or quality in core sample");
     if (ymask.count(entry)) throw runtime_error("Duplicate entry in core sample");
     ColMaskInfo y, x;
@@ -88,6 +104,8 @@ static void read_core_mask(TString filename, Int_t sample, Int_t run,
     y.sieveX = x.sieveX = xs;
     y.sieveY = x.sieveY = ys;
     y.core = x.core = core;
+    y.quality = x.quality = quality;
+    y.coreScore = x.coreScore = coreScore;
     y.foilZ = x.foilZ = zfoil;
     y.deltaLow = x.deltaLow = deltaLow;
     y.deltaHigh = x.deltaHigh = deltaHigh;
@@ -372,7 +390,9 @@ void make_fit_ntuple_from_gmm(
                               TString inputRootOverride="",
                               TString rungroup="",
                               TString coreFile="",
-                              Int_t coreSample=1) {
+                              Int_t coreSample=1,
+                              Bool_t mixedSample=kFALSE,
+                              TString opticsMetadataFile="DATfiles/list_of_optics_run.dat") {
   hallc::Spectrometer spec;
   if (!hallc::loadSpectrometer(outputDir, spec)) return;
 
@@ -392,7 +412,7 @@ void make_fit_ntuple_from_gmm(
   gStyle->SetOptStat(0);
 
   OpticsInfoGMM info;
-  if (!read_optics_info_gmm(nrun, "DATfiles/list_of_optics_run.dat", info)) return;
+  if (!read_optics_info_gmm(nrun, opticsMetadataFile, info)) return;
   if (!hallc::centeredSieveOnly(spec,info.sieveFlag)) return;
 
   const Int_t nDeltaIntervals = (Int_t)info.delcut.size() - 1;
@@ -409,7 +429,7 @@ void make_fit_ntuple_from_gmm(
 
   map<Long64_t, ColMaskInfo> ymask, xmask;
   if (coreFile.Length() > 0) {
-    read_core_mask(coreFile, coreSample, nrun, ymask, xmask);
+    read_core_mask(coreFile, coreSample, nrun, ymask, xmask, mixedSample);
   } else {
     read_gmm_masks_for_run(nrun, rungroup,
                          info.numFoil, info.delcut,
@@ -497,10 +517,15 @@ void make_fit_ntuple_from_gmm(
   Double_t xptarT=0, ytarT=0, yptarT=0, ysieveT=0, xsieveT=0, ztarT=0, ztar=0, xtarT=0;
   Int_t foilT=-1, ndelT=-1, yscolT=-1, xscolT=-1;
   Long64_t entryT=-1;
-  Int_t coreKeepT=0;
+  Int_t coreKeepT=0, qualityT=-1;
+  Double_t coreScoreT=std::numeric_limits<double>::quiet_NaN();
   if (coreFile.Length() > 0) {
     otree->Branch("core_keep", &coreKeepT, "core_keep/I");
     otree->Branch("sample", &coreSample, "sample/I");
+    if (mixedSample) {
+      otree->Branch("quality", &qualityT, "quality/I");
+      otree->Branch("core_score", &coreScoreT, "core_score/D");
+    }
   }
 
   otree->Branch("entry", &entryT, "entry/L");
@@ -579,6 +604,8 @@ void make_fit_ntuple_from_gmm(
 
     entryT = i;
     coreKeepT = iy->second.core;
+    qualityT = iy->second.quality;
+    coreScoreT = iy->second.coreScore;
     foilT = iy->second.foil;
     ndelT = iy->second.ndel;
     yscolT = iy->second.col;

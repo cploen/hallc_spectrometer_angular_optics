@@ -85,7 +85,8 @@ def training_plots(out, result):
     save(fig, out/'plots/terms.png')
 
 
-def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min):
+def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min,
+                     candidate='enet', candidate_label='Elastic net'):
     rr = {k: residuals(a, truth, pred, offset) for k, pred in predictions.items()}
     pools = ('core', 'noncore', 'unsupported')
     fig, axes = plt.subplots(3, 4, figsize=(15, 10), constrained_layout=True)
@@ -110,13 +111,13 @@ def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min):
                     m = (pool == p) & (a['ztarT'] == z) & (a['ndel'] == d)
                     if m.any():
                         ref = np.sqrt(np.mean(rr['svd'][m, j]**2))
-                        val = np.sqrt(np.mean(rr['enet'][m, j]**2))
+                        val = np.sqrt(np.mean(rr[candidate][m, j]**2))
                         values[zi, di] = val/max(ref, 1e-30)
                         ax.text(di, zi, f'{values[zi,di]:.2f}\nN={sum(m)}', ha='center', va='center', fontsize=7)
             im = ax.imshow(values, cmap='coolwarm', norm=TwoSlopeNorm(vmin=.5, vcenter=1, vmax=1.5), aspect='auto')
             ax.set(xticks=range(len(deltas)), xticklabels=deltas, yticks=range(len(foils)), yticklabels=foils,
                    xlabel='Delta slice', ylabel='Foil (cm)', title=f'{p}: {LABELS[j]}')
-    fig.colorbar(im, ax=axes.ravel().tolist(), label='Elastic / SVD RMS (below 1 is lower)', extend='both', shrink=.7)
+    fig.colorbar(im, ax=axes.ravel().tolist(), label=f'{candidate_label} / SVD RMS (below 1 is lower)', extend='both', shrink=.7)
     save(fig, out/'plots/foil_delta.png')
     for d in deltas:
         fig, axes = plt.subplots(len(foils), 4, figsize=(16, 3.3*len(foils)), squeeze=False, constrained_layout=True)
@@ -129,7 +130,7 @@ def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min):
                     h = m & (a['xscol'] == x) & (a['yscol'] == y)
                     n = int(sum(h)); maxcount = max(maxcount, n)
                     ref = np.sqrt(np.mean(rr['svd'][h][:, [0, 2]]**2))
-                    val = np.sqrt(np.mean(rr['enet'][h][:, [0, 2]]**2))
+                    val = np.sqrt(np.mean(rr[candidate][h][:, [0, 2]]**2))
                     cells.append((zi, pi, spec.ys(int(y)), spec.xs(int(x)), n, val/max(ref, 1e-30)))
         for zi, pi, y, x, n, ratio in cells:
             axes[zi, pi].scatter(y, x, c=[n], norm=LogNorm(1, max(2, maxcount)), cmap='viridis', s=260)
@@ -143,14 +144,14 @@ def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min):
                 ax.set(xlim=(spec.ys(0)-1, spec.ys(spec.ny-1)+1), ylim=(spec.xs(0)-1, spec.xs(spec.nx-1)+1),
                        xlabel='Y sieve (cm)', ylabel='X sieve (cm)', aspect='equal',
                        title=f'Foil {z:g}: '+('core N', 'noncore N', 'core RMS ratio', 'noncore RMS ratio')[j])
-        fig.suptitle(f'Delta slice {d}: counts use log color; RMS ratio = elastic / SVD\nBlack circle outlines: fewer than {qa_min} events; blank = no events in that pool', fontsize=13)
+        fig.suptitle(f'Delta slice {d}: counts use log color; RMS ratio = {candidate_label} / SVD\nBlack circle outlines: fewer than {qa_min} events; blank = no events in that pool', fontsize=13)
         fig.colorbar(plt.cm.ScalarMappable(norm=LogNorm(1, max(2, maxcount)), cmap='viridis'), ax=axes[:, :2].ravel().tolist(), shrink=.5, label='Events')
         fig.colorbar(plt.cm.ScalarMappable(norm=TwoSlopeNorm(vmin=.5, vcenter=1, vmax=1.5), cmap='coolwarm'), ax=axes[:, 2:].ravel().tolist(), shrink=.5, label='Angular RMS ratio', extend='both')
         save(fig, out/f'plots/slice_{d}_holes.png')
         for p in pools[:2]:
             fig, axes = plt.subplots(len(foils), 3, figsize=(11, 3*len(foils)), squeeze=False, constrained_layout=True)
             xy = [(a['ys'], a['xs'])]
-            for model in ('svd', 'enet'):
+            for model in ('svd', candidate):
                 total = predictions[model]+offset
                 xy.append((100*total[:, 1]+spec.sieve_distance*total[:, 2], a['xtar']+spec.sieve_distance*total[:, 0]))
             m = (pool == p) & (a['ndel'] == d)
@@ -164,6 +165,6 @@ def evaluation_plots(out, a, truth, predictions, offset, pool, spec, qa_min):
                 for j, ((y, x), ax) in enumerate(zip(xy, axes[zi])):
                     ax.scatter(y[h], x[h], s=.4, alpha=.45, rasterized=True)
                     ax.set(xlim=limits[0], ylim=limits[1], aspect='equal', xlabel='Y sieve (cm)', ylabel='X sieve (cm)',
-                           title=f'Foil {z:g}, N={sum(h):,}: '+('saved replay', 'scaled SVD', 'elastic net')[j])
+                           title=f'Foil {z:g}, N={sum(h):,}: '+('saved replay', 'scaled SVD', candidate_label)[j])
             fig.suptitle(f'Protected {p}, delta slice {d}: identical events in every comparison')
             save(fig, out/f'plots/slice_{d}_{p}_clouds.png')
