@@ -13,6 +13,7 @@ import uproot
 from core_sample import PROJECT, digest, read_tsv, write_tsv
 from spectrometer_config import from_campaign, run_metadata, hms_xptar_truth, HMS_XPTAR_DEFINITION
 from preallocated_svd import verify_build
+from mixed_sample import mixed_fraction, validate_training, validate_totals
 from elastic_net import DEFAULTS, TARGETS, SCALES, validate, folds_for, tune
 
 
@@ -80,7 +81,8 @@ def load_sample(campaign, tag, sample):
     build = campaign/'06c_core_ntuple'/tag/sample
     hashes = {}
     manifest = json.loads((source/'manifest.json').read_text())
-    if (manifest.get('schema'), manifest.get('mode'), manifest.get('status')) != ('core_balance_v1', 'event_allocation', 'quotas_ready'):
+    mixed = mixed_fraction(manifest) is not None
+    if (manifest.get('mode'), manifest.get('status')) != ('event_allocation', 'quotas_ready'):
         raise ValueError('Requires a completed event-level balanced allocation')
     bm = json.loads((build/'build.json').read_text())
     checked(source/'manifest.json', bm['sample_manifest'], hashes)
@@ -145,11 +147,17 @@ def load_sample(campaign, tag, sample):
         expected_xptar = hms_xptar_truth(a['xsT'], a['ztarT'], meta['angle_deg'], a['reactycalc'])
         if not np.allclose(a['xptarT'], expected_xptar, rtol=1e-12, atol=1e-13):
             raise ValueError(f'{name}: stale or inconsistent HMS xptarT; rebuild the fit ntuples')
+        if mixed:
+            for field in ('quality', 'core_score'):
+                if field not in a or not np.array_equal(a[field], mask[field][idx], equal_nan=True):
+                    raise ValueError(f'{name}: mixed {field} changed during export')
         a['quality'] = mask['quality'][idx]
         if not np.isin(a['quality'], [0, 1, 2]).all(): raise ValueError('Unknown quality code')
         a['excluded'] = np.array([(int(x), int(y)) in blocked for x, y in zip(a['xscol'], a['yscol'])])
-        if sample == 'fit' and np.any((a['quality'] != 2) | (a['core_keep'] != 1) | a['excluded']):
-            raise ValueError('Training contains noncore or blocked labels')
+        if sample == 'fit':
+            validate_training(dict(quality=a['quality'], core_keep=a['core_keep'],
+                                   core_score=mask['core_score'][idx] if mixed else None, excluded=a['excluded']),
+                              np.ones(len(idx), dtype=bool), mixed)
         if sample == 'surplus' and np.any(a['quality'] != 2):
             raise ValueError('Surplus core export contains noncore events')
         a['rungroup'] = np.full(len(idx), name)
@@ -168,6 +176,7 @@ def load_sample(campaign, tag, sample):
         if actual != {(r['rungroup'], int(r['entry'])) for r in wanted}: raise ValueError('Selected-ID mismatch')
         _, counts = np.unique(data['ztarT'], return_counts=True)
         if len(set(counts)) != 1: raise ValueError('Physical foil totals are not strictly equal')
+        if mixed: validate_totals(data['ztarT'], data['quality'], manifest)
     return data, hashes
 
 
@@ -225,7 +234,7 @@ def fit(campaign, tag, name):
         training_plots(stage, result)
         write_tsv(stage/'tsv/training.tsv', metrics(a, y, {m: x @ result[m] for m in ('enet', 'svd')}, np.full(len(y), 'training'), cfg['qa_min'], offset))
         for file in ('fit_elastic.py', 'elastic_net.py', 'elastic_diagnostics.py', 'run_elastic.sh',
-                     'spectrometer_config.py', 'spectrometer_profiles.def', 'core_sample.py', 'preallocated_svd.py'):
+                     'spectrometer_config.py', 'spectrometer_profiles.def', 'core_sample.py', 'preallocated_svd.py', 'mixed_sample.py'):
             shutil.copy2(PROJECT/file, stage/'code'/file)
         report = dict(xptar_definition=HMS_XPTAR_DEFINITION, schema='elastic_v1', campaign=campaign.name, sample=tag, config=cfg, config_source=config_source,
                       training=len(y), choices=result['choices'], svd=result['svd_info'], inputs=hashes,

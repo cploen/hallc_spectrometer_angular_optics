@@ -149,7 +149,7 @@ def run(campaign, tag, name, source='enet', refit=False, pooled=False):
     out.mkdir(parents=True)
     (out/'code').mkdir()
     for file in ('elastic_convergence.py','elastic_net.py','fit_elastic.py','core_sample.py',
-                 'preallocated_svd.py','spectrometer_config.py','spectrometer_profiles.def','run_elastic.sh',
+                 'preallocated_svd.py','mixed_sample.py','spectrometer_config.py','spectrometer_profiles.def','run_elastic.sh',
                  'elastic_refit.py','elastic_pool.py','elastic_diagnostics.py'):
         shutil.copy2(PROJECT/file,out/'code'/file)
     rows = []

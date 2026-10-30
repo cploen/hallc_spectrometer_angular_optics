@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import uproot
 from core_sample import PROJECT,digest,read_tsv,write_tsv
+from mixed_sample import mixed_fraction
 
 
 def membership_manifest(path,ids,settings,allocation_hash):
@@ -23,13 +24,16 @@ def membership_manifest(path,ids,settings,allocation_hash):
 
 def verify_build(build):
     manifest=json.loads((build/'build.json').read_text())
-    if manifest.get('schema')!='core_preallocated_v1' or manifest['sample']!='fit':
+    if manifest.get('schema') not in ('core_preallocated_v1', 'mixed_preallocated_v1') or manifest['sample']!='fit':
         raise ValueError('Explicit preallocated mode requires a training allocation/build manifest')
     for rel,h in manifest['outputs'].items():
         if digest(build/rel)!=h: raise ValueError(f'Build output changed: {rel}')
     allocated=json.loads((build/'allocation_manifest.json').read_text())
     if digest(build/'allocation_manifest.json')!=manifest['sample_manifest'] or allocated.get('mode')!='event_allocation' or allocated.get('status')!='quotas_ready':
         raise ValueError('Missing successful event-level allocation manifest')
+    mixed = mixed_fraction(dict(allocated, schema=allocated.get('schema', 'core_balance_v1'))) is not None
+    if mixed != (manifest['schema'] == 'mixed_preallocated_v1'):
+        raise ValueError('Build schema disagrees with allocation population')
     ids=read_tsv(build/'selected_ids.tsv')
     expected={(r['rungroup'],int(r['entry'])) for r in ids}
     if len(expected)!=len(ids) or len(ids)!=allocated['totals']['fit'] or not ids:
@@ -39,6 +43,8 @@ def verify_build(build):
 
 def run(build,out,fit=False,max_events=200000,max_bytes=1073741824):
     manifest,ids=verify_build(build)
+    if manifest["schema"] == "mixed_preallocated_v1":
+        raise ValueError("Mixed builds use run_elastic.sh (including its full-basis SVD reference); the standalone core-only ROOT solver is unsupported")
     if max_events<=0 or len(ids)>max_events or max_bytes<=0:
         raise ValueError('Resource limit exceeded; never truncate preallocated input')
     if out.exists(): raise FileExistsError(f'Immutable solver output exists: {out}')

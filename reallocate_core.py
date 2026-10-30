@@ -188,7 +188,7 @@ def run(campaign,parent,tag,preview=False):
     try:
         for sub in ('tsv','code','metadata','parent'):
             (stage/sub).mkdir()
-        for name in ('core_balance.py','reallocate_core.py','balance_diagnostics.py','core_sample.py','spectrometer_config.py','spectrometer_profiles.def','build_core_fit.py','preallocated_svd.py','preallocated_sample.h','fit_opt_matrix_gmm.C','make_fit_ntuple_from_gmm.C','spectrometer_config.h','spectrometer_root.h'):
+        for name in ('core_balance.py','reallocate_core.py','balance_diagnostics.py','core_sample.py','spectrometer_config.py','spectrometer_profiles.def','build_core_fit.py','preallocated_svd.py','mixed_sample.py','preallocated_sample.h','fit_opt_matrix_gmm.C','make_fit_ntuple_from_gmm.C','spectrometer_config.h','spectrometer_root.h'):
             shutil.copy2(PROJECT/name,stage/'code'/name)
         (stage/'code/tests').mkdir()
         for name in ('test_core_balance.py','test_frozen_reallocation.py','test_preallocated_svd.py','test_core_sample.py'):
