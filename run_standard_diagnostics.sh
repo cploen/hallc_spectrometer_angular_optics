@@ -13,7 +13,7 @@ settings() {
     *) printf 'Unsupported campaign: %s\n' "$C" >&2; return 1 ;;
   esac
   SOURCE="beam20_${TAG}"
-  NAME="${SOURCE}_standard"
+  NAME="${SOURCE}_standard_2024flags"
 }
 for campaign in "$@"; do
   settings "$campaign"

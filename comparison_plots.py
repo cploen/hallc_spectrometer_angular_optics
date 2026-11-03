@@ -177,7 +177,7 @@ def rms_change(value, reference):
     return 100*(value/reference-1) if reference>0 else np.nan
 
 
-def heatmaps(out,p,details,models=MODELS,names=NAMES,pairs=PAIRS,prefix='',absolute_format='.3f'):
+def heatmaps(out,p,details,models=MODELS,names=NAMES,pairs=PAIRS,prefix='',absolute_format='.3f',pool_label=None):
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
     local=[r for r in details if r['pool']==p and r['level']=='foil_delta']
@@ -206,7 +206,7 @@ def heatmaps(out,p,details,models=MODELS,names=NAMES,pairs=PAIRS,prefix='',absol
                         luminance=np.dot(rgba[:3],[.2126,.7152,.0722])
                         ax.text(di,zi,label,ha='center',va='center',fontsize=6,color='black' if luminance>.5 else 'white')
                 im=ax.imshow(values,norm=norm,cmap=cmap,aspect='auto')
-                title=f'{names[m]} vs {names[base]}' if change else names[m]
+                title=f'{names[m]}\nvs {names[base]}' if change else names[m]
                 ax.set_title(f'{title}\n{LABELS[j]}',fontsize=10)
                 ax.set(xticks=range(len(deltas)),xticklabels=deltas,
                        yticks=range(len(foils)),yticklabels=foils,xlabel='Delta slice',ylabel='Foil (cm)')
@@ -214,7 +214,7 @@ def heatmaps(out,p,details,models=MODELS,names=NAMES,pairs=PAIRS,prefix='',absol
         if change:fig.colorbar(im,ax=grid.ravel().tolist(),label='RMS change (%)',extend='both',shrink=.6)
         title=('RMS change: blue = smaller; red = larger; colors saturate at ±20%' if change else
                'absolute RMS on identical events; color scale shared vertically')
-        fig.suptitle(f'{p}: {title}\n* N<10; no events excluded')
+        fig.suptitle(f'{pool_label or p}: {title}\n* N<10 is a reporting flag; absent cells are blank')
         suffix='change' if change else 'foil_delta'
         fig.savefig(out/f'plots/{prefix}{p}_{suffix}.png',dpi=140);plt.close(fig)
 
