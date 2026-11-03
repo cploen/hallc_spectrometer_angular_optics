@@ -1,0 +1,42 @@
+{
+  "schema": "nps_replay_2024_offsets_v1",
+  "units": [
+    "xptar_mrad",
+    "ytar_cm",
+    "yptar_mrad"
+  ],
+  "convention": "hphi_offset -> xptar; htheta_offset -> yptar; radians converted to mrad. No external ytar correction.",
+  "source_commit": "82f6fa3bc8aae79298b649a8e83523c6ee39797a",
+  "campaigns": {
+    "HMS_5p878GeV": {
+      "offsets": [
+        0.660916405,
+        0.0,
+        0.453977455
+      ],
+      "snapshot": "references/nps_replay_2024_flags/hmsflags_5p878.param",
+      "sha256": "2454f91e1572b06a92a5f4c8611aa42ca6e19620816fbb8636f75be9917b12e0",
+      "source": "https://github.com/JeffersonLab/nps_replay/blob/82f6fa3bc8aae79298b649a8e83523c6ee39797a/PARAM/HMS/GEN/hmsflags_5p878.param"
+    },
+    "HMS_6p117GeV": {
+      "offsets": [
+        0.581654738,
+        0.0,
+        0.64761385
+      ],
+      "snapshot": "references/nps_replay_2024_flags/hmsflags_6p117.param",
+      "sha256": "2a3cf262ed53884afde956f5fd2d5e6c1d2e0b666d8fbda2c3e4e32e84bda5a5",
+      "source": "https://github.com/JeffersonLab/nps_replay/blob/82f6fa3bc8aae79298b649a8e83523c6ee39797a/PARAM/HMS/GEN/hmsflags_6p117.param"
+    },
+    "HMS_6p667GeV": {
+      "offsets": [
+        0.711802209,
+        0.0,
+        0.584959117
+      ],
+      "snapshot": "references/nps_replay_2024_flags/hmsflags_6p667.param",
+      "sha256": "cce06f5407787673a279508c5d6f7fb803e1b37b460e7ced4e2822bf4ac4d703",
+      "source": "https://github.com/JeffersonLab/nps_replay/blob/82f6fa3bc8aae79298b649a8e83523c6ee39797a/PARAM/HMS/GEN/hmsflags_6p667.param"
+    }
+  }
+}

@@ -11,11 +11,17 @@ import numpy as np
 import uproot
 from test_beam_holdout import fixture as protected_fixture, write_root
 from core_sample import digest, read_tsv, write_tsv
-from matrix_diagnostic_suite import afterburner_inputs, prepare, predictions, references, run
+from matrix_diagnostic_suite import afterburner_inputs, diagnostic_groups, historical_offsets, prepare, predictions, references, run
+from comparison_plots import stats
 
 
 def fixture(directory):
     campaign,saved,beam=protected_fixture(directory)
+    original=campaign
+    campaign=campaign.with_name('HMS_6p667GeV_joint_min5')
+    original.rename(campaign)
+    saved=campaign/saved.relative_to(original)
+    beam['inputs']={path.replace(str(original),str(campaign),1):sha for path,sha in beam['inputs'].items()}
     holdout=campaign/'06c_core_ntuple/balanced/holdout'
     path=holdout/'root/Optics_999_-1_fit_tree_gmm.root'
     with uproot.open(path) as f:a=f['TFit'].arrays(library='np')
@@ -69,10 +75,14 @@ class StandardTests(unittest.TestCase):
             manifest=json.loads((out/'manifest.json').read_text())
             self.assertEqual(set(manifest['models']),{'old','svd','start','beam'})
             for rel,sha in manifest['outputs'].items():self.assertEqual(digest(out/rel),sha)
-            self.assertEqual(len(list((out/'plots').glob('*.png'))),11)
+            self.assertEqual(len(list((out/'plots').glob('*.png'))),14)
+            self.assertEqual(manifest['schema'],'standard_matrix_diagnostics_v2')
+            self.assertEqual(manifest['offsets']['old'],[.711802209,0.,.584959117])
+            self.assertEqual(manifest['aggregate_counts']['core_shoulder'],240)
+            self.assertEqual(manifest['closure_offsets'],[0.,0.,0.])
             rows=read_tsv(out/'tsv/residuals.tsv')
             self.assertNotIn('blocked',{r['pool'] for r in rows})
-            for pool in ('core','noncore','unsupported'):
+            for pool in ('core','noncore','unsupported','core_shoulder'):
                 self.assertTrue((out/f'plots/final_beam_{pool}_foil_delta.png').exists())
             comparisons=read_tsv(out/'tsv/cell_comparisons.tsv')
             self.assertIn(('beam','old'),{(r['model'],r['reference']) for r in comparisons})
@@ -83,33 +93,67 @@ class StandardTests(unittest.TestCase):
                 self.assertGreater(int(residuals['entry'].min()),2**54)
                 for row in rows:
                     if row['level']!='foil_delta':continue
-                    mask=(residuals['pool']==row['pool'])&(residuals['zfoil']==float(row['zfoil']))&(residuals['ndel']==int(row['ndel']))
+                    selected=np.isin(residuals['pool'],['core','noncore']) if row['pool']=='core_shoulder' else residuals['pool']==row['pool']
+                    mask=selected&(residuals['zfoil']==float(row['zfoil']))&(residuals['ndel']==int(row['ndel']))
                     j=list(residuals['targets']).index(row['target'])
                     self.assertAlmostEqual(float(row['rms']),float(np.sqrt(np.mean(residuals[row['model']][mask,j]**2))))
             self.assertEqual(before,{p:digest(p) for p in before})
             with self.assertRaises(FileExistsError):run(campaign,'balanced','standard','beam20')
             if os.environ.get('STANDARD_PREVIEW'):
                 preview=Path(os.environ['STANDARD_PREVIEW']);preview.mkdir(parents=True,exist_ok=True)
-                for name in ('reduced_basis_folds.png','core_change.png','final_beam_core_foil_delta.png'):
+                for name in ('reduced_basis_folds.png','core_shoulder_change.png','final_beam_core_shoulder_foil_delta.png'):
                     shutil.copy2(out/'plots'/name,preview/name)
+
+    def test_all_momentum_offsets_match_pinned_parameters(self):
+        expected={'HMS_5p878GeV':[.660916405,0.,.453977455],
+                  'HMS_6p117GeV':[.581654738,0.,.647613850],
+                  'HMS_6p667GeV_joint_min5':[.711802209,0.,.584959117]}
+        for campaign,values in expected.items():
+            hashes={}
+            actual,source=historical_offsets(Path(campaign),hashes)
+            self.assertEqual(actual,values)
+            self.assertIn('82f6fa3bc8aae79298b649a8e83523c6ee39797a',source)
+            self.assertEqual(len(hashes),2)
+        with self.assertRaisesRegex(ValueError,'offset policy'):historical_offsets(Path('HMS_unknown'),{})
+
+    def test_combined_page_uses_all_supported_events_without_resampling(self):
+        pool=np.array(['core','core','core','noncore','noncore','unsupported','blocked'])
+        a=dict(ztarT=np.zeros(7),ndel=np.zeros(7,dtype=int),rungroup=np.full(7,'rg'),
+               xscol=np.full(7,3),yscol=np.full(7,4),core_score=np.array([.8,.8,.8,.2,.45,np.nan,.5]))
+        rows=list(diagnostic_groups(a,pool))
+        _,mask=next((g,m) for g,m in rows if g['pool']=='core_shoulder' and g['level']=='overall')
+        np.testing.assert_array_equal(np.flatnonzero(mask),[0,1,2,3,4])
+        v=np.array([1.,2.,3.,10.,20.,100.,1000.])
+        result=stats(v[mask])
+        self.assertEqual(result['n'],5)
+        self.assertAlmostEqual(result['rms'],np.sqrt((1+4+9+100+400)/5))
+        self.assertNotAlmostEqual(result['rms'],np.sqrt((np.mean(v[:3]**2)+np.mean(v[3:5]**2))/2))
 
     def test_2024_reference_matches_legacy_afterburner(self):
         from legacy_afterburner import export_tree
         with tempfile.TemporaryDirectory() as temporary:
             campaign,saved=fixture(Path(temporary))
             _,_,_,a,models,files,offsets,names,notes,_,_,_=prepare(campaign,'balanced','beam20')
-            self.assertEqual(names['old'], '2024 replay matrix')
+            self.assertEqual(names['old'], '2024 replay + historical offsets')
+            self.assertEqual(offsets['old'],[.711802209,0.,.584959117])
+            self.assertTrue(all(offsets[m]==[0.,0.,0.] for m in ('svd','start','beam')))
             predicted,iterations,closure=predictions(a,models,offsets)
             self.assertEqual(len(iterations),4)
             self.assertEqual(len(closure),1)
             raw=campaign/'06c_core_ntuple/balanced/holdout/root/Optics_999_-1_fit_tree_gmm.root'
             for model in ('old','beam'):
                 target=Path(temporary)/f'{model}.root'
-                export_tree(raw,target,models[model],12.5,[0,0,0])
+                export_tree(raw,target,models[model],12.5,offsets[model])
                 with uproot.open(target) as root: expected=root['TFit'].arrays(library='np')
                 np.testing.assert_array_equal(expected['entry'],a['entry'])
                 for j,field in enumerate(('xptar','ytar','yptar')):
                     np.testing.assert_allclose(predicted[model][:,j],expected[field]/(100 if field=='ytar' else 1),rtol=1e-13,atol=1e-13)
+            zero=Path(temporary)/'zero.root'
+            export_tree(raw,zero,models['old'],12.5,[0,0,0])
+            with uproot.open(zero) as root:original=root['TFit'].arrays(library='np')
+            error=(original['xs']-a['xs'])**2+(original['ys']-a['ys'])**2
+            self.assertAlmostEqual(closure[0]['rms_xy_cm'],float(np.sqrt(error.mean())))
+            self.assertEqual(closure[0]['reference'],'2024 zero external offsets')
             with (saved/'seed.dat').open('a') as stream:stream.write('! changed\n')
             with self.assertRaisesRegex(ValueError,'Frozen input changed'):prepare(campaign,'balanced','beam20')
 
