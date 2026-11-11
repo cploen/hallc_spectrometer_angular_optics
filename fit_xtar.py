@@ -263,8 +263,19 @@ def evaluate(args):
     for model in ('full','beam'):
         predictions[model]=predict_matrix(a,matrix_rows(out/f'matrices/{model}.dat'),'xtarT')
     diagnostics(dest,a,predictions,'reserved_holdout')
+    counts = dict(all_reserved=len(a['entry']), blocked=int(sum(a['excluded'])))
+    for pool, quality in [('core',2),('noncore',1),('unsupported',0)]:
+        mask=(a['quality']==quality)&~a['excluded']
+        counts[pool]=int(sum(mask))
+        if pool=='unsupported' or not mask.any():
+            continue
+        sub=dest/pool
+        for folder in ('plots','tsv'):(sub/folder).mkdir(parents=True,exist_ok=True)
+        diagnostics(sub,{k:v[mask] for k,v in a.items()},
+                    {k:v[mask] for k,v in predictions.items()},'reserved_'+pool)
     (dest/'manifest.json').write_text(json.dumps(dict(schema='xtar_evaluation_v1',events=len(a['entry']),
         source_manifest_sha256=digest(out/'manifest.json'),inputs=hashes,
+        counts=counts,
         status='complete',coordinate='xtarT',interpretation='Reserved event IDs, disjoint from fit; previously inspected holdouts are development evidence, not a fresh independent test',
         outputs={str(p.relative_to(dest)):digest(p) for p in dest.rglob('*') if p.is_file()}),indent=2)+'\n')
     print('Evaluation complete:',dest,flush=True)
