@@ -75,8 +75,10 @@ def checked(path, sha, hashes):
     hashes[str(path)] = actual
 
 
-def load_sample(campaign, tag, sample):
+def load_sample(campaign, tag, sample, xtar_coordinate='xtar'):
     """Exact entry join against the allocation. No GMM fallback or resampling."""
+    if xtar_coordinate not in ('xtar', 'xtarT'):
+        raise ValueError('Unknown x-target coordinate')
     source = campaign/'05c_core_sample'/tag
     build = campaign/'06c_core_ntuple'/tag/sample
     hashes = {}
@@ -147,6 +149,15 @@ def load_sample(campaign, tag, sample):
         expected_xptar = hms_xptar_truth(a['xsT'], a['ztarT'], meta['angle_deg'], a['reactycalc'])
         if not np.allclose(a['xptarT'], expected_xptar, rtol=1e-12, atol=1e-13):
             raise ValueError(f'{name}: stale or inconsistent HMS xptarT; rebuild the fit ntuples')
+        if xtar_coordinate == 'xtarT':
+            if 'xtarT' not in a:
+                raise ValueError(f'{name}: missing geometric xtarT')
+            degree = min(abs(meta['angle_deg']), 50.)
+            xmis = .1*(2.37-.086*degree+.0012*degree**2)
+            expected_xtar = (-a['reactycalc']-xmis-
+                             expected_xptar*a['ztarT']*np.cos(np.deg2rad(meta['angle_deg'])))
+            if not np.allclose(a['xtarT'], expected_xtar, rtol=1e-12, atol=1e-10):
+                raise ValueError(f'{name}: inconsistent geometric xtarT')
         if mixed:
             for field in ('quality', 'core_score'):
                 if field not in a or not np.array_equal(a[field], mask[field][idx], equal_nan=True):
@@ -166,6 +177,8 @@ def load_sample(campaign, tag, sample):
         fields = ('entry', 'foil', 'ndel', 'xscol', 'yscol', 'xs', 'ys', 'xsT', 'ysT', 'ztarT',
                   'xfp', 'xpfp', 'yfp', 'ypfp', 'xtar', 'xptarT', 'ytarT', 'yptarT',
                   'delta', 'quality', 'excluded', 'rungroup', 'angle', 'delta_low', 'delta_high')
+        if xtar_coordinate == 'xtarT':
+            fields += ('xtarT', 'reactycalc')
         for k in fields:
             if k != 'rungroup' and not np.isfinite(a[k]).all(): raise ValueError(f'Nonfinite {name}/{k}; no silent dropping')
         pieces.append({k: a[k] for k in fields})

@@ -27,8 +27,9 @@ def solve(r, y, selected, rcond):
 
 
 class Folds:
-    def __init__(self,x,y,folds,cells,rcond,threads=8):
+    def __init__(self,x,y,folds,cells,rcond,threads=8,fit_intercept=True):
         self.p,self.n,self.rcond = x.shape[1],len(x),rcond
+        self.fit_intercept = fit_intercept
         self.x,self.y,self.folds = x,y,folds
         self.parts = []
         _,inverse,counts = np.unique(cells,return_inverse=True,return_counts=True)
@@ -37,7 +38,7 @@ class Folds:
         with threadpool_limits(limits=threads):
             for f in sorted(set(folds)):
                 tr,va = folds != f,folds == f
-                state = scaling(x[tr],y[tr])
+                state = scaling(x[tr],y[tr],fit_intercept=fit_intercept)
                 z,t = transform(x[tr],y[tr],state)
                 zv,tv = transform(x[va],y[va],state)
                 fit = np.linalg.qr(np.column_stack((z,t)),mode='r')
@@ -53,7 +54,7 @@ class Folds:
             score += float(r @ r)*(f['state'][3][j]*SCALES[j])**2
             conditions.append(float(s[0]/s[-1]) if len(s) and s[-1] > 0 else 1. if not selected else np.inf)
             ranks.append(rank)
-        return dict(mask=selected,terms=len(selected)+1,score=score,condition=max(conditions),
+        return dict(mask=selected,terms=len(selected)+int(self.fit_intercept),score=score,condition=max(conditions),
                     rank_min=min(ranks),valid=bool(all(r == len(selected) for r in ranks) and np.isfinite(score)))
 
     def predict(self,j,selected):
@@ -64,7 +65,7 @@ class Folds:
             full = np.zeros(self.p); full[list(selected)] = beta
             z,_ = transform(self.x[f['mask']],self.y[f['mask']],f['state'])
             predicted[f['mask']] = z @ full*f['state'][3][j]+f['state'][2][j]
-            rows.append(dict(fold=f['fold'],terms=len(selected)+1,rank=rank,
+            rows.append(dict(fold=f['fold'],terms=len(selected)+int(self.fit_intercept),rank=rank,
                              condition=float(s[0]/s[-1]) if len(s) and s[-1] > 0 else 1. if not selected else np.inf))
         return predicted,rows
 
@@ -115,9 +116,9 @@ def search(evaluate,seeds,p,cfg,record):
     return dict(start=start,best=best,chosen=chosen,history=history,stop=reason,evaluated=len(cache))
 
 
-def fit_all(x,y,masks,rcond):
+def fit_all(x,y,masks,rcond,fit_intercept=True):
     """Final coefficient fit uses all training events and the selected fixed bases."""
-    state = scaling(x,y)
+    state = scaling(x,y,fit_intercept=fit_intercept)
     z,t = transform(x,y,state)
     coeff,info = [],[]
     for j,selected in enumerate(masks):
@@ -125,6 +126,6 @@ def fit_all(x,y,masks,rcond):
         if rank != len(selected): raise ValueError(f'Final {TARGETS[j]} basis is rank deficient')
         full = np.zeros(x.shape[1]);full[list(selected)] = beta
         coeff.append(native(full,state,j))
-        info.append(dict(target=TARGETS[j],terms=len(selected)+1,rank=rank,
+        info.append(dict(target=TARGETS[j],terms=len(selected)+int(fit_intercept),rank=rank,
                          condition=float(s[0]/s[-1]) if len(s) else 1.))
     return np.column_stack(coeff),info

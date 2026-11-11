@@ -43,7 +43,15 @@ def folds_for(ids, strata, nfold, seed):
     return out
 
 
-def scaling(x, y):
+def scaling(x, y, fit_intercept=True):
+    if not fit_intercept:
+        # A conditional refit must not manufacture a free matrix constant.
+        xs = np.sqrt(np.mean(x*x, axis=0))
+        constant = xs == 0
+        xs[constant] = 1.
+        ys = np.sqrt(np.mean(y*y, axis=0))
+        ys[ys == 0] = 1.
+        return np.zeros(x.shape[1]), xs, np.zeros(y.shape[1]), ys, constant
     mean, scale = x.mean(axis=0), x.std(axis=0)
     # An exactly constant column conveys no slope information; preserve an audit.
     constant = scale <= np.finfo(float).eps * np.maximum(np.abs(mean), np.finfo(float).tiny)
@@ -92,12 +100,12 @@ def fit_path(x, y, cfg):
             yield l1, alpha, np.array(beta).T, ok, gaps
 
 
-def tune(x, y, folds, cells, cfg):
+def tune(x, y, folds, cells, cfg, fit_intercept=True):
     records, supports = [], {}
     baseline = []
     for f in range(cfg['folds']):
         tr, va = folds != f, folds == f
-        state = scaling(x[tr], y[tr])
+        state = scaling(x[tr], y[tr], fit_intercept=fit_intercept)
         z, t = transform(x[tr], y[tr], state)
         design = np.column_stack((np.ones(sum(va)), x[va]))
         ls, _, rank, singular = np.linalg.lstsq(z, t, rcond=cfg['rcond'])
@@ -131,7 +139,7 @@ def tune(x, y, folds, cells, cfg):
         frequency.append(np.mean([supports[j, f, chosen['l1'], chosen['alpha']] for f in range(cfg['folds'])], axis=0))
         choices.append(dict(chosen, best_mse=best['mse'], svd_cv_mse=float(np.mean(baseline, axis=0)[j]),
                             alpha_edge=chosen['alpha'] in (min(cfg['alphas']), max(cfg['alphas']))))
-    state = scaling(x, y)
+    state = scaling(x, y, fit_intercept=fit_intercept)
     z, t = transform(x, y, state)
     beta = np.zeros((x.shape[1], 3))
     for l1, alpha, b, ok, gaps in fit_path(z, t, cfg):
@@ -146,4 +154,4 @@ def tune(x, y, folds, cells, cfg):
                 constant_columns=np.flatnonzero(state[4]).tolist(), singular_values=singular.tolist())
     return dict(enet=raw_coefficients(beta, state), svd=raw_coefficients(ls, state),
                 state=state, beta=beta, frequency=np.array(frequency).T, choices=choices,
-                cv=records, summary=summary, svd_info=info)
+                cv=records, summary=summary, svd_info=info, fold_supports=supports)
