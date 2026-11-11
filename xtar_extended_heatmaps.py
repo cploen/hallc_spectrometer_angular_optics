@@ -99,68 +99,156 @@ def metrics(a, truth, predictions, *, physical_foils, supported, qa_min=10):
     return rows, counts
 
 
-def write_report(out, rows, counts, *, labels, assumptions):
-    """Write readable wide plots and CSV. Caller supplies factual model labels.
+def rms_percent_change(candidate, reference):
+    """Prior comparison convention: negative is smaller RMS, positive larger."""
+    if reference > 0:
+        return 100*(candidate/reference-1)
+    return 0. if candidate == 0 else float('nan')
 
-    Negative RMS changes mean improvement. Shared absolute plot ranges prevent
-    a candidate from appearing improved merely by independent color rescaling.
-    The label for oldfit must retain a provenance qualification until resolved.
+
+def write_report(out, rows, counts, *, labels, assumptions):
+    """Prior four-column layout and ±20% RMS-change color convention.
+
+    Blue ONLY means smaller RMS and red ONLY larger RMS. Absolute RMS and bias
+    use neutral grays. Signed bias is text; gray shading reflects its magnitude.
+    Every occupied cell has a count. Existing artifacts are never overwritten.
     """
     import json
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
     if set(labels) != set(MODELS) or not assumptions:
         raise ValueError('Model labels and offline reconstruction assumptions required')
     out = Path(out)
     out.mkdir(parents=True, exist_ok=False)
     with (out/'metrics.csv').open('w', newline='') as stream:
-        writer=csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
         writer.writeheader(); writer.writerows(rows)
     (out/'population_counts.json').write_text(json.dumps(counts,indent=2)+'\n')
-    (out/'assumptions.txt').write_text(assumptions+'\nNegative RMS changes mean improvement. Empty cells are uncovered. Asterisk denotes a sparse cell.\n')
+    guide = '''START WITH core_RMS_change.png or supported_noncore_RMS_change.png.
+Each column is one variable: xptar, yptar, ytar, xtar.
+Rows compare completed refit vs oldfit, predictor vs oldfit, predictor vs refit.
+BLUE = smaller RMS (better); RED = larger RMS (worse); WHITE = no change.
+Colors saturate at +/-20%, matching the previous comparison plot convention.
+Every colored cell prints the actual percentage, signed absolute RMS change
+in the column's units, and event count. Saturation never caps the printed value.
+Absolute-RMS and bias plots use neutral gray, never the improvement colors.
+Gray intensity represents absolute RMS or magnitude of bias, respectively.
+N is the number of identical reserved events in that foil/delta cell.
+* marks N<10. Uncovered cells are blank. Original delta bins never change.
+Negative bias describes a sign; it does not by itself mean improvement.
+'''
+    (out/'PLOT_GUIDE.txt').write_text(guide)
+    (out/'assumptions.txt').write_text(assumptions+'\n'+guide)
+    short = dict(zip(MODELS,['Preserved oldfit reference','Completed 2018 refit','Refit + separate xtar predictor']))
+    pairs = [(MODELS[1],MODELS[0]),(MODELS[2],MODELS[0]),(MODELS[2],MODELS[1])]
     for population in ('core','supported_noncore'):
-        for target,unit in zip(TARGETS,UNITS):
-            selected=[r for r in rows if r['population']==population and r['target']==target]
-            foils=sorted({r['foil_cm'] for r in selected})
-            lookup={(r['model'],r['foil_cm'],r['delta_low']):r for r in selected}
-            panels=[]
-            for statistic in ('bias','rms_including_bias'):
-                for model in MODELS:
-                    panels.append((model,statistic,labels[model]+' — '+statistic.replace('_',' ')))
-            for reference,suffix in [(MODELS[0],'oldfit'),(MODELS[1],'refit')]:
-                for stat in ('bias','rms'):
-                    panels.append((MODELS[2],stat+'_change_vs_'+suffix,
-                        labels[MODELS[2]]+' minus '+labels[reference]+' — '+stat+' change'))
-            arrays=[]
-            for model,stat,title in panels:
-                arrays.append(np.array([[lookup[model,z,float(lo)][stat]
-                    if lookup[model,z,float(lo)][stat]!='' else np.nan for lo in EDGES[:-1]] for z in foils]))
-            category=lambda s:next(p for p in ('rms_including_bias','bias_change','rms_change','bias') if s.startswith(p))
-            limits={}
-            for prefix in ('bias','rms_including_bias','bias_change','rms_change'):
-                values=np.concatenate([a[np.isfinite(a)] for a,(_,s,_) in zip(arrays,panels) if category(s)==prefix])
-                limits[prefix]=max(float(np.max(np.abs(values))) if len(values) else 0.,1e-12)
-            fig,axes=plt.subplots(len(panels),1,figsize=(30,4.6*len(panels)),constrained_layout=True)
-            for ax,a,(model,stat,title) in zip(axes,arrays,panels):
-                prefix=category(stat)
-                limit=limits[prefix]
-                positive=stat=='rms_including_bias'
-                cmap=plt.get_cmap('viridis' if positive else 'RdBu_r').copy();cmap.set_bad('white')
-                im=ax.imshow(np.ma.masked_invalid(a),origin='lower',aspect='auto',cmap=cmap,
-                             vmin=0 if positive else -limit,vmax=limit)
-                for i,z in enumerate(foils):
-                    for j,lo in enumerate(EDGES[:-1]):
-                        r=lookup[model,z,float(lo)]
-                        if r['n']:
-                            ax.text(j,i,f"{a[i,j]:+.3g}"+ ('*' if r['sparse'] else '')+f"\nn={r['n']}",
-                                    ha='center',va='center',fontsize=11,
-                                    bbox=dict(facecolor='white',alpha=.82,edgecolor='none'))
-                ax.set_xticks(range(len(EDGES)-1),[f'[{lo:g}, {hi:g})' for lo,hi in zip(EDGES[:-1],EDGES[1:])])
-                ax.set_yticks(range(len(foils)),[f'{z:g}' for z in foils])
-                ax.set(title=title+' ('+unit+')',ylabel='Physical foil (cm)',xlabel='Original delta (%)')
-                fig.colorbar(im,ax=ax,label=unit)
-            fig.suptitle(target+' — '+population+' — identical reserved IDs; fixed original delta\n'
-                         'Offline proof of principle. Negative RMS change = improvement. * Sparse cell. Blank = uncovered.',fontsize=18)
-            fig.savefig(out/f'{population}_{target}.png',dpi=130)
+        local = [r for r in rows if r['population']==population]
+        foils = sorted({r['foil_cm'] for r in local})
+        lookup = {(r['model'],r['target'],r['foil_cm'],r['delta_low']):r for r in local}
+        for kind in ('RMS_change','absolute_RMS','bias'):
+            cases = pairs if kind=='RMS_change' else [(m,None) for m in MODELS]
+            fig,grid = plt.subplots(3,4,figsize=(48,15),squeeze=False,constrained_layout=True)
+            for j,(target,unit) in enumerate(zip(TARGETS,UNITS)):
+                if kind=='RMS_change':
+                    norm=Normalize(-20,20)
+                    cmap=plt.get_cmap('RdBu_r').copy()
+                else:
+                    field='rms_including_bias' if kind=='absolute_RMS' else 'bias'
+                    limit=max([abs(r[field]) for r in local if r['target']==target and r['n']] or [1.])
+                    norm=Normalize(0,max(limit,1e-12))
+                    cmap=plt.get_cmap('Greys').copy()
+                cmap.set_bad('white')
+                for i,(model,base) in enumerate(cases):
+                    ax=grid[i,j]
+                    values=np.full((len(foils),len(EDGES)-1),np.nan)
+                    annotations=[]
+                    for zi,z in enumerate(foils):
+                        for di,lo in enumerate(EDGES[:-1]):
+                            r=lookup[model,target,z,float(lo)]
+                            if not r['n']:continue
+                            count=f"N={r['n']:,}"+('*' if r['sparse'] else '')
+                            if kind=='RMS_change':
+                                b=lookup[base,target,z,float(lo)]
+                                delta=r['rms_including_bias']-b['rms_including_bias']
+                                percent=rms_percent_change(r['rms_including_bias'],b['rms_including_bias'])
+                                # Zero reference with nonzero candidate is unambiguously worse,
+                                # but its percentage is undefined. Mark it rather than divide by zero.
+                                v=percent if np.isfinite(percent) else 20.
+                                label=(f'{percent:+.1f}%' if np.isfinite(percent) else 'reference RMS=0')+f'\nΔ={delta:+.3g}\n'+count
+                            elif kind=='absolute_RMS':
+                                v=r['rms_including_bias'];label=f'{v:.3g}\n'+count
+                            else:
+                                v=abs(r['bias']);label=f"{r['bias']:+.3g}\n"+count
+                            values[zi,di]=v
+                            annotations.append((di,zi,label,v))
+                    im=ax.imshow(np.ma.masked_invalid(values),norm=norm,cmap=cmap,aspect='auto',origin='upper')
+                    for di,zi,label,v in annotations:
+                        rgba=cmap(norm(v));luminance=np.dot(rgba[:3],[.2126,.7152,.0722])
+                        ax.text(di,zi,label,ha='center',va='center',fontsize=10,
+                                color='black' if luminance>.5 else 'white')
+                    subtitle=short[model]+('\nminus '+short[base] if base else '')
+                    ax.set_title(f'{target} ({unit})\n{subtitle}',fontsize=13)
+                    ax.set_xticks(range(len(EDGES)-1),[f'[{lo:g},{hi:g})' for lo,hi in zip(EDGES[:-1],EDGES[1:])],rotation=35,ha='right')
+                    ax.set_yticks(range(len(foils)),[f'{z:g}' for z in foils])
+                    ax.tick_params(labelsize=10)
+                    ax.set(xlabel='Original delta (%)',ylabel='Physical foil (cm)')
+                    ax.set_xticks(np.arange(-.5,len(EDGES)-1,1),minor=True)
+                    ax.set_yticks(np.arange(-.5,len(foils),1),minor=True)
+                    ax.grid(which='minor',color='0.85',linewidth=.4)
+                    ax.tick_params(which='minor',bottom=False,left=False)
+                if kind!='RMS_change':
+                    bar_label=('RMS including bias' if kind=='absolute_RMS' else '|bias|')+' ('+unit+')'
+                    fig.colorbar(im,ax=grid[:,j].tolist(),label=bar_label,shrink=.7)
+            if kind=='RMS_change':
+                fig.colorbar(im,ax=grid.ravel().tolist(),label='RMS change (%): BLUE better / RED worse',extend='both',shrink=.75)
+                title='RMS CHANGE: BLUE = BETTER (smaller)   |   RED = WORSE (larger)   |   WHITE = unchanged\nColors saturate at ±20%; actual percentages and signed ΔRMS are printed in every occupied cell.'
+            else:
+                title=('ABSOLUTE RMS INCLUDING BIAS — gray intensity = RMS; numbers in column units' if kind=='absolute_RMS'
+                       else 'SIGNED BIAS — numbers give direction; neutral gray intensity = |bias|, not improvement')
+            fig.suptitle(population+' — '+title+'\nIdentical reserved events; fixed original delta. * N<10; blank = uncovered. Offline comparison; oldfit historical provenance remains qualified.',fontsize=18)
+            path=out/f'{population}_{kind}.png'
+            fig.savefig(path,dpi=130)
             plt.close(fig)
+            print('Wrote',path,flush=True)
+
+
+def replot(source, output):
+    """Read saved cell metrics only. No event loading, selection or fitting."""
+    import hashlib
+    import json
+    source,output=Path(source),Path(output)
+    csv_path=source/'metrics.csv'
+    before=hashlib.sha256(csv_path.read_bytes()).hexdigest()
+    with csv_path.open(newline='') as stream:
+        rows=list(csv.DictReader(stream))
+    numeric={'foil_cm','delta_low','delta_high','bias','rms_including_bias',
+             'bias_change_vs_oldfit','bias_change_vs_refit','rms_change_vs_oldfit','rms_change_vs_refit'}
+    for row in rows:
+        row['n']=int(row['n']);row['sparse']=row['sparse'].lower()=='true'
+        for key in numeric:
+            if row[key]!='':row[key]=float(row[key])
+    counts=json.loads((source/'population_counts.json').read_text())
+    parent_manifest=source.parent/'manifest.json'
+    if parent_manifest.exists():
+        labels=json.loads(parent_manifest.read_text())['model_labels']
+    else:
+        labels={m:m for m in MODELS}
+    assumptions=(source/'assumptions.txt').read_text()
+    write_report(output,rows,counts,labels=labels,assumptions=assumptions)
+    after=hashlib.sha256(csv_path.read_bytes()).hexdigest()
+    if before!=after:raise RuntimeError('Original metrics changed during replot')
+    (output/'replot_provenance.json').write_text(json.dumps(dict(source=str(source),
+        original_metrics_sha256=before,source_metrics_unchanged=True,
+        plotting_code_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        method='plot saved cell metrics only; no fitting or event reselection'),indent=2)+'\n')
+
+
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser(description='Replot saved xtar comparison metrics using the prior blue-better/red-worse scheme. No fit.')
+    parser.add_argument('--replot-from',type=Path,required=True)
+    parser.add_argument('--out',type=Path,required=True)
+    args=parser.parse_args()
+    replot(args.replot_from,args.out)

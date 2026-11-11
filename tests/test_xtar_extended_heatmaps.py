@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 import numpy as np
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from xtar_extended_heatmaps import metrics,MODELS
+from xtar_extended_heatmaps import metrics,MODELS,rms_percent_change
 
 
 class ExtendedMetricsTests(unittest.TestCase):
@@ -33,6 +33,12 @@ class ExtendedMetricsTests(unittest.TestCase):
         self.assertEqual(counts['outside_extended_delta'],1)
         self.assertEqual(counts['unsupported_noncore'],1)
         self.assertEqual(counts['blocked'],1)
+
+    def test_previous_percent_change_direction_and_zero_reference(self):
+        self.assertAlmostEqual(rms_percent_change(1.2,1.),20.)
+        self.assertAlmostEqual(rms_percent_change(.8,1.),-20.)
+        self.assertEqual(rms_percent_change(0.,0.),0.)
+        self.assertTrue(np.isnan(rms_percent_change(1.,0.)))
 
     def test_id_and_prediction_failures_are_not_reselection(self):
         a,bundles=self.fixture();bundles[MODELS[2]]['entry']=a['entry'][::-1]

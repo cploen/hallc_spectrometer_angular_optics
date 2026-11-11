@@ -95,8 +95,8 @@ supported noncore are separate; support is determined from training physical
 foil/original-delta/hole coverage. Blocked/unsupported/outside-range counts are
 explicit. All angle residuals are mrad and both position residuals are mm.
 Negative RMS differences indicate improvement. Original delta coordinates and
-membership never change with the candidate. Eight wide figures, the complete
-cell CSV and pooled summary are written, along with local event-level evidence.
+membership never change with the candidate. Six wide figures (RMS change, absolute RMS and bias for each population),
+the complete cell CSV and pooled summary are written, along with local event-level evidence.
 Event-level outputs are retained on ifarm; they are not uploaded by this code.
 
 The user's selected validation design uses the original saved folds, each
@@ -155,3 +155,36 @@ https://github.com/JeffersonLab/hcana/blob/master/src/THcReactionPoint.cxx
 No analyzer defect has been demonstrated. A difference between saved xtar and
 geometric xtarT alone is not evidence of a defect. No messages have been sent
 to Mark, Charles, Josh or anyone else.
+
+
+## Plot-only correction: restore the prior comparison style
+
+The first run's eight figures mixed signed-bias colors, absolute-RMS viridis
+colors, and RMS-change colors in tall per-variable strips. That made blue
+ambiguous and did not preserve the user's established comparison presentation.
+
+The corrected writer restores four variables side by side and three comparison
+rows: completed refit vs oldfit, predictor vs oldfit, predictor vs refit.
+`RMS_change` images use `100*(candidate_RMS/reference_RMS-1)`, `RdBu_r` and fixed
+color limits +/-20%, matching `comparison_plots.py`. Blue always means smaller
+RMS; red always means larger RMS. Printed values are not clipped by the color
+limit. Cells print actual percentage, signed absolute RMS difference (in the
+column's units) and N. A zero reference with nonzero candidate is labeled
+explicitly and colored as degradation instead of dividing by zero.
+
+Absolute RMS and signed bias use neutral grays, with shared per-variable ranges
+across models. Bias shading encodes magnitude; text retains sign. Bias sign is
+not improvement. Text has no colored background boxes. Sparse cells are marked
+with *, and uncovered cells remain blank.
+
+Run the module with `--replot-from <existing reserved_comparison> --out <new
+folder>` to regenerate images from metrics.csv only. This loads no event
+arrays and calls no fitter. The original CSV's SHA256 is checked before and
+after. A separate provenance file records the plotting-code hash. Existing
+plots/results are preserved. The original eight plot files remain evidence of
+the first presentation, not corrected output.
+
+Validation: three metric/sign tests pass. A full six-image synthetic replot
+with both red degradation and blue improvement cells was rendered and visually
+inspected; its source-metrics hash remained unchanged. Synthetic images are
+software checks only and are not experimental results.
