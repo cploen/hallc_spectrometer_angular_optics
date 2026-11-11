@@ -3,7 +3,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from threadpoolctl import threadpool_limits
-from elastic_net import TARGETS, SCALES, scaling, transform
+from elastic_net import TARGETS, SCALES, scaling, transform, response_contract
 from elastic_refit import native
 
 DEFAULTS = dict(beam=4, threads=8, steps=20, patience=3, gain=.001, slack=.005)
@@ -27,7 +27,10 @@ def solve(r, y, selected, rcond):
 
 
 class Folds:
-    def __init__(self,x,y,folds,cells,rcond,threads=8,fit_intercept=True):
+    def __init__(self,x,y,folds,cells,rcond,threads=8,fit_intercept=True,*,targets=TARGETS,scales=SCALES):
+        self.targets,self.scales = response_contract(x,y,targets,scales)
+        if (np.shape(folds) != (len(x),) or np.shape(cells) != (len(x),) or len(set(folds)) < 2):
+            raise ValueError('Invalid training folds/cells')
         self.p,self.n,self.rcond = x.shape[1],len(x),rcond
         self.fit_intercept = fit_intercept
         self.x,self.y,self.folds = x,y,folds
@@ -51,7 +54,7 @@ class Folds:
         for f in self.parts:
             beta,rank,s = solve(f['fit'][:,:self.p],f['fit'][:,self.p+j],selected,self.rcond)
             r = f['score'][:,selected] @ beta-f['score'][:,self.p+j]
-            score += float(r @ r)*(f['state'][3][j]*SCALES[j])**2
+            score += float(r @ r)*(f['state'][3][j]*self.scales[j])**2
             conditions.append(float(s[0]/s[-1]) if len(s) and s[-1] > 0 else 1. if not selected else np.inf)
             ranks.append(rank)
         return dict(mask=selected,terms=len(selected)+int(self.fit_intercept),score=score,condition=max(conditions),
@@ -116,16 +119,18 @@ def search(evaluate,seeds,p,cfg,record):
     return dict(start=start,best=best,chosen=chosen,history=history,stop=reason,evaluated=len(cache))
 
 
-def fit_all(x,y,masks,rcond,fit_intercept=True):
+def fit_all(x,y,masks,rcond,fit_intercept=True,*,targets=TARGETS,scales=SCALES):
     """Final coefficient fit uses all training events and the selected fixed bases."""
+    targets,scales = response_contract(x,y,targets,scales)
+    if len(masks) != len(targets): raise ValueError('Expected one selected basis per response')
     state = scaling(x,y,fit_intercept=fit_intercept)
     z,t = transform(x,y,state)
     coeff,info = [],[]
     for j,selected in enumerate(masks):
         beta,rank,s = solve(z,t[:,j],selected,rcond)
-        if rank != len(selected): raise ValueError(f'Final {TARGETS[j]} basis is rank deficient')
+        if rank != len(selected): raise ValueError(f'Final {targets[j]} basis is rank deficient')
         full = np.zeros(x.shape[1]);full[list(selected)] = beta
         coeff.append(native(full,state,j))
-        info.append(dict(target=TARGETS[j],terms=len(selected)+int(fit_intercept),rank=rank,
+        info.append(dict(target=targets[j],terms=len(selected)+int(fit_intercept),rank=rank,
                          condition=float(s[0]/s[-1]) if len(s) else 1.))
     return np.column_stack(coeff),info

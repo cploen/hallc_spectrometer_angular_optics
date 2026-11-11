@@ -80,12 +80,27 @@ def macro_mse(residual, cells):
     return np.mean([np.mean(residual[cells == c]**2, axis=0) for c in np.unique(cells)], axis=0)
 
 
-def fit_path(x, y, cfg):
+def response_contract(x, y, targets=TARGETS, scales=SCALES):
+    """Explicit native responses and reporting units; never duplicate a target."""
+    targets = tuple(targets)
+    scales = np.asarray(scales, dtype=float)
+    if (not targets or len(set(targets)) != len(targets) or
+            any(not isinstance(t, str) or not t for t in targets)):
+        raise ValueError('Expected distinct response names')
+    if scales.shape != (len(targets),) or not np.isfinite(scales).all() or np.any(scales <= 0):
+        raise ValueError('Expected one positive reporting scale per response')
+    if (x.ndim != 2 or y.ndim != 2 or y.shape != (len(x), len(targets)) or
+            not len(x) or not np.isfinite(x).all() or not np.isfinite(y).all()):
+        raise ValueError('Design/response shape or finite-value contract failed')
+    return targets, scales
+
+
+def fit_path(x, y, cfg, targets=TARGETS):
     """Yield independent-target fits, warming only within one l1 path."""
     gram = np.ascontiguousarray(x.T @ x)
     for l1 in cfg['l1']:
         models = [ElasticNet(l1_ratio=l1, fit_intercept=False, precompute=gram,
-                             warm_start=True, max_iter=cfg['max_iter'], tol=cfg['tol']) for _ in TARGETS]
+                             warm_start=True, max_iter=cfg['max_iter'], tol=cfg['tol']) for _ in targets]
         for alpha in sorted(cfg['alphas'], reverse=True):
             beta, ok, gaps = [], [], []
             for j, model in enumerate(models):
@@ -100,7 +115,11 @@ def fit_path(x, y, cfg):
             yield l1, alpha, np.array(beta).T, ok, gaps
 
 
-def tune(x, y, folds, cells, cfg, fit_intercept=True):
+def tune(x, y, folds, cells, cfg, fit_intercept=True, *, targets=TARGETS, scales=SCALES):
+    targets, scales = response_contract(x, y, targets, scales)
+    if (np.shape(folds) != (len(x),) or np.shape(cells) != (len(x),) or
+            set(folds) != set(range(cfg['folds']))):
+        raise ValueError('Invalid training folds/cells')
     records, supports = [], {}
     baseline = []
     for f in range(cfg['folds']):
@@ -112,14 +131,14 @@ def tune(x, y, folds, cells, cfg, fit_intercept=True):
         residual = design @ raw_coefficients(ls, state)-y[va]
         baseline.append(macro_mse(residual, cells[va]))
         print(f'Elastic validation fold {f+1}/{cfg["folds"]}: {sum(tr)} fit, {sum(va)} validation', flush=True)
-        for l1, alpha, beta, ok, gaps in fit_path(z, t, cfg):
+        for l1, alpha, beta, ok, gaps in fit_path(z, t, cfg, targets):
             errors = macro_mse(design @ raw_coefficients(beta, state)-y[va], cells[va])
-            for j, name in enumerate(TARGETS):
+            for j, name in enumerate(targets):
                 records.append(dict(target=name, fold=f, l1=l1, alpha=alpha, mse=float(errors[j]),
                                     active=int(np.count_nonzero(beta[:, j])), converged=ok[j], dual_gap=gaps[j]))
                 supports[(j, f, l1, alpha)] = beta[:, j] != 0
     choices, summary, frequency = [], [], []
-    for j, name in enumerate(TARGETS):
+    for j, name in enumerate(targets):
         candidates = []
         for l1 in cfg['l1']:
             for alpha in cfg['alphas']:
@@ -141,11 +160,11 @@ def tune(x, y, folds, cells, cfg, fit_intercept=True):
                             alpha_edge=chosen['alpha'] in (min(cfg['alphas']), max(cfg['alphas']))))
     state = scaling(x, y, fit_intercept=fit_intercept)
     z, t = transform(x, y, state)
-    beta = np.zeros((x.shape[1], 3))
-    for l1, alpha, b, ok, gaps in fit_path(z, t, cfg):
+    beta = np.zeros((x.shape[1], len(targets)))
+    for l1, alpha, b, ok, gaps in fit_path(z, t, cfg, targets):
         for j, c in enumerate(choices):
             if (l1, alpha) == (c['l1'], c['alpha']):
-                if not ok[j]: raise ValueError(f'Final {TARGETS[j]} fit did not converge')
+                if not ok[j]: raise ValueError(f'Final {targets[j]} fit did not converge')
                 beta[:, j] = b[:, j]
                 c['final_active'] = int(np.count_nonzero(b[:, j]))
                 c['final_dual_gap'] = gaps[j]
