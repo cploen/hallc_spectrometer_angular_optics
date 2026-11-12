@@ -13,13 +13,18 @@ From this experiment's source directory on ifarm:
 ```bash
 A=/home/cploen/nps_link/ML_HMS_OPTICS_JOINT_SURFACE
 C="$A/HMS_LowMom_LowDelta_2018_Accepted"
-python3 -u xtar_correction.py --checkout "$A" --campaign "$C" \
+B=/u/home/cploen/xtar_refit_2018_20261111
+python3 -u xtar_correction.py --checkout "$B" --campaign "$C" \
   --out /home/cploen/nps_link/xtar_correction_2018_20261112/results \
   --threads 4
 ```
 
 Output must not already exist. Existing fits, event allocations, and results
 are never overwritten. Source code is snapshotted in the new output.
+`B` is the existing source checkout with the geometry-checked `xtarT` loader
+(commit `b184e5ad6c0d96c91135948b429aabae2a9c19a8`); the older campaign checkout
+does not expose `xtarT` through its loader. This command does not run the
+superseded conditional-refit program in that checkout.
 
 ## Frozen protocol
 
